@@ -45,7 +45,7 @@ O script é idempotente — pode rodar de novo sem quebrar nada.
 ## Fluxo
 
 ```
-Etapa 0  Briefing         leitura; ao aceitar, pede nome e e-mail
+Etapa 0  Briefing         leitura; ao aceitar, pede nome e celular
 Fase 0   Definir o campo  nicho, comunidade, 10 temas, assinatura
 Fase 1   Benchmarks       10 canais e os vídeos mais vistos de cada
 Fases 2-6                 bloqueadas por enquanto
