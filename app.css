@@ -732,3 +732,13 @@ button{font:inherit;color:inherit}
 }
 .resposta .linha.empilha .rot{font-size:15px;font-weight:600}
 .resposta .linha.empilha .rot small{font-weight:400}
+
+/* marcadores da prévia da assinatura lidos como espaços a preencher */
+.previa-t .vaga{
+  color:var(--rotulo-3);background:var(--preench);
+  border-radius:6px;padding:.08em .4em;font-size:.94em;
+  white-space:nowrap;
+}
+.previa-t .elo-vaga{
+  color:var(--tinta);font-weight:700;padding:0 .1em;
+}

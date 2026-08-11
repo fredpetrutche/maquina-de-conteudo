@@ -379,9 +379,12 @@
 
   function pintarAssinatura() {
     var n = state.sigNome.trim(), e = state.sigEntrega.trim(), p = state.sigPromessa.trim();
+    // enquanto faltar preencher, o "+" mostra que ali são dois campos
+    // diferentes; com os dois prontos, some e vira frase corrida
+    var elo = (e && p) ? ' ' : ' <span class="elo-vaga">+</span> ';
     $('sigTxt').innerHTML = 'Meu nome é ' +
       (n ? esc(n) : '<span class="vaga">seu nome</span>') + ' e eu ' +
-      (e ? esc(e) : '<span class="vaga">o que você faz</span>') + ' ' +
+      (e ? esc(e) : '<span class="vaga">o que você faz</span>') + elo +
       (p ? esc(p) : '<span class="vaga">a promessa</span>') +
       ' todos os dias. Se inscreve para não perder a próxima.';
     var limpo = ('Meu nome é ' + n + ' e eu ' + e + ' ' + p + ' todos os dias.').trim();
