@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Máquina de Conteúdo — Briefing do Projeto</title>
+<meta name="description" content="Briefing do método de construção de audiência própria com IA. Leia antes de começar.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<style>
+:root{
+  --paper:#faf8f5;
+  --paper-2:#f2eee8;
+  --card:#ffffff;
+  --ink:#1a1714;
+  --ink-2:#4a433c;
+  --ink-3:#7d746a;
+  --line:#e2dbd1;
+  --line-2:#d0c6b8;
+  --accent:#b4451f;
+  --accent-soft:#fbeee8;
+  --accent-line:#e8c4b4;
+  --ok:#2f6b47;
+  --ok-soft:#e9f2ec;
+  --warn:#8a5a12;
+  --warn-soft:#fcf2e0;
+  --shadow:0 1px 2px rgba(26,23,20,.04),0 8px 24px -12px rgba(26,23,20,.14);
+  --serif:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+  --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --wrap:min(68rem,100% - 2.5rem);
+  --measure:min(42rem,100%);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#12100e;
+    --paper-2:#191613;
+    --card:#1c1916;
+    --ink:#f2ede6;
+    --ink-2:#c3bab0;
+    --ink-3:#8d8378;
+    --line:#2c2723;
+    --line-2:#3b342e;
+    --accent:#f0794b;
+    --accent-soft:#2a1a13;
+    --accent-line:#4d2e1f;
+    --ok:#7dc79b;
+    --ok-soft:#152119;
+    --warn:#e0a84e;
+    --warn-soft:#241c0e;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--sans);font-size:clamp(1rem,.97rem + .18vw,1.075rem);
+  line-height:1.65;-webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img,svg{max-width:100%;height:auto}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;line-height:1.15;letter-spacing:-.015em;margin:0}
+p{margin:0 0 1.05em}
+p:last-child{margin-bottom:0}
+strong{font-weight:650;color:var(--ink)}
+em{font-style:italic}
+a{color:var(--accent);text-underline-offset:3px}
+
+.wrap{width:var(--wrap);margin-inline:auto}
+.measure{max-width:var(--measure)}
+
+/* ---------- HERO ---------- */
+.hero{
+  padding:clamp(3.5rem,9vw,7rem) 0 clamp(2.5rem,6vw,4rem);
+  border-bottom:1px solid var(--line);
+  background:
+    radial-gradient(120% 80% at 8% -10%,var(--accent-soft) 0%,transparent 60%),
+    var(--paper);
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.55rem;
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-soft);
+  border:1px solid var(--accent-line);border-radius:99px;
+  padding:.4rem .85rem;margin-bottom:1.6rem;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:99px;background:var(--accent);flex:none}
+.hero h1{font-size:clamp(2.4rem,1.4rem + 4.4vw,4.4rem);letter-spacing:-.03em;margin-bottom:.5rem}
+.hero .lede{
+  font-family:var(--serif);font-size:clamp(1.2rem,1.05rem + .7vw,1.6rem);
+  line-height:1.4;color:var(--ink-2);max-width:34rem;margin-bottom:2.2rem;
+}
+.hero-meta{
+  display:flex;flex-wrap:wrap;gap:.5rem .75rem;align-items:center;
+  font-family:var(--mono);font-size:.74rem;letter-spacing:.05em;color:var(--ink-3);
+}
+.hero-meta span{display:inline-flex;align-items:center;gap:.5rem}
+.hero-meta span+span::before{content:"";width:3px;height:3px;border-radius:99px;background:var(--line-2)}
+
+/* ---------- CALLOUT ---------- */
+.callout{
+  border:1px solid var(--accent-line);background:var(--accent-soft);
+  border-radius:14px;padding:1.35rem 1.5rem;margin:2.5rem 0;
+}
+.callout .k{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);display:block;margin-bottom:.5rem;
+}
+.callout p{color:var(--ink-2)}
+
+/* ---------- SECTIONS ---------- */
+section{padding:clamp(3rem,7vw,5.5rem) 0;border-bottom:1px solid var(--line)}
+.sec-head{margin-bottom:2.5rem}
+.sec-num{
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;color:var(--ink-3);
+  display:block;margin-bottom:.85rem;
+}
+.sec-head h2{font-size:clamp(1.75rem,1.3rem + 1.7vw,2.6rem);margin-bottom:.7rem}
+.sec-head .sub{color:var(--ink-2);max-width:var(--measure);font-size:1.02em}
+
+/* ---------- FUNNEL COMPARISON ---------- */
+.funnels{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:52rem){.funnels{grid-template-columns:1fr 1fr;gap:1.5rem}}
+.funnel{
+  border:1px solid var(--line);border-radius:16px;background:var(--card);
+  padding:1.6rem;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.funnel.bad{border-color:var(--line)}
+.funnel.good{border-color:var(--accent-line)}
+.funnel h3{font-size:1.15rem;margin-bottom:.35rem;font-family:var(--sans);font-weight:650;letter-spacing:-.01em}
+.funnel .tag{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  display:inline-block;padding:.28rem .6rem;border-radius:6px;margin-bottom:.9rem;
+}
+.funnel.bad .tag{background:var(--paper-2);color:var(--ink-3);border:1px solid var(--line)}
+.funnel.good .tag{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}
+.flow{list-style:none;margin:1.1rem 0 1.2rem;padding:0;display:flex;flex-direction:column;gap:.1rem}
+.flow li{
+  display:flex;align-items:flex-start;gap:.7rem;
+  font-size:.94rem;color:var(--ink-2);padding:.42rem 0;
+}
+.flow li .n{
+  font-family:var(--mono);font-size:.68rem;color:var(--ink-3);
+  border:1px solid var(--line);border-radius:5px;
+  width:1.5rem;height:1.5rem;display:grid;place-items:center;flex:none;margin-top:.1rem;
+}
+.funnel.good .flow li .n{border-color:var(--accent-line);color:var(--accent);background:var(--accent-soft)}
+.verdict{
+  border-top:1px dashed var(--line-2);padding-top:.95rem;margin-top:auto;
+  font-size:.9rem;color:var(--ink-2);
+}
+.verdict b{color:var(--ink)}
+.funnel.good .verdict b{color:var(--accent)}
+
+/* ---------- STATS ---------- */
+.stats{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;grid-template-columns:repeat(2,1fr)}
+@media(min-width:46rem){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--card);padding:1.4rem 1.1rem}
+.stat .v{font-family:var(--serif);font-size:clamp(1.5rem,1.2rem + 1.2vw,2.1rem);letter-spacing:-.02em;line-height:1;color:var(--ink);display:block;margin-bottom:.45rem}
+.stat .l{font-size:.79rem;color:var(--ink-3);line-height:1.35}
+.source{font-size:.83rem;color:var(--ink-3);margin-top:1.1rem;font-style:italic}
+
+/* ---------- MATH STRIP ---------- */
+.math{
+  display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .9rem;
+  border:1px solid var(--line);border-radius:14px;background:var(--card);
+  padding:1.3rem 1.5rem;margin-top:1.5rem;font-family:var(--mono);font-size:.9rem;
+}
+.math b{font-family:var(--serif);font-size:1.25rem;font-weight:600;color:var(--accent);letter-spacing:-.01em}
+.math .arrow{color:var(--ink-3)}
+.math .lbl{color:var(--ink-3);font-size:.8rem}
+
+/* ---------- ROADMAP ---------- */
+.road{display:grid;gap:.85rem;grid-template-columns:1fr}
+@media(min-width:40rem){.road{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:64rem){.road{grid-template-columns:repeat(7,1fr);gap:.6rem}}
+.step{
+  border:1px solid var(--line);border-radius:12px;background:var(--card);
+  padding:1rem .9rem;position:relative;
+}
+.step.now{border-color:var(--accent);background:var(--accent-soft);box-shadow:var(--shadow)}
+.step .ph{font-family:var(--mono);font-size:.65rem;letter-spacing:.12em;color:var(--ink-3);display:block;margin-bottom:.4rem}
+.step.now .ph{color:var(--accent)}
+.step .nm{font-weight:650;font-size:.92rem;line-height:1.3;letter-spacing:-.01em;display:block;margin-bottom:.3rem}
+.step .st{font-size:.75rem;color:var(--ink-3);line-height:1.35}
+.step.now .st{color:var(--accent)}
+.road-arrow{display:none}
+@media(min-width:64rem){
+  .road{grid-template-columns:repeat(7,1fr)}
+  .step:not(:last-child)::after{
+    content:"";position:absolute;right:-.42rem;top:50%;width:.24rem;height:.24rem;
+    border-top:1px solid var(--line-2);border-right:1px solid var(--line-2);
+    transform:translateY(-50%) rotate(45deg);
+  }
+}
+.legend{display:flex;flex-wrap:wrap;gap:1.1rem;margin-top:1.4rem;font-size:.82rem;color:var(--ink-3)}
+.legend i{display:inline-block;width:.7rem;height:.7rem;border-radius:3px;margin-right:.45rem;vertical-align:-1px}
+.legend .on{background:var(--accent-soft);border:1px solid var(--accent)}
+.legend .off{background:var(--card);border:1px solid var(--line)}
+
+/* ---------- PHASE BLOCKS ---------- */
+.phase{
+  border:1px solid var(--line);border-radius:18px;background:var(--card);
+  overflow:hidden;margin-bottom:1.5rem;box-shadow:var(--shadow);
+}
+.phase-head{
+  padding:1.6rem 1.6rem 1.4rem;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--paper-2),transparent);
+}
+@media(min-width:46rem){.phase-head{padding:2rem 2.2rem 1.7rem}}
+.phase-id{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);display:block;margin-bottom:.7rem;
+}
+.phase-head h3{font-size:clamp(1.4rem,1.15rem + 1vw,1.95rem);margin-bottom:.55rem}
+.phase-head .goal{color:var(--ink-2);max-width:38rem;margin:0}
+.phase-body{padding:1.6rem}
+@media(min-width:46rem){.phase-body{padding:2rem 2.2rem}}
+.phase-body>*+*{margin-top:1.8rem}
+
+.block-label{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);display:block;margin-bottom:.8rem;
+  padding-bottom:.55rem;border-bottom:1px solid var(--line);
+}
+.steps{list-style:none;margin:0;padding:0;counter-reset:s}
+.steps li{
+  counter-increment:s;position:relative;padding-left:2.35rem;margin-bottom:1rem;
+  color:var(--ink-2);
+}
+.steps li:last-child{margin-bottom:0}
+.steps li::before{
+  content:counter(s);position:absolute;left:0;top:.05rem;
+  font-family:var(--mono);font-size:.72rem;color:var(--accent);
+  background:var(--accent-soft);border:1px solid var(--accent-line);
+  width:1.65rem;height:1.65rem;border-radius:99px;display:grid;place-items:center;
+}
+.steps li b{color:var(--ink);font-weight:650}
+
+.why{
+  border-left:3px solid var(--accent);padding:.15rem 0 .15rem 1.25rem;
+  color:var(--ink-2);
+}
+.why q{font-family:var(--serif);font-style:italic;font-size:1.06em;color:var(--ink);quotes:'"' '"'}
+
+.trap{
+  border:1px solid var(--line);background:var(--paper-2);border-radius:12px;padding:1.15rem 1.3rem;
+}
+.trap .t{
+  display:flex;align-items:baseline;gap:.6rem;font-weight:650;color:var(--ink);
+  margin-bottom:.5rem;font-size:.95rem;
+}
+.trap .t span{color:var(--accent);font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase}
+.trap p{color:var(--ink-2);font-size:.95rem;margin:0}
+
+/* good/bad pairs */
+.gb{display:grid;gap:.75rem;grid-template-columns:1fr}
+@media(min-width:44rem){.gb{grid-template-columns:1fr 1fr;gap:1rem}}
+.gb-col{border:1px solid var(--line);border-radius:12px;padding:1.05rem 1.15rem;background:var(--paper-2)}
+.gb-col.yes{border-color:color-mix(in srgb,var(--ok) 35%,var(--line));background:var(--ok-soft)}
+.gb-col .h{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  display:block;margin-bottom:.7rem;color:var(--ink-3);
+}
+.gb-col.yes .h{color:var(--ok)}
+.gb-col ul{margin:0;padding-left:1.05rem;color:var(--ink-2);font-size:.93rem}
+.gb-col li{margin-bottom:.4rem}
+.gb-col li:last-child{margin-bottom:0}
+
+/* tool table */
+.tools{width:100%;border-collapse:collapse;font-size:.92rem}
+.tools th,.tools td{text-align:left;padding:.7rem .8rem;border-bottom:1px solid var(--line);vertical-align:top}
+.tools th{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:400;
+}
+.tools tr:last-child td{border-bottom:none}
+.tools td:first-child{color:var(--ink);font-weight:650;white-space:nowrap}
+.tools td:last-child{color:var(--ink-2)}
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px}
+
+/* prompt box */
+.prompt{
+  background:var(--paper-2);border:1px solid var(--line);border-radius:12px;
+  padding:1rem 1.15rem;font-family:var(--mono);font-size:.85rem;line-height:1.6;
+  color:var(--ink);white-space:pre-wrap;overflow-x:auto;
+}
+.prompt .cmt{color:var(--ink-3)}
+
+/* ---------- RULES ---------- */
+.rules{display:grid;gap:1rem;grid-template-columns:1fr}
+@media(min-width:48rem){.rules{grid-template-columns:repeat(3,1fr)}}
+.rule{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:1.5rem;box-shadow:var(--shadow)}
+.rule .big{
+  font-family:var(--serif);font-size:2.4rem;line-height:1;letter-spacing:-.03em;
+  color:var(--accent);display:block;margin-bottom:.7rem;
+}
+.rule h3{font-size:1.02rem;font-family:var(--sans);font-weight:650;letter-spacing:-.01em;margin-bottom:.5rem}
+.rule p{font-size:.92rem;color:var(--ink-2);margin:0}
+
+/* ---------- NEXT ---------- */
+.next{
+  border:1px dashed var(--line-2);border-radius:18px;background:var(--paper-2);
+  padding:clamp(1.8rem,4vw,3rem);text-align:center;
+}
+.next .k{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);display:block;margin-bottom:1rem;
+}
+.next h2{font-size:clamp(1.5rem,1.2rem + 1.4vw,2.2rem);margin-bottom:.8rem}
+.next p{color:var(--ink-2);max-width:34rem;margin-inline:auto}
+.pill{
+  display:inline-block;margin-top:1.5rem;padding:.7rem 1.4rem;border-radius:99px;
+  border:1px solid var(--line-2);background:var(--card);color:var(--ink-3);
+  font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+}
+
+/* ---------- FOOTER ---------- */
+footer{padding:3rem 0 4rem;border-bottom:none}
+.foot{
+  display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;align-items:baseline;
+  font-size:.82rem;color:var(--ink-3);
+}
+</style>
+</head>
+<body>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span>Briefing do projeto · Etapa 0</span>
+    <h1>Máquina de Conteúdo</h1>
+    <p class="lede">Como construir uma audiência própria do zero — e passar a ser pago para construir a sua marca, em vez de pagar por ela.</p>
+    <div class="hero-meta">
+      <span>Leitura de ~8 minutos</span>
+      <span>Nenhuma ação necessária ainda</span>
+      <span>Fases 0 a 2</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= INTRO ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01 — Antes de tudo</span>
+      <h2>O que é este documento</h2>
+      <p class="sub">Este é o briefing. Ele existe para você entender o método inteiro antes de executar qualquer coisa.</p>
+    </div>
+
+    <div class="measure">
+      <p>O que vem a seguir não é uma lista de dicas de conteúdo. É um <strong>processo com ordem fixa</strong>, testado e documentado, que leva alguém de zero a uma audiência própria de centenas de milhares de pessoas — sem comprar tráfego.</p>
+      <p>A ordem importa mais do que qualquer etapa isolada. Cada fase existe porque a fase anterior gerou o insumo dela. Pular a Fase 2 para ir direto na Fase 3, por exemplo, simplesmente não funciona: a Fase 3 se alimenta do que a Fase 2 produz.</p>
+      <p>Por isso este briefing vem antes do trabalho. <strong>Leia inteiro, não execute nada ainda.</strong> Quando você terminar, a gente abre a próxima etapa e começa a coletar as informações necessárias para montar o seu caso.</p>
+
+      <div class="callout">
+        <span class="k">O que este briefing cobre</span>
+        <p>As <strong>Fases 0, 1 e 2</strong> — as três que você vai executar primeiro e que produzem os primeiros resultados. As Fases 3 a 6 estão mapeadas no fim da página para você ver o arco completo, mas só serão detalhadas quando você chegar nelas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OBJETIVO ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02 — O objetivo</span>
+      <h2>Inverter o funil</h2>
+      <p class="sub">Praticamente todo negócio hoje <em>aluga</em> audiência. O objetivo deste projeto é fazer você virar dono da sua.</p>
+    </div>
+
+    <div class="funnels">
+      <div class="funnel bad">
+        <span class="tag">O que quase todo mundo faz</span>
+        <h3>Comprar audiência</h3>
+        <ul class="flow">
+          <li><span class="n">1</span><span>Compra tráfego pago</span></li>
+          <li><span class="n">2</span><span>Adquire leads</span></li>
+          <li><span class="n">3</span><span>Vende para esses leads</span></li>
+          <li><span class="n">4</span><span>Pega a grana e recompra tráfego</span></li>
+        </ul>
+        <p class="verdict">O custo cresce junto com o resultado. No dia em que você para de pagar, o fluxo para junto. Você nunca foi dono de nada — <b>estava alugando</b>.</p>
+      </div>
+
+      <div class="funnel good">
+        <span class="tag">O que este método faz</span>
+        <h3>Ser dono da audiência</h3>
+        <ul class="flow">
+          <li><span class="n">1</span><span>Investe em <strong>conteúdo</strong></span></li>
+          <li><span class="n">2</span><span>A plataforma distribui de graça</span></li>
+          <li><span class="n">3</span><span>Vira audiência, lead e venda</span></li>
+          <li><span class="n">4</span><span>Reinveste em conteúdo melhor</span></li>
+        </ul>
+        <p class="verdict">O custo por vídeo é o mesmo no primeiro dia e no milésimo — <b>o que cresce é o retorno</b>. E, a partir de certo ponto, marcas e eventos passam a te pagar para produzir.</p>
+      </div>
+    </div>
+
+    <div class="callout measure" style="margin-top:2rem">
+      <span class="k">A frase que resume</span>
+      <p><strong>50% de todo o dinheiro que circula na internet é compra de audiência.</strong> A proposta aqui é sair do lado que compra e ir para o lado que vende — inclusive vendendo para você mesmo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROVA ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03 — A prova</span>
+      <h2>O método já rodou</h2>
+      <p class="sub">Estes são os números do caso original documentado, que serve de base para este processo.</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="v">800 mil</span><span class="l">seguidores no Instagram, partindo do zero</span></div>
+      <div class="stat"><span class="v">&lt; 12 meses</span><span class="l">tempo até chegar lá</span></div>
+      <div class="stat"><span class="v">R$ 0</span><span class="l">investidos em tráfego pago</span></div>
+      <div class="stat"><span class="v">~80%</span><span class="l">margem da operação de conteúdo</span></div>
+    </div>
+
+    <div class="math">
+      <span class="lbl">A conta que importa</span>
+      <b>1.000</b><span>seguidores</span>
+      <span class="arrow">→</span>
+      <b>100</b><span>leads</span>
+      <span class="arrow">→</span>
+      <b>6</b><span>clientes</span>
+    </div>
+
+    <p class="source measure">Caso de referência: Fernando Miranda (CEO da Stage, sócio conselheiro da V4 Company). Números declarados por ele em aula gravada. O processo abaixo é a modelagem desse método — as etapas, as ferramentas e as regras que ele usou, reorganizadas para serem replicadas.</p>
+  </div>
+</section>
+
+<!-- ================= MAPA ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04 — O caminho</span>
+      <h2>As sete etapas</h2>
+      <p class="sub">Você vai executar as três primeiras agora. As outras destravam conforme os resultados aparecem.</p>
+    </div>
+
+    <div class="road">
+      <div class="step now"><span class="ph">Fase 0</span><span class="nm">Definir o campo</span><span class="st">Agora</span></div>
+      <div class="step now"><span class="ph">Fase 1</span><span class="nm">Minerar benchmarks</span><span class="st">Agora</span></div>
+      <div class="step now"><span class="ph">Fase 2</span><span class="nm">Replicar o validado</span><span class="st">Agora</span></div>
+      <div class="step"><span class="ph">Fase 3</span><span class="nm">Retroalimentar a IA</span><span class="st">Depois</span></div>
+      <div class="step"><span class="ph">Fase 4</span><span class="nm">Travar o formato</span><span class="st">Depois</span></div>
+      <div class="step"><span class="ph">Fase 5</span><span class="nm">Industrializar</span><span class="st">Depois</span></div>
+      <div class="step"><span class="ph">Fase 6</span><span class="nm">Monetizar</span><span class="st">Depois</span></div>
+    </div>
+
+    <div class="legend">
+      <span><i class="on"></i>Detalhado neste briefing</span>
+      <span><i class="off"></i>Destrava mais à frente</span>
+    </div>
+
+    <div class="callout measure" style="margin-top:2.2rem">
+      <span class="k">Por que só três agora</span>
+      <p>A Fase 3 precisa dos seus próprios vídeos virais como matéria-prima — e eles só existem depois da Fase 2. A Fase 4 precisa que você tenha testado formatos suficientes para saber qual é o seu. <strong>Não dá para antecipar sem quebrar o método.</strong></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FASE 0 ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">05 — Primeira etapa</span>
+      <h2>Fase 0 · Definir o campo</h2>
+    </div>
+
+    <article class="phase">
+      <div class="phase-head">
+        <span class="phase-id">Fase 0</span>
+        <h3>Escolher o tamanho da porta de entrada</h3>
+        <p class="goal">Antes de produzir qualquer coisa, três decisões precisam estar tomadas: onde você joga, sobre o que você fala e como você se apresenta.</p>
+      </div>
+
+      <div class="phase-body">
+        <div>
+          <span class="block-label">O que você vai fazer</span>
+          <ol class="steps">
+            <li><b>Definir macro-nicho e subnicho.</b> Duas camadas, e para por aí. Exemplo: macro-nicho <em>negócios</em>, subnicho <em>mulheres de negócios</em>. Não desça para a terceira camada.</li>
+            <li><b>Listar 10 grandes temas.</b> Temas amplos e pesquisáveis, não o seu método. "Delegação", "lucro", "trabalhar menos e ganhar mais" — coisas que alguém digitaria no YouTube.</li>
+            <li><b>Escrever a sua assinatura.</b> A frase fixa que fecha todo vídeo, na fórmula: <em>"Meu nome é [NOME] e eu [ENTREGA] [PROMESSA] todos os dias. Se inscreve para não perder a próxima."</em></li>
+          </ol>
+        </div>
+
+        <div>
+          <span class="block-label">Por que funciona assim</span>
+          <div class="why">
+            <p>O algoritmo precisa decidir <strong>em milissegundos</strong> para quem empurrar o seu vídeo. "Mulher empresária que tem funcionários e quer sair do operacional" é um ICP de venda excelente — e um sinal ilegível para a plataforma. Recorte fino demais mata a distribuição antes de o conteúdo ter chance.</p>
+            <p>Sobre os 10 temas: <q>a gente nunca sabe o que vai viralizar.</q> No caso original, o autor tinha certeza de que cresceria falando de estratégia de marketing e lançamento. Flopou. O que estourou foi <strong>história de grandes empresas</strong> — que nem estava na lista inicial. Cada tema é um ponto de teste, e a taxa de acerto é baixa. Dez temas também viram dez buscas diferentes na Fase 1: dez poços de referência em vez de um.</p>
+          </div>
+        </div>
+
+        <div>
+          <span class="block-label">A assinatura: errado × certo</span>
+          <div class="gb">
+            <div class="gb-col">
+              <span class="h">✕ Viciado no método</span>
+              <ul>
+                <li>"sou mentora de mulheres empresárias e ajudo a saírem do operacional"</li>
+                <li>"ensino mulheres a empreender" <em>(elas já empreendem)</em></li>
+                <li>"ensino empreendedorismo feminino com mais leveza"</li>
+              </ul>
+            </div>
+            <div class="gb-col yes">
+              <span class="h">✓ Topo de funil</span>
+              <ul>
+                <li>"ensino mulheres a terem mais lucro todos os dias"</li>
+                <li>"analiso as melhores estratégias de negócio do mundo todos os dias"</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="trap">
+          <div class="t"><span>Erro fatal</span> Descrever o processo em vez do resultado.</div>
+          <p>O público não quer saber como você faz — quer saber o que ele ganha. E corte redundância: se você já disse "mulheres", não precisa dizer "feminino". Cada palavra a mais reduz a chance de a pessoa terminar de ouvir.</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= FASE 1 ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">06 — Segunda etapa</span>
+      <h2>Fase 1 · Minerar benchmarks</h2>
+    </div>
+
+    <article class="phase">
+      <div class="phase-head">
+        <span class="phase-id">Fase 1</span>
+        <h3>Descobrir o que é conteúdo bom — com dados, não com opinião</h3>
+        <p class="goal">Você vai montar um acervo de vídeos que já provaram funcionar no seu nicho, e extrair o texto de cada um.</p>
+      </div>
+
+      <div class="phase-body">
+        <div>
+          <span class="block-label">O que você vai fazer</span>
+          <ol class="steps">
+            <li><b>Buscar cada um dos 10 temas no YouTube, em inglês.</b> Depois aplicar o filtro <em>Contagem de visualizações</em>. O filtro ordena o nicho inteiro por prova social acumulada.</li>
+            <li><b>Selecionar 10 canais e os 10 vídeos mais vistos de cada.</b> Para vídeos curtos, entre no canal → aba <em>Shorts</em> → ordenar por <em>Populares</em>: sai o ranking histórico daquele criador.</li>
+            <li><b>Extrair a transcrição de cada vídeo escolhido.</b> É o texto que interessa, não a imagem.</li>
+          </ol>
+        </div>
+
+        <div>
+          <span class="block-label">Por que buscar fora do Brasil</span>
+          <div class="why">
+            <p>Três razões. O mercado americano e europeu tem <strong>volume muito maior</strong>, então um vídeo que viralizou lá passou por um teste mais duro do que um vídeo que viralizou aqui. O conteúdo <strong>ainda não circulou no Brasil</strong>, então a sua versão parece novidade, não cópia. E a barreira de língua acabou — a IA traduz e adapta sem você falar o idioma.</p>
+            <p>A frase que sustenta a fase inteira: <q>talvez você não tenha vídeo viral porque você não tem bons benchmarks.</q></p>
+          </div>
+        </div>
+
+        <div>
+          <span class="block-label">Ferramentas</span>
+          <div class="tbl-scroll">
+            <table class="tools">
+              <thead><tr><th>Ferramenta</th><th>Quando usar</th><th>O que faz</th></tr></thead>
+              <tbody>
+                <tr><td>Eightify</td><td>Vídeo longo do YouTube</td><td>Extensão de navegador — transforma o vídeo em texto direto na página</td></tr>
+                <tr><td>ssyoutube</td><td>Short ou vídeo sem transcrição</td><td>Baixa o arquivo. 360p é suficiente: você quer o texto, não a imagem</td></tr>
+                <tr><td>Cockatoo</td><td>Depois de baixar</td><td>Upload do vídeo → transcrição pronta em cerca de 1 minuto</td></tr>
+                <tr><td>ChatGPT</td><td>Em paralelo, para ampliar a lista</td><td>Pesquisa profunda para mapear canais de fora que você não conhece</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <span class="block-label">Prompt de pesquisa</span>
+          <div class="prompt">Busque grandes canais de [TEMA] da gringa.
+Europa, China, Índia, Estados Unidos, etc.
+Não me pergunte mais nada.
+
+<span class="cmt">// a última linha evita 10 minutos de ping-pong com o modelo</span></div>
+        </div>
+
+        <div class="trap">
+          <div class="t"><span>Erro fatal</span> Escolher os canais de que você gosta.</div>
+          <p>Você não está montando uma lista de inspiração. Está montando uma lista de <strong>vídeos que já ganharam</strong> — o critério é número, não gosto. E descarte vídeos curtos demais: sem estrutura suficiente para copiar, eles não servem de benchmark. Você quer roteiro, não frase solta.</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= FASE 2 ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">07 — Terceira etapa</span>
+      <h2>Fase 2 · Replicar o validado</h2>
+    </div>
+
+    <article class="phase">
+      <div class="phase-head">
+        <span class="phase-id">Fase 2</span>
+        <h3>Copiar a estrutura do que já funciona — sem tempero</h3>
+        <p class="goal">Esta é a fase que separa quem executa o método de quem só concorda com ele. É também a mais desconfortável.</p>
+      </div>
+
+      <div class="phase-body">
+        <div>
+          <span class="block-label">O que você vai fazer</span>
+          <ol class="steps">
+            <li><b>Transformar cada transcrição em roteiro.</b> Um roteiro de <strong>até 3 minutos</strong>, adaptado ao seu tema, pronto para ser lido.</li>
+            <li><b>Gravar lendo no teleprompter.</b> Palavra por palavra. Sem improviso, sem "vou dar a minha versão".</li>
+            <li><b>Publicar em volume e medir.</b> No começo, três por dia. Anotar de cada um: visualizações, quantos pularam, quantos seguidores novos.</li>
+          </ol>
+        </div>
+
+        <div>
+          <span class="block-label">Os dois prompts</span>
+          <div class="prompt">Transforme o roteiro abaixo em um vídeo viral de até 3 minutos.
+
+[colar a transcrição]</div>
+          <div class="prompt" style="margin-top:.7rem">Só o texto a ser lido no teleprompter.
+
+<span class="cmt">// sem esta segunda mensagem a IA devolve marcação de cena
+// e indicação de corte, e você perde tempo limpando</span></div>
+        </div>
+
+        <div>
+          <span class="block-label">A regra dos 3 minutos não é estilo — é distribuição</span>
+          <div class="why">
+            <p>Vídeos acima de ~3 minutos o Instagram entrega quase só para quem <strong>já te segue</strong>. Num vídeo longo de 13 minutos do caso original, apenas <strong>8%</strong> do alcance veio de não-seguidores. Num vídeo curto: <strong>84%</strong>.</p>
+            <p>Ou seja: <strong>curto é máquina de aquisição, longo é aprofundamento</strong> com quem já chegou. Nesta fase você está adquirindo. Fique no curto.</p>
+          </div>
+        </div>
+
+        <div>
+          <span class="block-label">"Mas então minha marca não é feita das minhas ideias?"</span>
+          <div class="why">
+            <p>Essa pergunta foi feita ao vivo, na aula original, e a resposta é a parte mais importante do método.</p>
+            <p>Primeiro: talvez as suas ideias sejam ruins — e é exatamente por isso que elas não viralizam. Insistir nelas é empurrar uma pedra montanha acima quando dá para empurrar montanha abaixo.</p>
+            <p>Segundo, e mais estrutural: <strong>audiência vem antes de mensagem</strong>. A analogia usada é João Batista e Jesus. Os dois tinham mensagem; um pregou no deserto, o outro caminhou espalhando para multidões. Antes de ter audiência, você é só alguém gritando no vento.</p>
+            <p>A cópia é <strong>andaime, não prédio</strong>. No caso original, hoje 100% dos vídeos são autorais — e são autorais justamente porque agora existe alguém do outro lado querendo ouvir.</p>
+          </div>
+        </div>
+
+        <div class="trap">
+          <div class="t"><span>Erro fatal</span> Melhorar o roteiro antes de ter dado.</div>
+          <p>A tentação de editorializar, suavizar ou "deixar com a sua cara" é o que faz esta fase falhar. O roteiro é o ativo: no caso original, o mesmo roteiro viralizou em <strong>três canais diferentes</strong> — o original, o dele e o de um terceiro que ele pediu para gravar. Execute primeiro, personalize depois.</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================= REGRAS ================= -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">08 — Inegociável</span>
+      <h2>Três regras que não se quebram</h2>
+      <p class="sub">Valem desde o primeiro vídeo, em todas as fases.</p>
+    </div>
+
+    <div class="rules">
+      <div class="rule">
+        <span class="big">3s</span>
+        <h3>Os primeiros três segundos decidem tudo</h3>
+        <p>É a métrica que a plataforma mais valoriza. A taxa de pessoas que pulam o seu vídeo precisa ficar <strong>abaixo de 30%</strong> — a média do mercado é 70 a 80%. Todo o esforço de abertura existe por causa disso.</p>
+      </div>
+      <div class="rule">
+        <span class="big">≠</span>
+        <h3>Média é mentira</h3>
+        <p>Um vídeo trouxe 35 mil seguidores; a maioria trouxe 10 ou 12. A média diz "100 por vídeo" e está errada. Você não otimiza pela média — <strong>você identifica e clona os pontos fora da curva</strong>.</p>
+      </div>
+      <div class="rule">
+        <span class="big">1×</span>
+        <h3>Um vídeo por dia, e pare quando acertar</h3>
+        <p>O Instagram não mostra dois vídeos recomendados seus para a mesma pessoa no mesmo dia. Quando um vídeo estiver viralizando, <strong>não poste por 2 ou 3 dias</strong> — o próximo canibaliza o alcance do atual.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PRÓXIMO ================= -->
+<section>
+  <div class="wrap">
+    <div class="next">
+      <span class="k">Fim do briefing</span>
+      <h2>A próxima etapa abre em seguida</h2>
+      <p>Agora que você entendeu o processo, o passo seguinte é montar o <strong>seu</strong> caso: definir o seu nicho, os seus dez temas e a sua assinatura — para a gente validar antes de você produzir qualquer vídeo.</p>
+      <span class="pill">Etapa 1 · Coleta de informações — em breve</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>Máquina de Conteúdo — Briefing do projeto</span>
+    <span>Etapa 0 de 7 · Fases 0–2</span>
+  </div>
+</footer>
+
+</body>
+</html>
