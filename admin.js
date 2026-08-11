@@ -162,15 +162,18 @@
       (a ? '<p class="corpo" style="margin:0">' + esc(a) + '</p>'
          : '<p class="sub" style="color:var(--rotulo-3);margin:0">não preencheu</p>') + '</div>';
 
-    var canais = (d.canais || []).filter(function (c) { return c && (c.nome || '').trim(); });
-    var tv = (d.canais || []).reduce(function (n, c) {
-      return n + String((c && c.videos) || '').split('\n').filter(function (l) { return l.trim(); }).length;
-    }, 0);
+    var vids = (d.videos || []).filter(function (v) { return v && v.canal; });
+    var porCanal = {};
+    vids.forEach(function (v) {
+      var k = v.canalUrl || v.canal;
+      (porCanal[k] = porCanal[k] || { nome: v.canal, url: v.canalUrl, n: 0 }).n++;
+    });
+    var canais = Object.keys(porCanal).map(function (k) { return porCanal[k]; });
+    var tv = vids.length;
     h += '<div class="det-s"><h4>Benchmarks — ' + canais.length + ' canais, ' + tv + ' vídeos</h4>' +
       (canais.length
         ? '<ul class="lista-c">' + canais.map(function (c) {
-            var nv = String(c.videos || '').split('\n').filter(function (l) { return l.trim(); }).length;
-            return '<li><b>' + esc(c.nome) + '</b><s>' + esc(c.url || 'sem link') + ' · ' + nv + ' vídeos</s></li>';
+            return '<li><b>' + esc(c.nome) + '</b><s>' + esc(c.url || 'sem link') + ' · ' + c.n + ' vídeos</s></li>';
           }).join('') + '</ul>'
         : '<p class="sub" style="color:var(--rotulo-3);margin:0">não preencheu</p>') + '</div>';
 
@@ -186,10 +189,10 @@
     var ls = fichas.map(function (f) {
       var d = f.dados || {};
       var temas = (d.temas || []).filter(function (t) { return t && t.trim(); });
-      var canais = (d.canais || []).filter(function (c) { return c && (c.nome || '').trim(); });
-      var vids = (d.canais || []).reduce(function (n, c) {
-        return n + String((c && c.videos) || '').split('\n').filter(function (l) { return l.trim(); }).length;
-      }, 0);
+      var lista = (d.videos || []).filter(function (v) { return v && v.canal; });
+      var cs = {}; lista.forEach(function (v) { cs[v.canalUrl || v.canal] = 1; });
+      var canais = Object.keys(cs);
+      var vids = lista.length;
       return [f.nome, "'" + (f.telefone || ''), f.etapa, f.progresso, d.comunidade || '', d.comunidadeBandeira || '',
         d.macroNicho || '', d.subNicho || '', temas.join(' | '), canais.length, vids,
         f.atualizado_em].map(q).join(',');

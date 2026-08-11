@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608111500">
+<link rel="stylesheet" href="app.css?v=202608112040">
 </head>
 <body>
 
@@ -571,38 +571,58 @@ Não me pergunte mais nada.
       <div class="larg corpo">
         <div class="topo-grande">
           <span class="eyebrow">Fase 1</span>
-          <h1>Minerar benchmarks</h1>
-          <p class="abre">Monte o acervo de vídeos que já provaram funcionar. O critério é número, não gosto.</p>
+          <h1>Agora as referências</h1>
+          <p class="abre">Cole os links dos vídeos. O resto eu descubro sozinho — canal, título e agrupamento.</p>
         </div>
 
-        <div class="destaque">
-          <span class="k">Como encontrar</span>
-          <p>Busque cada tema <b>em inglês</b> no YouTube e aplique o filtro <b>Contagem de visualizações</b>. Para vídeos curtos: entre no canal, aba Shorts, ordenar por Populares.</p>
+        <div class="pergunta">
+          <span class="p-passo"><i>1</i>Onde procurar</span>
+          <h2 class="p-titulo" id="titF1">Busque os seus temas em inglês, no YouTube</h2>
+          <div class="p-fala">
+            <p>Digite o tema <b>em inglês</b> na busca do YouTube e aplique o filtro <b>Contagem de visualizações</b>. Ele ordena o nicho inteiro por prova social — o que está no topo já ganhou.</p>
+            <p>Para vídeos curtos, entre no canal, vá na aba <b>Shorts</b> e ordene por <b>Populares</b>: sai o ranking histórico daquele criador.</p>
+            <p>O critério aqui é número, não gosto. Você não está montando uma lista de inspiração — está montando uma lista do que já funcionou.</p>
+          </div>
         </div>
 
-        <div class="grupo">
-          <div class="sec-linha">
-            <span class="sec-rot">Os canais</span>
+        <div class="pergunta">
+          <span class="p-passo"><i>2</i>Colar</span>
+          <h2 class="p-titulo">Cole os links aqui</h2>
+          <div class="p-fala">
+            <p>Um por linha, do jeito que vier — <span class="mono" style="font-size:.9em">watch</span>, <span class="mono" style="font-size:.9em">youtu.be</span>, <span class="mono" style="font-size:.9em">shorts</span>, tanto faz. Pode colar tudo de uma vez.</p>
+            <p>Eu leio cada link, descubro de que canal é e junto sozinho. Você não precisa digitar nome nem link de canal.</p>
+          </div>
+          <div class="colar">
+            <textarea id="colaLinks" rows="5" placeholder="https://www.youtube.com/watch?v=...
+https://youtu.be/...
+https://www.youtube.com/shorts/..."></textarea>
+            <div class="colar-pe">
+              <span id="colaEstado" class="sub" style="color:var(--rotulo-2)"></span>
+              <button class="bt forte" id="btLer">Ler os links</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pergunta">
+          <div class="sec-linha" style="padding-left:0;padding-right:0">
+            <span class="p-passo" style="margin-bottom:0"><i>3</i>O que eu encontrei</span>
             <span class="medidor" id="medCanais"><span class="b"><i></i></span><span class="v">0/10</span></span>
           </div>
-          <div id="canaisCx"></div>
-          <button class="bt simples" id="btAddCanal" style="margin-top:.4rem">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Adicionar canal
-          </button>
-          <span class="sec-nota" id="notaVideos">Cole os links dos vídeos mais vistos de cada canal, um por linha.</span>
+          <div id="achados"></div>
+          <div id="naoLidos"></div>
+          <span class="sec-nota" id="notaVideos">Meta: 10 canais, com os 10 vídeos mais vistos de cada.</span>
         </div>
 
         <div class="grupo">
           <span class="sec-rot">Próximo passo</span>
           <div class="ilha">
             <div class="linha empilha">
-              <span class="rot">Extrair a transcrição de cada vídeo<small>O texto de cada vídeo é o que vira roteiro na Fase 2.</small></span>
+              <span class="rot">Extrair a transcrição de cada vídeo<small>O texto de cada um é o que vira roteiro na Fase 2.</small></span>
               <button class="bt forte cheio" id="btTranscrever" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                 Extrair transcrições
               </button>
-              <span class="ex" id="notaTransc">Importe pelo menos um vídeo para liberar.</span>
+              <span class="ex" id="notaTransc">Cole pelo menos um vídeo para liberar.</span>
             </div>
           </div>
         </div>
@@ -619,7 +639,7 @@ Não me pergunte mais nada.
               <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
           </div>
-          <span class="sec-nota">Tudo o que você preenche já é salvo automaticamente. Isto aqui é só para o caso de você querer enviar por conta própria.</span>
+          <span class="sec-nota">Tudo o que você cola já é salvo automaticamente. Isto é só para o caso de você querer enviar por conta própria.</span>
         </div>
 
         <div class="rodape-nav">
@@ -697,6 +717,6 @@ Não me pergunte mais nada.
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="app.js?v=202608111500"></script>
+<script src="app.js?v=202608112040"></script>
 </body>
 </html>

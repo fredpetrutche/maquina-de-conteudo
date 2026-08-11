@@ -742,3 +742,69 @@ button{font:inherit;color:inherit}
 .previa-t .elo-vaga{
   color:var(--tinta);font-weight:700;padding:0 .1em;
 }
+
+/* ============================================================
+   FASE 1 — colar links e deixar o app organizar
+   ============================================================ */
+.colar{
+  background:var(--ilha);border-radius:var(--r-ilha);padding:.9rem 1rem;margin-bottom:.75rem;
+}
+.colar textarea{
+  width:100%;border:0;background:none;padding:0;resize:vertical;min-height:5.5rem;
+  font-family:var(--mono);font-size:13px;letter-spacing:0;line-height:1.7;color:var(--rotulo);
+}
+.colar textarea:focus{outline:none}
+.colar textarea::placeholder{color:var(--rotulo-3)}
+.colar-pe{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  margin-top:.7rem;padding-top:.7rem;border-top:.5px solid var(--sep);flex-wrap:wrap;
+}
+
+.lendo{
+  display:inline-flex;align-items:center;gap:.45rem;font-size:13px;color:var(--tinta);
+}
+.lendo .giro{
+  width:.9rem;height:.9rem;border:2px solid var(--tinta-fraca);border-top-color:var(--tinta);
+  border-radius:99px;animation:gira .7s linear infinite;flex:none;
+}
+@keyframes gira{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.lendo .giro{animation:none}}
+
+/* canal descoberto */
+.achado{background:var(--ilha);border-radius:var(--r-ilha);margin-bottom:.6rem;overflow:hidden}
+.achado-h{display:flex;align-items:center;gap:.7rem;padding:.75rem 1rem;position:relative}
+.achado-h .av{
+  width:2rem;height:2rem;flex:none;border-radius:99px;background:var(--tinta);color:#fff;
+  display:grid;place-items:center;font-size:14px;font-weight:600;
+}
+.achado.completo .achado-h .av{background:var(--verde)}
+.achado-t{flex:1;min-width:0}
+.achado-t b{display:block;font-size:16px;font-weight:600;letter-spacing:-.018em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.achado-t a{display:block;font-size:12px;color:var(--rotulo-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.achado-n{
+  font-size:13px;color:var(--rotulo-2);font-variant-numeric:tabular-nums;flex:none;
+  background:var(--preench);border-radius:99px;padding:.2rem .55rem;
+}
+.achado.completo .achado-n{background:var(--verde-fraco);color:var(--verde)}
+.achado-v{list-style:none;margin:0;padding:0}
+.achado-v li{
+  display:flex;align-items:center;gap:.6rem;padding:.5rem 1rem;position:relative;font-size:14px;
+}
+.achado-v li::before{content:"";position:absolute;top:0;left:1rem;right:0;height:.5px;background:var(--sep)}
+.achado-v .ord{font-size:12px;color:var(--rotulo-3);font-variant-numeric:tabular-nums;width:1.2rem;flex:none}
+.achado-v .tit{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--rotulo-2)}
+.achado-v .x{
+  width:1.5rem;height:1.5rem;flex:none;border:0;background:none;border-radius:99px;
+  color:var(--rotulo-3);cursor:pointer;display:grid;place-items:center;
+}
+.achado-v .x:hover{color:var(--vermelho);background:var(--preench)}
+.achado-v .x svg{width:.85rem;height:.85rem}
+
+.nao-lidos{background:rgba(255,149,0,.10);border-radius:var(--r-ilha);padding:.85rem 1rem;margin-bottom:.6rem}
+.nao-lidos .k{font-size:13px;font-weight:600;color:var(--laranja);display:block;margin-bottom:.4rem}
+.nao-lidos ul{margin:0;padding-left:1.1rem;font-size:13px;color:var(--rotulo-2);line-height:1.6}
+.nao-lidos li{word-break:break-all}
+
+/* trechos de código dentro do texto corrido */
+.mono{font-family:var(--mono);font-size:.92em;letter-spacing:0;
+  background:var(--preench);border-radius:5px;padding:.1em .35em}

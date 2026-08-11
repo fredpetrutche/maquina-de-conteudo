@@ -38,10 +38,9 @@
       macroNicho: '', subNicho: '',
       comunidade: '', comunidadeBandeira: '', comunidadeCausa: '',
       temas: [], sigNome: '', sigEntrega: '', sigPromessa: '',
-      canais: []
+      videos: []
     };
     for (var i = 0; i < TEMAS_INICIAIS; i++) s.temas.push('');
-    s.canais.push({ nome: '', url: '', videos: '' });
     return s;
   }
 
@@ -93,11 +92,25 @@
   function cheios(arr) {
     return arr.filter(function (t) { return String(t || '').trim(); }).length;
   }
-  function canaisOk() {
-    return state.canais.filter(function (c) { return c.nome.trim() && c.url.trim(); }).length;
+  function totalVideos() { return state.videos.length; }
+
+  /* agrupa os vídeos pelo canal que o YouTube devolveu */
+  function agrupar() {
+    var mapa = {}, ordem = [];
+    state.videos.forEach(function (v, i) {
+      var chave = v.canalUrl || v.canal || '';
+      if (!chave) return;
+      if (!mapa[chave]) {
+        mapa[chave] = { nome: v.canal || chave, url: v.canalUrl || '', videos: [] };
+        ordem.push(chave);
+      }
+      mapa[chave].videos.push({ v: v, i: i });
+    });
+    return ordem.map(function (k) { return mapa[k]; });
   }
-  function totalVideos() {
-    return state.canais.reduce(function (n, c) { return n + linhas(c.videos).length; }, 0);
+  function canaisOk() { return agrupar().length; }
+  function naoLidos() {
+    return state.videos.filter(function (v) { return v.estado === 'erro'; });
   }
 
   /* ---------- servidor ---------- */
@@ -173,10 +186,24 @@
     if (Array.isArray(d.temas) && d.temas.length) {
       state.temas = d.temas.slice(0, ALVO_TEMAS).map(function (t) { return t || ''; });
     }
-    if (Array.isArray(d.canais) && d.canais.length) {
-      state.canais = d.canais.slice(0, ALVO_CANAIS).map(function (c) {
-        c = c || {};
-        return { nome: c.nome || '', url: c.url || '', videos: c.videos || '' };
+    if (Array.isArray(d.videos)) {
+      state.videos = d.videos.filter(Boolean).map(function (v) {
+        return {
+          url: v.url || '', id: v.id || '', titulo: v.titulo || '',
+          canal: v.canal || '', canalUrl: v.canalUrl || '', estado: v.estado || 'novo'
+        };
+      });
+    } else if (Array.isArray(d.canais)) {
+      // formato antigo: canal com um bloco de links soltos
+      d.canais.forEach(function (c) {
+        if (!c) return;
+        linhas(c.videos).forEach(function (u) {
+          state.videos.push({
+            url: u, id: idDoVideo(u) || '', titulo: '',
+            canal: c.nome || '', canalUrl: c.url || '',
+            estado: c.nome ? 'ok' : 'novo'
+          });
+        });
       });
     }
   }
@@ -199,11 +226,7 @@
         cheios(state.temas) >= ALVO_TEMAS &&
         state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim());
     }
-    if (id === 'fase1') {
-      return canaisOk() >= ALVO_CANAIS && state.canais.every(function (c) {
-        return !c.nome.trim() || linhas(c.videos).length >= 1;
-      });
-    }
+    if (id === 'fase1') return canaisOk() >= ALVO_CANAIS;
     return false;
   }
 
@@ -394,42 +417,156 @@
   }
 
   /* ---------- Fase 1: canais ---------- */
-  function pintarCanais() {
-    var h = '';
-    state.canais.forEach(function (c, i) {
-      var nv = linhas(c.videos).length;
-      var full = c.nome.trim() && c.url.trim() && nv >= 1;
-      h += '<div class="canal' + (full ? ' cheio' : '') + (abertos[i] ? ' aberto' : '') + '" data-canal="' + i + '">' +
-        '<button class="canal-h" data-abrir="' + i + '" aria-expanded="' + !!abertos[i] + '">' +
-        '<span class="canal-n">' + (full ? '✓' : i + 1) + '</span>' +
-        '<span class="canal-t"><b class="' + (c.nome.trim() ? '' : 'vazio') + '">' +
-        esc(c.nome.trim() || 'Canal ' + (i + 1)) + '</b>' +
-        '<s>' + nv + ' de ' + ALVO_VIDEOS + ' vídeos</s></span>' + IC_SETA + '</button>' +
-        '<div class="canal-b">' +
-        '<div class="canal-campo"><label for="cn' + i + '">Nome do canal</label>' +
-        '<input type="text" id="cn' + i + '" data-c-nome="' + i + '" value="' + esc(c.nome) + '" placeholder="Cody Sanchez"></div>' +
-        '<div class="canal-campo"><label for="cu' + i + '">Link do canal</label>' +
-        '<input type="text" id="cu' + i + '" data-c-url="' + i + '" value="' + esc(c.url) + '" placeholder="https://youtube.com/@..."></div>' +
-        '<div class="canal-campo"><label for="cv' + i + '">Vídeos mais vistos — um link por linha</label>' +
-        '<textarea id="cv' + i + '" data-c-videos="' + i + '" rows="5" placeholder="https://youtube.com/watch?v=...">' + esc(c.videos) + '</textarea></div>' +
-        (state.canais.length > 1 ? '<button class="bt simples perigo mini" data-rm-canal="' + i + '">Remover canal</button>' : '') +
-        '</div></div>';
-    });
-    $('canaisCx').innerHTML = h;
-    $('btAddCanal').style.display = state.canais.length < ALVO_CANAIS ? '' : 'none';
-    atualizarCanais();
+  /* ============================================================
+     FASE 1 — ler links e descobrir o canal sozinho
+     O YouTube publica um endpoint aberto (oEmbed) que devolve
+     título, nome e link do canal a partir de um link de vídeo.
+     Não precisa de chave nem de servidor: ele libera CORS.
+     ============================================================ */
+  var PADROES = [
+    /[?&]v=([A-Za-z0-9_-]{11})/,
+    /youtu\.be\/([A-Za-z0-9_-]{11})/,
+    /\/shorts\/([A-Za-z0-9_-]{11})/,
+    /\/embed\/([A-Za-z0-9_-]{11})/,
+    /\/live\/([A-Za-z0-9_-]{11})/
+  ];
+  function idDoVideo(u) {
+    for (var i = 0; i < PADROES.length; i++) {
+      var m = String(u || '').match(PADROES[i]);
+      if (m) return m[1];
+    }
+    return null;
   }
 
-  function atualizarCanais() {
-    medidor('medCanais', canaisOk(), ALVO_CANAIS);
-    var nv = totalVideos();
-    $('notaVideos').textContent = 'Cole os links dos vídeos mais vistos de cada canal, um por linha. ' +
-      nv + ' de ' + (ALVO_CANAIS * ALVO_VIDEOS) + ' vídeos coletados até agora.';
+  function consultar(id) {
+    var alvo = 'https://www.youtube.com/watch?v=' + id;
+    return fetch('https://www.youtube.com/oembed?url=' + encodeURIComponent(alvo) + '&format=json')
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      });
+  }
+
+  var lendo = false;
+  function lerLinks() {
+    var cru = $('colaLinks').value;
+    var achados = linhas(cru);
+    if (!achados.length) return avisar('Cole pelo menos um link');
+
+    var jaTem = {};
+    state.videos.forEach(function (v) { if (v.id) jaTem[v.id] = true; });
+
+    var novos = 0, repetidos = 0, invalidos = 0;
+    achados.forEach(function (u) {
+      var id = idDoVideo(u);
+      if (!id) { 
+        state.videos.push({ url: u, id: '', titulo: '', canal: '', canalUrl: '', estado: 'erro' });
+        invalidos++; return;
+      }
+      if (jaTem[id]) { repetidos++; return; }
+      jaTem[id] = true;
+      state.videos.push({
+        url: 'https://www.youtube.com/watch?v=' + id, id: id,
+        titulo: '', canal: '', canalUrl: '', estado: 'novo'
+      });
+      novos++;
+    });
+
+    $('colaLinks').value = '';
+    var resumo = [];
+    if (novos) resumo.push(novos + (novos === 1 ? ' link novo' : ' links novos'));
+    if (repetidos) resumo.push(repetidos + ' repetido' + (repetidos > 1 ? 's' : ''));
+    if (invalidos) resumo.push(invalidos + ' não reconhecido' + (invalidos > 1 ? 's' : ''));
+    avisar(resumo.join(' · ') || 'Nada novo');
+
+    pintarAchados(); salvar(); pintarNav();
+    processarFila();
+  }
+
+  /* consulta em fila, poucos de cada vez, para não afogar o YouTube */
+  function processarFila() {
+    if (lendo) return;
+    var pendentes = state.videos.filter(function (v) { return v.estado === 'novo'; });
+    if (!pendentes.length) { estadoCola(''); checarMarco(); return; }
+
+    lendo = true;
+    var i = 0, ativos = 0, LIMITE = 4;
+
+    function proximo() {
+      if (i >= pendentes.length) {
+        if (ativos === 0) {
+          lendo = false;
+          pintarAchados(); salvar(); pintarNav(); checarMarco();
+          estadoCola('');
+        }
+        return;
+      }
+      var v = pendentes[i++];
+      ativos++;
+      estadoCola('lendo', pendentes.length - i);
+      consultar(v.id).then(function (d) {
+        v.titulo = d.title || '';
+        v.canal = d.author_name || '';
+        v.canalUrl = d.author_url || '';
+        v.estado = 'ok';
+      }).catch(function () {
+        v.estado = 'erro';
+      }).then(function () {
+        ativos--;
+        pintarAchados();
+        proximo();
+      });
+      if (ativos < LIMITE) proximo();
+    }
+    proximo();
+  }
+
+  function estadoCola(st, faltam) {
+    var el = $('colaEstado'); if (!el) return;
+    el.innerHTML = st === 'lendo'
+      ? '<span class="lendo"><span class="giro"></span>Lendo… faltam ' + faltam + '</span>'
+      : '';
+  }
+
+  function pintarAchados() {
+    var grupos = agrupar();
+    $('achados').innerHTML = grupos.map(function (g) {
+      var completo = g.videos.length >= ALVO_VIDEOS;
+      return '<div class="achado' + (completo ? ' completo' : '') + '">' +
+        '<div class="achado-h">' +
+        '<span class="av">' + esc((g.nome || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<span class="achado-t"><b>' + esc(g.nome) + '</b>' +
+        (g.url ? '<a href="' + esc(g.url) + '" target="_blank" rel="noopener">' + esc(g.url.replace(/^https?:\/\/(www\.)?/, '')) + '</a>' : '') +
+        '</span>' +
+        '<span class="achado-n">' + g.videos.length + '/' + ALVO_VIDEOS + '</span>' +
+        '</div>' +
+        '<ul class="achado-v">' + g.videos.map(function (item, k) {
+          return '<li><span class="ord">' + (k + 1) + '</span>' +
+            '<span class="tit">' + esc(item.v.titulo || item.v.url) + '</span>' +
+            '<button class="x" data-rm-video="' + item.i + '" aria-label="Remover vídeo">' + IC_X + '</button></li>';
+        }).join('') + '</ul></div>';
+    }).join('');
+
+    var ruins = naoLidos();
+    $('naoLidos').innerHTML = ruins.length
+      ? '<div class="nao-lidos"><span class="k">' + ruins.length + ' link(s) que eu não consegui ler</span>' +
+        '<ul>' + ruins.map(function (v) { return '<li>' + esc(v.url) + '</li>'; }).join('') + '</ul></div>'
+      : '';
+
+    var pendentes = state.videos.filter(function (v) { return v.estado === 'novo'; }).length;
+    medidor('medCanais', grupos.length, ALVO_CANAIS);
+    $('notaVideos').textContent = 'Meta: 10 canais, com os 10 vídeos mais vistos de cada. ' +
+      'Você tem ' + grupos.length + ' canal(is) e ' + totalVideos() + ' vídeo(s).' +
+      (pendentes ? ' ' + pendentes + ' ainda sendo lidos.' : '');
+
     var bt = $('btTranscrever');
-    bt.disabled = nv < 1;
-    $('notaTransc').textContent = nv >= 1
-      ? nv + ' vídeo(s) prontos. Esta função abre na próxima etapa.'
-      : 'Importe pelo menos um vídeo para liberar.';
+    if (bt) {
+      var prontos = state.videos.filter(function (v) { return v.estado === 'ok'; }).length;
+      bt.disabled = prontos < 1;
+      $('notaTransc').textContent = prontos >= 1
+        ? prontos + ' vídeo(s) identificados. Esta função abre na próxima etapa.'
+        : 'Cole pelo menos um vídeo para liberar.';
+    }
   }
 
   /* ---------- porta ---------- */
@@ -503,12 +640,14 @@
     L.push('**Temas**');
     state.temas.forEach(function (t, i) { if (t.trim()) L.push((i + 1) + '. ' + t.trim()); });
     L.push('', '## Fase 1 — Benchmarks', '');
-    state.canais.forEach(function (c, i) {
-      if (!c.nome.trim() && !c.url.trim()) return;
-      L.push('### ' + (i + 1) + '. ' + (c.nome.trim() || 'sem nome'));
-      if (c.url.trim()) L.push(c.url.trim());
-      var vs = linhas(c.videos);
-      if (vs.length) { L.push(''); vs.forEach(function (v, k) { L.push('  ' + (k + 1) + '. ' + v); }); }
+    agrupar().forEach(function (g, i) {
+      L.push('### ' + (i + 1) + '. ' + g.nome);
+      if (g.url) L.push(g.url);
+      L.push('');
+      g.videos.forEach(function (item, k) {
+        L.push('  ' + (k + 1) + '. ' + (item.v.titulo || '(sem título)'));
+        L.push('     ' + item.v.url);
+      });
       L.push('');
     });
     L.push('---', 'Canais: ' + canaisOk() + '/' + ALVO_CANAIS + ' · Vídeos: ' + totalVideos());
@@ -551,7 +690,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-abrir],[data-add-tema],[data-rm-tema],[data-rm-canal],[data-preenche],[data-add-tema-txt],#btAddCanal') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],#btLer') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -574,14 +713,6 @@
         return;
       }
 
-      if (t.hasAttribute('data-abrir')) {
-        var i = +t.getAttribute('data-abrir');
-        abertos[i] = !abertos[i];
-        var card = document.querySelector('[data-canal="' + i + '"]');
-        card.classList.toggle('aberto', !!abertos[i]);
-        t.setAttribute('aria-expanded', !!abertos[i]);
-        return;
-      }
       if (t.hasAttribute('data-add-tema')) {
         if (state.temas.length < ALVO_TEMAS) { state.temas.push(''); pintarTemas(); salvar();
           var ins = $('temasIlha').querySelectorAll('input'); ins[ins.length - 1].focus(); }
@@ -592,20 +723,10 @@
         if (!state.temas.length) state.temas.push('');
         pintarTemas(); salvar(); pintarNav(); return;
       }
-      if (t.id === 'btAddCanal') {
-        if (state.canais.length < ALVO_CANAIS) {
-          state.canais.push({ nome: '', url: '', videos: '' });
-          abertos[state.canais.length - 1] = true;
-          pintarCanais(); salvar();
-          var el = document.querySelector('[data-canal="' + (state.canais.length - 1) + '"] input');
-          if (el) el.focus();
-        }
-        return;
-      }
-      if (t.hasAttribute('data-rm-canal')) {
-        state.canais.splice(+t.getAttribute('data-rm-canal'), 1);
-        if (!state.canais.length) state.canais.push({ nome: '', url: '', videos: '' });
-        abertos = {}; pintarCanais(); salvar(); pintarNav(); return;
+      if (t.id === 'btLer') { lerLinks(); return; }
+      if (t.hasAttribute('data-rm-video')) {
+        state.videos.splice(+t.getAttribute('data-rm-video'), 1);
+        pintarAchados(); salvar(); pintarNav(); return;
       }
 
       var a = t.getAttribute('data-act');
@@ -630,7 +751,7 @@
         if (confirm('Isto apaga tudo o que você preencheu neste aparelho. Continuar?')) {
           localStorage.removeItem(KEY); localStorage.removeItem(KEY_ID); localStorage.removeItem(KEY + '.marcos');
           state = novoEstado(); ident = { id: null, nome: '', telefone: '' };
-          abertos = { 0: true }; jaFestejou = {};
+          jaFestejou = {};
           montar(); pintarPe(); ir('briefing'); avisar('Tudo apagado');
         }
       }
@@ -650,25 +771,6 @@
       else if (el.hasAttribute('data-tema')) {
         state.temas[+el.getAttribute('data-tema')] = v;
         medidor('medTemas', cheios(state.temas), ALVO_TEMAS);
-      }
-      else if (el.hasAttribute('data-c-nome')) {
-        var i = +el.getAttribute('data-c-nome');
-        state.canais[i].nome = v;
-        var b = document.querySelector('[data-canal="' + i + '"] .canal-t b');
-        b.textContent = v.trim() || 'Canal ' + (i + 1);
-        b.className = v.trim() ? '' : 'vazio';
-        atualizarCanais(); marcarCanal(i);
-      }
-      else if (el.hasAttribute('data-c-url')) {
-        var j = +el.getAttribute('data-c-url');
-        state.canais[j].url = v; atualizarCanais(); marcarCanal(j);
-      }
-      else if (el.hasAttribute('data-c-videos')) {
-        var k = +el.getAttribute('data-c-videos');
-        state.canais[k].videos = v;
-        document.querySelector('[data-canal="' + k + '"] .canal-t s').textContent =
-          linhas(v).length + ' de ' + ALVO_VIDEOS + ' vídeos';
-        atualizarCanais(); marcarCanal(k);
       }
       else return;
       salvar(); pintarNav(); atualizarPerguntas(); checarMarco();
@@ -697,15 +799,6 @@
     });
   }
 
-  function marcarCanal(i) {
-    var c = state.canais[i];
-    var card = document.querySelector('[data-canal="' + i + '"]');
-    if (!card) return;
-    var full = c.nome.trim() && c.url.trim() && linhas(c.videos).length >= 1;
-    card.classList.toggle('cheio', !!full);
-    card.querySelector('.canal-n').textContent = full ? '✓' : (i + 1);
-  }
-
   /* ---------- boot ---------- */
   function montar() {
     $('macroNicho').value = state.macroNicho;
@@ -716,7 +809,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarCanais(); pintarNav(); atualizarPerguntas();
+    pintarTemas(); pintarAssinatura(); pintarAchados(); pintarNav(); atualizarPerguntas();
   }
 
   function boot() {
