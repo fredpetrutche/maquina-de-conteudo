@@ -32,7 +32,13 @@
     </div>
     <nav class="sb-nav" id="sbNav"></nav>
     <div class="sb-foot">
+      <div class="quem" id="quem" style="display:none"></div>
       <div class="save-state" id="saveState"><i></i><span>Salvo neste navegador</span></div>
+      <div class="codigo" id="codigoBox" style="display:none">
+        <span class="k">Código para continuar em outro aparelho</span>
+        <span class="v" id="codigoVal"></span>
+        <button data-act="copiar-codigo">Copiar código</button>
+      </div>
       <button class="btn" data-act="limpar" style="width:100%;justify-content:center;font-size:.82rem;padding:.5rem">Recomeçar do zero</button>
     </div>
   </aside>
@@ -604,6 +610,49 @@ Não me pergunte mais nada.
     <div class="view" id="view-fase6"><div class="pad"><div class="locked"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Fase 6 · Monetizar</h2><p>A última etapa. Destrava com audiência construída.</p></div></div></div>
 
   </main>
+</div>
+
+<!-- ============ GATE DE IDENTIFICAÇÃO ============ -->
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <div class="gate-err" id="gateErr"></div>
+
+    <div class="gate-swap on" id="gateNovo">
+      <h2>Antes de começar</h2>
+      <p>A partir daqui o seu trabalho fica salvo e acompanhado. Precisamos saber de quem é a ficha.</p>
+      <div class="field">
+        <label class="lab" for="gNome">Seu nome</label>
+        <input type="text" id="gNome" autocomplete="name" placeholder="Nome e sobrenome">
+      </div>
+      <div class="field">
+        <label class="lab" for="gEmail">Seu e-mail</label>
+        <input type="text" id="gEmail" autocomplete="email" inputmode="email" placeholder="voce@email.com">
+      </div>
+      <button class="btn primary" data-act="gate-entrar" style="width:100%;justify-content:center">
+        Começar a Fase 0
+      </button>
+      <div class="gate-alt">
+        Já preencheu em outro aparelho?
+        <button class="linkish" data-act="gate-modo-retomar">Recuperar com o meu código</button>
+      </div>
+    </div>
+
+    <div class="gate-swap" id="gateRetomar">
+      <h2>Recuperar a sua ficha</h2>
+      <p>Cole o código que aparece no rodapé do menu, no aparelho onde você começou.</p>
+      <div class="field">
+        <label class="lab" for="gCodigo">Código</label>
+        <input type="text" id="gCodigo" placeholder="00000000-0000-0000-0000-000000000000">
+      </div>
+      <button class="btn primary" id="btnRetomar" data-act="gate-retomar" style="width:100%;justify-content:center">
+        Recuperar
+      </button>
+      <div class="gate-alt">
+        Não tem código?
+        <button class="linkish" data-act="gate-modo-novo">Começar do zero</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>

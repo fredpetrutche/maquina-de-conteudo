@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel — Máquina de Conteúdo</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="login" class="adm-login">
+  <div class="card">
+    <span class="eyebrow"><span class="dot"></span>Acesso restrito</span>
+    <h2 style="font-size:1.5rem;margin-bottom:.4rem">Painel</h2>
+    <p class="hint" style="margin-bottom:1.4rem">Acompanhe quem está preenchendo e em que ponto cada pessoa parou.</p>
+    <div class="gate-err" id="loginErr"></div>
+    <div class="field">
+      <label class="lab" for="lEmail">E-mail</label>
+      <input type="text" id="lEmail" autocomplete="username" inputmode="email" placeholder="voce@email.com">
+    </div>
+    <div class="field">
+      <label class="lab" for="lSenha">Senha</label>
+      <input type="password" id="lSenha" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn primary" id="btnEntrar" style="width:100%;justify-content:center">Entrar</button>
+  </div>
+</div>
+
+<!-- ============ PAINEL ============ -->
+<div id="painel" class="adm-wrap" style="display:none">
+
+  <div class="adm-top">
+    <div>
+      <span class="eyebrow"><span class="dot"></span>Painel</span>
+      <h1 class="page-h1" style="font-size:clamp(1.8rem,1.4rem + 1.8vw,2.6rem)">Quem está preenchendo</h1>
+    </div>
+    <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+      <button class="btn" id="btnAtualizar">Atualizar</button>
+      <button class="btn" id="btnCsv">Baixar CSV</button>
+      <button class="btn" id="btnSair">Sair</button>
+    </div>
+  </div>
+
+  <div class="adm-kpis">
+    <div class="adm-kpi"><span class="v" id="kTotal">0</span><span class="l">pessoas na base</span></div>
+    <div class="adm-kpi"><span class="v" id="kFase0">0</span><span class="l">concluíram a Fase 0</span></div>
+    <div class="adm-kpi"><span class="v" id="kFase1">0</span><span class="l">concluíram a Fase 1</span></div>
+    <div class="adm-kpi"><span class="v" id="kHoje">0</span><span class="l">ativas nas últimas 24h</span></div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tbl-scroll" style="border:0;border-radius:0">
+      <table class="adm-tbl">
+        <thead>
+          <tr>
+            <th>Pessoa</th>
+            <th>Progresso</th>
+            <th>Onde está</th>
+            <th>Comunidade</th>
+            <th>Nicho</th>
+            <th>Última atividade</th>
+          </tr>
+        </thead>
+        <tbody id="linhas"></tbody>
+      </table>
+    </div>
+    <div class="vazio-msg" id="vazio" style="display:none">Ninguém preencheu ainda.</div>
+  </div>
+</div>
+
+<!-- ============ DETALHE ============ -->
+<div class="det" id="det">
+  <div class="det-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.2rem">
+      <div>
+        <h3 id="dNome"></h3>
+        <span class="em" id="dEmail"></span>
+      </div>
+      <button class="btn" id="btnFechar" style="padding:.45rem .9rem;flex:none">Fechar</button>
+    </div>
+    <div id="dCorpo"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="admin.js"></script>
+</body>
+</html>

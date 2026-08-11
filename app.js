@@ -6,6 +6,9 @@
   'use strict';
 
   var KEY = 'maquina-conteudo.v1';
+  var KEY_ID = 'maquina-conteudo.ident';
+  var SUPA_URL = 'https://mkajvxyiyqxotiydkylq.supabase.co';
+  var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rYWp2eHlpeXF4b3RpeWRreWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgzNzcsImV4cCI6MjEwMjAzNDM3N30.vfHCb8BRcshufnp_7eAt9ch4aVEMpcbVA5u16IS0Kao';
   var N_TEMAS = 10;
   var N_CANAIS = 10;
   var VIDEOS_ALVO = 10;
@@ -37,14 +40,84 @@
   }
 
   var state = novoEstado();
+  var ident = { id: null, nome: '', email: '' };
   var atual = 'briefing';
   var abertos = {};
+
+  /* ---------- ponte com o servidor ---------- */
+  function rpc(fn, corpo) {
+    return fetch(SUPA_URL + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_ANON,
+        'Authorization': 'Bearer ' + SUPA_ANON,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(corpo)
+    }).then(function (r) {
+      if (!r.ok) return r.text().then(function (t) { throw new Error(t || r.status); });
+      return r.json();
+    });
+  }
+
+  function progressoAtual() {
+    return ['briefing', 'fase0', 'fase1'].filter(concluida).length;
+  }
+
+  var syncTimer = null;
+  function sincronizar() {
+    if (!ident.nome || !ident.email) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(function () {
+      estadoNuvem('enviando');
+      rpc('salvar_ficha', {
+        p_id: ident.id,
+        p_nome: ident.nome,
+        p_email: ident.email,
+        p_dados: state,
+        p_etapa: atual,
+        p_progresso: progressoAtual()
+      }).then(function (id) {
+        if (id && !ident.id) { ident.id = id; salvarIdent(); pintarRodape(); }
+        estadoNuvem('ok');
+      }).catch(function () {
+        estadoNuvem('erro');
+      });
+    }, 1200);
+  }
+
+  function estadoNuvem(st) {
+    var el = document.getElementById('saveState');
+    if (!el) return;
+    var i = el.querySelector('i'), s = el.querySelector('span');
+    i.className = st === 'ok' ? 'nuvem' : '';
+    el.className = 'save-state' + (st === 'erro' || st === 'enviando' ? ' dirty' : '');
+    s.textContent = st === 'enviando' ? 'Enviando…'
+      : st === 'ok' ? 'Salvo na nuvem'
+      : st === 'erro' ? 'Sem conexão — salvo aqui'
+      : 'Salvo neste navegador';
+  }
+
+  function carregarIdent() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY_ID) || 'null');
+      if (d && d.email) ident = { id: d.id || null, nome: d.nome || '', email: d.email || '' };
+    } catch (e) {}
+  }
+  function salvarIdent() {
+    try { localStorage.setItem(KEY_ID, JSON.stringify(ident)); } catch (e) {}
+  }
 
   function carregar() {
     try {
       var raw = localStorage.getItem(KEY);
       if (!raw) return;
-      var d = JSON.parse(raw);
+      aplicar(JSON.parse(raw));
+    } catch (e) { /* estado corrompido: começa limpo */ }
+  }
+
+  function aplicar(d) {
+    try {
       if (!d || typeof d !== 'object') return;
       state.briefingOk = !!d.briefingOk;
       state.macroNicho = d.macroNicho || '';
@@ -69,23 +142,11 @@
 
   var salvarTimer = null;
   function salvar() {
-    marcarSujo(true);
     clearTimeout(salvarTimer);
     salvarTimer = setTimeout(function () {
-      try {
-        localStorage.setItem(KEY, JSON.stringify(state));
-        marcarSujo(false);
-      } catch (e) {
-        marcarSujo(false, 'Não foi possível salvar neste navegador');
-      }
-    }, 400);
-  }
-
-  function marcarSujo(sujo, msg) {
-    var el = document.getElementById('saveState');
-    if (!el) return;
-    el.className = 'save-state' + (sujo ? ' dirty' : '');
-    el.querySelector('span').textContent = msg || (sujo ? 'Salvando…' : 'Salvo neste navegador');
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    }, 300);
+    sincronizar();
   }
 
   /* ---------- utilidades ---------- */
@@ -177,6 +238,84 @@
   function fecharMenu() {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('scrim').classList.remove('on');
+  }
+
+  /* ---------- gate de identificação ---------- */
+  function abrirGate(modo) {
+    document.getElementById('gate').classList.add('on');
+    trocarGate(modo || 'novo');
+    setTimeout(function () {
+      var f = document.getElementById(modo === 'retomar' ? 'gCodigo' : 'gNome');
+      if (f) f.focus();
+    }, 60);
+  }
+  function fecharGate() { document.getElementById('gate').classList.remove('on'); }
+  function trocarGate(modo) {
+    document.getElementById('gateNovo').classList.toggle('on', modo !== 'retomar');
+    document.getElementById('gateRetomar').classList.toggle('on', modo === 'retomar');
+    erroGate('');
+  }
+  function erroGate(msg) {
+    var e = document.getElementById('gateErr');
+    e.textContent = msg || '';
+    e.classList.toggle('on', !!msg);
+  }
+  function emailValido(v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); }
+
+  function identificar() {
+    var nome = document.getElementById('gNome').value.trim();
+    var email = document.getElementById('gEmail').value.trim().toLowerCase();
+    if (nome.length < 2) return erroGate('Escreva o seu nome.');
+    if (!emailValido(email)) return erroGate('Esse e-mail não parece válido.');
+    ident.nome = nome; ident.email = email;
+    salvarIdent();
+    fecharGate();
+    pintarRodape();
+    state.briefingOk = true;
+    salvar();
+    pintarSidebar();
+    ir('fase0');
+  }
+
+  function retomar() {
+    var cod = document.getElementById('gCodigo').value.trim();
+    if (!/^[0-9a-f-]{36}$/i.test(cod)) return erroGate('Código inválido. Ele tem 36 caracteres.');
+    erroGate('');
+    document.getElementById('btnRetomar').disabled = true;
+    rpc('retomar_ficha', { p_id: cod }).then(function (rows) {
+      document.getElementById('btnRetomar').disabled = false;
+      if (!rows || !rows.length) return erroGate('Não encontrei nenhuma ficha com esse código.');
+      var f = rows[0];
+      ident = { id: f.id, nome: f.nome, email: f.email };
+      salvarIdent();
+      if (f.dados && typeof f.dados === 'object') {
+        state = novoEstado();
+        aplicar(f.dados);
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+      }
+      fecharGate();
+      montarTudo();
+      pintarRodape();
+      toast('Ficha recuperada — bem-vindo de volta');
+      ir(concluida('fase0') ? 'fase1' : 'fase0');
+    }).catch(function () {
+      document.getElementById('btnRetomar').disabled = false;
+      erroGate('Não consegui conectar. Tente de novo.');
+    });
+  }
+
+  function pintarRodape() {
+    var q = document.getElementById('quem');
+    var c = document.getElementById('codigoBox');
+    if (ident.nome) {
+      q.style.display = '';
+      q.innerHTML = '<b>' + esc(ident.nome) + '</b>' + esc(ident.email);
+    } else { q.style.display = 'none'; }
+    if (ident.id) {
+      c.style.display = '';
+      document.getElementById('codigoVal').textContent = ident.id;
+    } else { c.style.display = 'none'; }
+    estadoNuvem(ident.nome ? 'ok' : '');
   }
 
   /* ---------- Fase 0 ---------- */
@@ -383,7 +522,18 @@
 
       var act = t.getAttribute('data-act');
       if (act === 'briefing-ok') {
+        if (!ident.nome || !ident.email) { abrirGate('novo'); return; }
         state.briefingOk = true; salvar(); pintarSidebar(); ir('fase0');
+      } else if (act === 'gate-entrar') {
+        identificar();
+      } else if (act === 'gate-retomar') {
+        retomar();
+      } else if (act === 'gate-modo-retomar') {
+        trocarGate('retomar');
+      } else if (act === 'gate-modo-novo') {
+        trocarGate('novo');
+      } else if (act === 'copiar-codigo') {
+        copiar(ident.id || '', 'Código copiado');
       } else if (act === 'copiar') {
         copiar(montarTexto(), 'Ficha copiada — agora é só colar e enviar');
       } else if (act === 'baixar') {
@@ -397,9 +547,13 @@
       } else if (act === 'limpar') {
         if (confirm('Isto apaga tudo o que você preencheu neste navegador. Continuar?')) {
           localStorage.removeItem(KEY);
+          localStorage.removeItem(KEY_ID);
           state = novoEstado();
+          ident = { id: null, nome: '', email: '' };
           abertos = {};
           montarTudo();
+          pintarRodape();
+          ir('briefing');
           toast('Tudo apagado');
         }
       }
@@ -470,13 +624,22 @@
   }
 
   function boot() {
+    carregarIdent();
     carregar();
     montarTudo();
+    pintarRodape();
     ligar();
     var h = (location.hash || '').replace('#', '');
     var alvo = STEPS.filter(function (s) { return s.id === h && !s.lock; })[0];
     ir(alvo ? h : 'briefing', true);
-    marcarSujo(false);
+
+    document.getElementById('gate').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (document.getElementById('gateRetomar').classList.contains('on')) retomar();
+        else identificar();
+      }
+    });
   }
 
   if (document.readyState === 'loading') {
