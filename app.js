@@ -24,8 +24,9 @@
   /* ---------- estado ---------- */
   function novoEstado() {
     var s = {
-      v: 1, briefingOk: false,
+      v: 2, briefingOk: false,
       macroNicho: '', subNicho: '',
+      comunidade: '', comunidadeBandeira: '', comunidadeCausa: '',
       temas: [], sigNome: '', sigEntrega: '', sigPromessa: '',
       canais: []
     };
@@ -48,6 +49,9 @@
       state.briefingOk = !!d.briefingOk;
       state.macroNicho = d.macroNicho || '';
       state.subNicho = d.subNicho || '';
+      state.comunidade = d.comunidade || '';
+      state.comunidadeBandeira = d.comunidadeBandeira || '';
+      state.comunidadeCausa = d.comunidadeCausa || '';
       state.sigNome = d.sigNome || '';
       state.sigEntrega = d.sigEntrega || '';
       state.sigPromessa = d.sigPromessa || '';
@@ -112,6 +116,7 @@
     if (id === 'briefing') return state.briefingOk;
     if (id === 'fase0') {
       return !!(state.macroNicho.trim() && state.subNicho.trim() &&
+        state.comunidade.trim() && state.comunidadeBandeira.trim() && state.comunidadeCausa.trim() &&
         preenchidos(state.temas) >= N_TEMAS &&
         state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim());
     }
@@ -286,6 +291,11 @@
     L.push('- **Macro-nicho:** ' + (state.macroNicho.trim() || '(vazio)'));
     L.push('- **Subnicho:** ' + (state.subNicho.trim() || '(vazio)'));
     L.push('');
+    L.push('**Comunidade:**');
+    L.push('- Representa: ' + (state.comunidade.trim() || '(vazio)'));
+    L.push('- Como se descreve: ' + (state.comunidadeBandeira.trim() || '(vazio)'));
+    L.push('- Orgulho ferido: ' + (state.comunidadeCausa.trim() || '(vazio)'));
+    L.push('');
     L.push('**Assinatura:**');
     L.push('> Meu nome é ' + state.sigNome.trim() + ' e eu ' + state.sigEntrega.trim() +
       ' ' + state.sigPromessa.trim() + ' todos os dias. Se inscreve para não perder a próxima.');
@@ -399,6 +409,9 @@
       var el = e.target, v = el.value;
       if (el.id === 'macroNicho') { state.macroNicho = v; }
       else if (el.id === 'subNicho') { state.subNicho = v; }
+      else if (el.id === 'comunidade') { state.comunidade = v; }
+      else if (el.id === 'comunidadeBandeira') { state.comunidadeBandeira = v; }
+      else if (el.id === 'comunidadeCausa') { state.comunidadeCausa = v; }
       else if (el.id === 'sigNome') { state.sigNome = v; atualizarAssinatura(); }
       else if (el.id === 'sigEntrega') { state.sigEntrega = v; atualizarAssinatura(); }
       else if (el.id === 'sigPromessa') { state.sigPromessa = v; atualizarAssinatura(); }
@@ -444,6 +457,9 @@
   function montarTudo() {
     document.getElementById('macroNicho').value = state.macroNicho;
     document.getElementById('subNicho').value = state.subNicho;
+    document.getElementById('comunidade').value = state.comunidade;
+    document.getElementById('comunidadeBandeira').value = state.comunidadeBandeira;
+    document.getElementById('comunidadeCausa').value = state.comunidadeCausa;
     document.getElementById('sigNome').value = state.sigNome;
     document.getElementById('sigEntrega').value = state.sigEntrega;
     document.getElementById('sigPromessa').value = state.sigPromessa;
