@@ -18,6 +18,16 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+
+  function telBonito(e164) {
+    var d = String(e164 || '').replace(/\D/g, '');
+    if ((d.length === 12 || d.length === 13) && d.slice(0, 2) === '55') d = d.slice(2);
+    if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+    if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return e164 || '';
+  }
+  function zap(e164) { return 'https://wa.me/' + String(e164 || '').replace(/\D/g, ''); }
+
   function avisar(m) {
     var t = $('aviso'); t.textContent = m; t.classList.add('on');
     clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 2400);
@@ -107,7 +117,9 @@
       var cls = f.progresso >= 3 ? 's3' : f.progresso >= 2 ? 's2' : f.progresso >= 1 ? 's1' : '';
       var traco = '<span style="color:var(--rotulo-3)">—</span>';
       return '<tr data-i="' + i + '">' +
-        '<td><span class="nm">' + esc(f.nome) + '</span><span class="em">' + esc(f.email) + '</span></td>' +
+        '<td><span class="nm">' + esc(f.nome) + '</span>' +
+        '<a class="em zap" href="' + zap(f.telefone) + '" target="_blank" rel="noopener">' +
+        esc(telBonito(f.telefone)) + '</a></td>' +
         '<td><span class="fita"><i style="width:' + pct + '%"></i></span><span class="t-num">' + f.progresso + '/3</span></td>' +
         '<td><span class="selo ' + cls + '">' + esc(ETAPA[f.etapa] || f.etapa) + '</span></td>' +
         '<td>' + (f.comunidade ? esc(f.comunidade) : traco) + '</td>' +
@@ -121,7 +133,8 @@
   function detalhe(i) {
     var f = fichas[i], d = f.dados || {};
     $('dNome').textContent = f.nome;
-    $('dEmail').textContent = f.email;
+    $('dEmail').innerHTML = '<a class="zap" href="' + zap(f.telefone) + '" target="_blank" rel="noopener">' +
+      esc(telBonito(f.telefone)) + ' &rsaquo; abrir no WhatsApp</a>';
 
     function par(rot, val) {
       return '<div><dt>' + esc(rot) + '</dt><dd' + (val ? '' : ' class="vazio"') + '>' +
@@ -167,7 +180,7 @@
 
   /* ---------- CSV ---------- */
   function csv() {
-    var cab = ['nome', 'email', 'etapa', 'progresso', 'comunidade', 'bandeira', 'macro_nicho',
+    var cab = ['nome', 'telefone', 'etapa', 'progresso', 'comunidade', 'bandeira', 'macro_nicho',
       'sub_nicho', 'temas', 'canais', 'videos', 'atualizado_em'];
     function q(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
     var ls = fichas.map(function (f) {
@@ -177,7 +190,7 @@
       var vids = (d.canais || []).reduce(function (n, c) {
         return n + String((c && c.videos) || '').split('\n').filter(function (l) { return l.trim(); }).length;
       }, 0);
-      return [f.nome, f.email, f.etapa, f.progresso, d.comunidade || '', d.comunidadeBandeira || '',
+      return [f.nome, "'" + (f.telefone || ''), f.etapa, f.progresso, d.comunidade || '', d.comunidadeBandeira || '',
         d.macroNicho || '', d.subNicho || '', temas.join(' | '), canais.length, vids,
         f.atualizado_em].map(q).join(',');
     });

@@ -13,7 +13,8 @@ App de fluxo guiado para construir audiência própria. Hospedado no GitHub Page
 | `app.js` | Estado, navegação, autosave e sincronização |
 | `app.css` | Design system, usado pelo app e pelo painel |
 | `admin.html` / `admin.js` | Painel para acompanhar quem preencheu |
-| `schema.sql` | Estrutura do banco (já aplicada) |
+| `schema.sql` | Estrutura inicial do banco |
+| `migracao-telefone.sql` | Troca do identificador para celular (já aplicada) |
 
 Sem framework, sem build, sem dependência externa. É só abrir.
 
@@ -51,3 +52,5 @@ Fases 2-6                 bloqueadas por enquanto
 ```
 
 O trabalho é salvo no navegador **e** no banco. Cada pessoa recebe um código para continuar em outro aparelho.
+
+O identificador é o **celular**, guardado em E.164 sem o "+" (`5511987654321`) — o formato que a Cloud API da Meta espera, para o disparo por WhatsApp no futuro.

@@ -46,7 +46,35 @@
   }
 
   var state = novoEstado();
-  var ident = { id: null, nome: '', email: '' };
+  var ident = { id: null, nome: '', telefone: '' };
+
+  /* ---------- celular ----------
+     Guardamos sempre em E.164 sem o "+" (5511987654321), que é o
+     formato que a Cloud API da Meta espera. Na tela, mostramos
+     formatado. */
+  function soDigitos(v) { return String(v || '').replace(/\D/g, ''); }
+  function semDDI(d) {
+    return ((d.length === 12 || d.length === 13) && d.slice(0, 2) === '55') ? d.slice(2) : d;
+  }
+  function mascaraTel(v) {
+    var d = semDDI(soDigitos(v)).slice(0, 11);
+    if (!d) return '';
+    if (d.length <= 2) return '(' + d;
+    if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+    if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+  }
+  function telE164(v) {
+    var d = semDDI(soDigitos(v)).slice(0, 11);
+    return d.length >= 10 ? '55' + d : '';
+  }
+  function telValido(e164) { return /^55[1-9][0-9][0-9]{8,9}$/.test(e164); }
+  function telBonito(e164) {
+    var d = semDDI(soDigitos(e164));
+    if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+    if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return e164;
+  }
   var atual = 'briefing';
   var abertos = { 0: true };
   var jaFestejou = {};
@@ -90,12 +118,12 @@
 
   var syncTimer = null;
   function sincronizar() {
-    if (!ident.nome || !ident.email) return;
+    if (!ident.nome || !ident.telefone) return;
     estadoSinc('mov');
     clearTimeout(syncTimer);
     syncTimer = setTimeout(function () {
       rpc('salvar_ficha', {
-        p_id: ident.id, p_nome: ident.nome, p_email: ident.email,
+        p_id: ident.id, p_nome: ident.nome, p_telefone: ident.telefone,
         p_dados: state, p_etapa: atual, p_progresso: progresso()
       }).then(function (id) {
         if (id && !ident.id) { ident.id = id; salvarIdent(); pintarPe(); }
@@ -117,7 +145,9 @@
   function carregarIdent() {
     try {
       var d = JSON.parse(localStorage.getItem(KEY_ID) || 'null');
-      if (d && d.email) ident = { id: d.id || null, nome: d.nome || '', email: d.email || '' };
+      if (d && (d.telefone || d.email)) {
+        ident = { id: d.id || null, nome: d.nome || '', telefone: d.telefone || '' };
+      }
     } catch (e) {}
   }
   function salvarIdent() {
@@ -226,7 +256,7 @@
       q.style.display = '';
       $('quemAv').textContent = ident.nome.trim().charAt(0).toUpperCase();
       $('quemNm').textContent = ident.nome;
-      $('quemEm').textContent = ident.email;
+      $('quemEm').textContent = telBonito(ident.telefone);
     } else q.style.display = 'none';
 
     var c = $('codigoCx');
@@ -337,6 +367,7 @@
   function abrirPorta(modo) {
     $('porta').classList.add('on');
     trocarPorta(modo);
+    if (modo !== 'retomar' && ident.telefone) $('gTel').value = telBonito(ident.telefone);
     setTimeout(function () {
       var f = $(modo === 'retomar' ? 'gCodigo' : 'gNome'); if (f) f.focus();
     }, 80);
@@ -349,13 +380,11 @@
   function erroPorta(m) {
     var e = $('portaErr'); e.textContent = m || ''; e.classList.toggle('on', !!m);
   }
-  function emailOk(v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v); }
-
   function entrar() {
-    var n = $('gNome').value.trim(), e = $('gEmail').value.trim().toLowerCase();
+    var n = $('gNome').value.trim(), tel = telE164($('gTel').value);
     if (n.length < 2) return erroPorta('Escreva o seu nome.');
-    if (!emailOk(e)) return erroPorta('Esse e-mail não parece válido.');
-    ident.nome = n; ident.email = e;
+    if (!telValido(tel)) return erroPorta('Confira o celular: precisa do DDD e do número completo.');
+    ident.nome = n; ident.telefone = tel;
     salvarIdent();
     $('porta').classList.remove('on');
     pintarPe();
@@ -372,7 +401,7 @@
       $('btRetomar').disabled = false;
       if (!rows || !rows.length) return erroPorta('Não encontrei nenhuma ficha com esse código.');
       var f = rows[0];
-      ident = { id: f.id, nome: f.nome, email: f.email };
+      ident = { id: f.id, nome: f.nome, telefone: f.telefone || '' };
       salvarIdent();
       if (f.dados && typeof f.dados === 'object') {
         state = novoEstado(); aplicar(f.dados);
@@ -391,7 +420,7 @@
   /* ---------- exportar ---------- */
   function texto() {
     var L = ['# MÁQUINA DE CONTEÚDO — Ficha de entrada', ''];
-    if (ident.nome) L.push('**' + ident.nome + '** · ' + ident.email, '');
+    if (ident.nome) L.push('**' + ident.nome + '** · ' + telBonito(ident.telefone), '');
     L.push('## Fase 0 — Definir o campo', '');
     L.push('- **Macro-nicho:** ' + (state.macroNicho.trim() || '(vazio)'));
     L.push('- **Subnicho:** ' + (state.subNicho.trim() || '(vazio)'), '');
@@ -494,7 +523,7 @@
 
       var a = t.getAttribute('data-act');
       if (a === 'briefing-ok') {
-        if (!ident.nome || !ident.email) return abrirPorta('nova');
+        if (!ident.nome || !ident.telefone) return abrirPorta('nova');
         state.briefingOk = true; salvar(); pintarNav(); ir('fase0');
       }
       else if (a === 'porta-entrar') entrar();
@@ -512,7 +541,7 @@
       else if (a === 'limpar') {
         if (confirm('Isto apaga tudo o que você preencheu neste aparelho. Continuar?')) {
           localStorage.removeItem(KEY); localStorage.removeItem(KEY_ID); localStorage.removeItem(KEY + '.marcos');
-          state = novoEstado(); ident = { id: null, nome: '', email: '' };
+          state = novoEstado(); ident = { id: null, nome: '', telefone: '' };
           abertos = { 0: true }; jaFestejou = {};
           montar(); pintarPe(); ir('briefing'); avisar('Tudo apagado');
         }
@@ -521,6 +550,7 @@
 
     document.addEventListener('input', function (ev) {
       var el = ev.target, v = el.value;
+      if (el.id === 'gTel') { el.value = mascaraTel(v); return; }
       if (el.id === 'macroNicho') state.macroNicho = v;
       else if (el.id === 'subNicho') state.subNicho = v;
       else if (el.id === 'comunidade') state.comunidade = v;

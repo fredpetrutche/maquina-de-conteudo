@@ -647,3 +647,15 @@ button{font:inherit;color:inherit}
 .lista-c li+li::before{content:"";position:absolute;top:0;left:.85rem;right:0;height:.5px;background:var(--sep)}
 .lista-c b{display:block;font-weight:600}
 .lista-c s{text-decoration:none;font-size:12px;color:var(--rotulo-2)}
+
+/* prefixo de país fixo, fora do campo */
+.ddi{
+  font-size:17px;color:var(--rotulo-2);letter-spacing:-.022em;flex:none;
+  padding-right:.1rem;
+}
+.linha .ddi+input[type=tel]{text-align:left;font-variant-numeric:tabular-nums}
+
+/* telefone clicável para o WhatsApp */
+.zap{color:var(--tinta);text-decoration:none}
+.zap:hover{text-decoration:underline;text-underline-offset:3px}
+.det-cx .em .zap{font-size:14px}
