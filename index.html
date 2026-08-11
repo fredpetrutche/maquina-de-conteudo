@@ -2,433 +2,406 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <title>Máquina de Conteúdo</title>
-<meta name="description" content="Fluxo guiado para construir uma audiência própria do zero, com IA.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 
 <div class="app">
 
-  <!-- ============ TOPBAR (mobile) ============ -->
-  <div class="topbar">
-    <button class="burger" data-act="menu" aria-label="Abrir menu do fluxo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  <!-- ============ BARRA MÓVEL ============ -->
+  <div class="barra">
+    <button class="menu-bt" data-act="menu" aria-label="Abrir o fluxo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-    <span class="tb-txt"><span class="tb-ph" id="tbPh">Etapa 0</span><span class="tb-nm" id="tbNm">Briefing do projeto</span></span>
+    <span class="barra-txt"><b id="barraNm">Briefing</b><span id="barraPh">Etapa 0</span></span>
+    <span class="vaga"></span>
   </div>
-  <div class="scrim" id="scrim"></div>
+  <div class="veu" id="veu"></div>
 
-  <!-- ============ SIDEBAR ============ -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-head">
-      <span class="sb-logo">Máquina de Conteúdo</span>
-      <div class="sb-prog">
-        <span id="sbCount">0/3</span>
-        <span class="sb-bar"><i id="sbBar"></i></span>
+  <!-- ============ LATERAL ============ -->
+  <aside class="lateral" id="lateral">
+    <div class="lat-topo">
+      <div class="marca">
+        <span class="marca-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/></svg>
+        </span>
+        <span class="marca-nm">Máquina de Conteúdo</span>
+      </div>
+      <div class="progresso">
+        <span class="prog-t"><i id="progBarra"></i></span>
+        <span class="prog-v" id="progVal">0 de 3</span>
       </div>
     </div>
-    <nav class="sb-nav" id="sbNav"></nav>
-    <div class="sb-foot">
-      <div class="quem" id="quem" style="display:none"></div>
-      <div class="save-state" id="saveState"><i></i><span>Salvo neste navegador</span></div>
-      <div class="codigo" id="codigoBox" style="display:none">
+    <nav class="lat-nav" id="nav"></nav>
+    <div class="lat-pe">
+      <div class="quem" id="quem" style="display:none">
+        <span class="quem-av" id="quemAv"></span>
+        <span class="quem-t"><b id="quemNm"></b><span id="quemEm"></span></span>
+      </div>
+      <div class="sinc" id="sinc"><i></i><span>Salvo neste aparelho</span></div>
+      <div class="codigo" id="codigoCx" style="display:none">
         <span class="k">Código para continuar em outro aparelho</span>
         <span class="v" id="codigoVal"></span>
-        <button data-act="copiar-codigo">Copiar código</button>
+        <button class="bt mini cheio" data-act="copiar-codigo">Copiar código</button>
       </div>
-      <button class="btn" data-act="limpar" style="width:100%;justify-content:center;font-size:.82rem;padding:.5rem">Recomeçar do zero</button>
+      <button class="bt simples perigo cheio mini" data-act="limpar">Recomeçar do zero</button>
     </div>
   </aside>
 
-  <!-- ============ MAIN ============ -->
-  <main class="main">
+  <!-- ============ PALCO ============ -->
+  <main class="palco">
 
-    <!-- ################ ETAPA 0 — BRIEFING ################ -->
-    <div class="view" id="view-briefing">
-      <div class="pad">
+    <!-- ################ BRIEFING ################ -->
+    <div class="vista" id="v-briefing">
+      <div class="larg corpo">
 
-        <span class="eyebrow"><span class="dot"></span>Etapa 0 · Briefing</span>
-        <h1 class="page-h1">Máquina de Conteúdo</h1>
-        <p class="lede">Como construir uma audiência própria do zero — e passar a ser pago para construir a sua marca, em vez de pagar por ela.</p>
-
-        <div class="callout" style="margin-top:2.2rem">
-          <span class="k">Antes de começar</span>
-          <p>Leia esta página inteira. <strong>Não execute nada ainda.</strong> Quando terminar, o botão no fim libera a primeira etapa, onde você preenche as suas informações.</p>
+        <div class="topo-grande">
+          <span class="eyebrow">Etapa 0 · Briefing</span>
+          <h1>Máquina de Conteúdo</h1>
+          <p class="abre">Como construir uma audiência própria do zero — e passar a ser pago para construir a sua marca, em vez de pagar por ela.</p>
         </div>
 
-        <hr class="rule">
+        <div class="destaque">
+          <span class="k">Antes de começar</span>
+          <p>Leia esta página inteira. Não execute nada ainda. No fim, o botão libera a primeira etapa.</p>
+        </div>
 
         <!-- O QUE É -->
-        <div class="sec-head">
-          <span class="sec-num">01 — Antes de tudo</span>
-          <h2>O que é este processo</h2>
-          <p class="sub">Não é uma lista de dicas de conteúdo. É um processo com ordem fixa, testado, que leva alguém de zero a uma audiência própria — sem comprar tráfego.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">01</span>
+            <h3>O que é este processo</h3>
+            <p>Não é uma lista de dicas. É um processo com ordem fixa, testado, que leva alguém de zero a uma audiência própria — sem comprar tráfego.</p>
+          </div>
+          <p class="sub" style="color:var(--rotulo-2)">A ordem importa mais do que qualquer etapa isolada. Cada fase existe porque a anterior gerou o insumo dela. Pular a Fase 2 para ir direto na Fase 3 não funciona: a Fase 3 se alimenta do que a Fase 2 produz.</p>
+          <p class="sub" style="color:var(--rotulo-2)">Este briefing cobre as <b>Fases 0, 1 e 2</b>. As Fases 3 a 6 aparecem no mapa para você ver o arco completo, e serão detalhadas quando você chegar nelas.</p>
         </div>
-        <div class="measure">
-          <p>A ordem importa mais do que qualquer etapa isolada. Cada fase existe porque a fase anterior gerou o insumo dela. Pular a Fase 2 para ir direto na Fase 3, por exemplo, simplesmente não funciona: a Fase 3 se alimenta do que a Fase 2 produz.</p>
-          <p>Este briefing cobre as <strong>Fases 0, 1 e 2</strong> — as três que você vai executar primeiro. As Fases 3 a 6 estão no mapa para você ver o arco completo, e serão detalhadas quando você chegar nelas.</p>
-        </div>
-
-        <hr class="rule">
 
         <!-- OBJETIVO -->
-        <div class="sec-head">
-          <span class="sec-num">02 — O objetivo</span>
-          <h2>Inverter o funil</h2>
-          <p class="sub">Praticamente todo negócio hoje <em>aluga</em> audiência. O objetivo aqui é fazer você virar dono da sua.</p>
-        </div>
-        <div class="funnels">
-          <div class="funnel bad">
-            <span class="tag">O que quase todo mundo faz</span>
-            <h3>Comprar audiência</h3>
-            <ul class="flow">
-              <li><span class="n">1</span><span>Compra tráfego pago</span></li>
-              <li><span class="n">2</span><span>Adquire leads</span></li>
-              <li><span class="n">3</span><span>Vende para esses leads</span></li>
-              <li><span class="n">4</span><span>Pega a grana e recompra tráfego</span></li>
-            </ul>
-            <p class="verdict">O custo cresce junto com o resultado. No dia em que você para de pagar, o fluxo para junto. Você nunca foi dono de nada — <b>estava alugando</b>.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">02</span>
+            <h3>O objetivo: inverter o funil</h3>
+            <p>Praticamente todo negócio hoje aluga audiência. O objetivo aqui é fazer você virar dono da sua.</p>
           </div>
-          <div class="funnel good">
-            <span class="tag">O que este método faz</span>
-            <h3>Ser dono da audiência</h3>
-            <ul class="flow">
-              <li><span class="n">1</span><span>Investe em <strong>conteúdo</strong></span></li>
-              <li><span class="n">2</span><span>A plataforma distribui de graça</span></li>
-              <li><span class="n">3</span><span>Vira audiência, lead e venda</span></li>
-              <li><span class="n">4</span><span>Reinveste em conteúdo melhor</span></li>
-            </ul>
-            <p class="verdict">O custo por vídeo é o mesmo no primeiro dia e no milésimo — <b>o que cresce é o retorno</b>. E, a partir de certo ponto, marcas e eventos passam a te pagar para produzir.</p>
+          <div class="funis">
+            <div class="funil">
+              <span class="k">O que quase todo mundo faz</span>
+              <h3>Comprar audiência</h3>
+              <ul class="fluxo">
+                <li><span class="n">1</span>Compra tráfego pago</li>
+                <li><span class="n">2</span>Adquire leads</li>
+                <li><span class="n">3</span>Vende para esses leads</li>
+                <li><span class="n">4</span>Recompra tráfego</li>
+              </ul>
+              <p class="vered">O custo cresce junto com o resultado. No dia em que você para de pagar, o fluxo para junto. Você nunca foi dono de nada — <b>estava alugando</b>.</p>
+            </div>
+            <div class="funil bom">
+              <span class="k">O que este método faz</span>
+              <h3>Ser dono da audiência</h3>
+              <ul class="fluxo">
+                <li><span class="n">1</span>Investe em conteúdo</li>
+                <li><span class="n">2</span>A plataforma distribui de graça</li>
+                <li><span class="n">3</span>Vira audiência, lead e venda</li>
+                <li><span class="n">4</span>Reinveste em conteúdo melhor</li>
+              </ul>
+              <p class="vered">O custo por vídeo é o mesmo no primeiro dia e no milésimo — <b>o que cresce é o retorno</b>. E, a partir de certo ponto, marcas passam a te pagar para produzir.</p>
+            </div>
+          </div>
+          <div class="destaque" style="margin-bottom:0">
+            <span class="k">A frase que resume</span>
+            <p><b>50% de todo o dinheiro que circula na internet é compra de audiência.</b> A proposta é sair do lado que compra e ir para o lado que vende — inclusive vendendo para você mesmo.</p>
           </div>
         </div>
-        <div class="callout measure" style="margin-top:2rem">
-          <span class="k">A frase que resume</span>
-          <p><strong>50% de todo o dinheiro que circula na internet é compra de audiência.</strong> A proposta é sair do lado que compra e ir para o lado que vende — inclusive vendendo para você mesmo.</p>
-        </div>
-
-        <hr class="rule">
 
         <!-- PROVA -->
-        <div class="sec-head">
-          <span class="sec-num">03 — A prova</span>
-          <h2>O método já rodou</h2>
-          <p class="sub">Não é teoria. Estes são os números que o processo já produziu na prática, aplicado do zero.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">03</span>
+            <h3>O método já rodou</h3>
+            <p>Não é teoria. Estes são os números que o processo já produziu na prática, aplicado do zero.</p>
+          </div>
+          <div class="indic">
+            <div class="ind"><span class="v">800 mil</span><span class="l">seguidores, partindo do zero</span></div>
+            <div class="ind"><span class="v">&lt;12 m</span><span class="l">tempo até chegar lá</span></div>
+            <div class="ind"><span class="v">R$ 0</span><span class="l">em tráfego pago</span></div>
+            <div class="ind"><span class="v">~80%</span><span class="l">margem da operação</span></div>
+          </div>
+          <div class="conta">
+            <span class="s">A conta que importa</span>
+            <b>1.000</b><span>seguidores</span><span class="s">→</span>
+            <b>100</b><span>leads</span><span class="s">→</span>
+            <b>6</b><span>clientes</span>
+          </div>
+          <p class="fonte">Números medidos ao longo de um ciclo completo de aplicação, começando de uma conta zerada.</p>
         </div>
-        <div class="stats">
-          <div class="stat"><span class="v">800 mil</span><span class="l">seguidores no Instagram, partindo do zero</span></div>
-          <div class="stat"><span class="v">&lt; 12 meses</span><span class="l">tempo até chegar lá</span></div>
-          <div class="stat"><span class="v">R$ 0</span><span class="l">investidos em tráfego pago</span></div>
-          <div class="stat"><span class="v">~80%</span><span class="l">margem da operação de conteúdo</span></div>
-        </div>
-        <div class="math">
-          <span class="lbl">A conta que importa</span>
-          <b>1.000</b><span>seguidores</span><span class="arrow">→</span>
-          <b>100</b><span>leads</span><span class="arrow">→</span>
-          <b>6</b><span>clientes</span>
-        </div>
-        <p class="source measure">Números medidos ao longo de um ciclo completo de aplicação, começando de uma conta zerada. O que vem abaixo é esse método destrinchado — as etapas, as ferramentas e as regras, na ordem exata em que precisam ser executadas.</p>
-
-        <hr class="rule">
 
         <!-- MAPA -->
-        <div class="sec-head">
-          <span class="sec-num">04 — O caminho</span>
-          <h2>As sete etapas</h2>
-          <p class="sub">Você vai executar as três primeiras agora. As outras destravam conforme os resultados aparecem.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">04</span>
+            <h3>As sete etapas</h3>
+            <p>Você vai executar as três primeiras agora. As outras destravam conforme os resultados aparecem.</p>
+          </div>
+          <div class="trilha">
+            <div class="tr-item agora"><span class="k">Fase 0</span><span class="nm">Definir o campo</span><span class="st">Agora</span></div>
+            <div class="tr-item agora"><span class="k">Fase 1</span><span class="nm">Benchmarks</span><span class="st">Agora</span></div>
+            <div class="tr-item agora"><span class="k">Fase 2</span><span class="nm">Replicar</span><span class="st">Agora</span></div>
+            <div class="tr-item"><span class="k">Fase 3</span><span class="nm">Retroalimentar</span><span class="st">Depois</span></div>
+            <div class="tr-item"><span class="k">Fase 4</span><span class="nm">Travar formato</span><span class="st">Depois</span></div>
+            <div class="tr-item"><span class="k">Fase 5</span><span class="nm">Industrializar</span><span class="st">Depois</span></div>
+            <div class="tr-item"><span class="k">Fase 6</span><span class="nm">Monetizar</span><span class="st">Depois</span></div>
+          </div>
+          <div class="chave">
+            <span><i class="a"></i>Neste briefing</span>
+            <span><i class="b"></i>Destrava depois</span>
+          </div>
+          <div class="destaque" style="margin-bottom:0">
+            <span class="k">Por que só três agora</span>
+            <p>A Fase 3 precisa dos seus próprios vídeos virais como matéria-prima — e eles só existem depois da Fase 2. <b>Não dá para antecipar sem quebrar o método.</b></p>
+          </div>
         </div>
-        <div class="road">
-          <div class="step now"><span class="ph">Fase 0</span><span class="nm">Definir o campo</span><span class="st">Agora</span></div>
-          <div class="step now"><span class="ph">Fase 1</span><span class="nm">Minerar benchmarks</span><span class="st">Agora</span></div>
-          <div class="step now"><span class="ph">Fase 2</span><span class="nm">Replicar o validado</span><span class="st">Agora</span></div>
-          <div class="step"><span class="ph">Fase 3</span><span class="nm">Retroalimentar a IA</span><span class="st">Depois</span></div>
-          <div class="step"><span class="ph">Fase 4</span><span class="nm">Travar o formato</span><span class="st">Depois</span></div>
-          <div class="step"><span class="ph">Fase 5</span><span class="nm">Industrializar</span><span class="st">Depois</span></div>
-          <div class="step"><span class="ph">Fase 6</span><span class="nm">Monetizar</span><span class="st">Depois</span></div>
-        </div>
-        <div class="legend">
-          <span><i class="on"></i>Detalhado neste briefing</span>
-          <span><i class="off"></i>Destrava mais à frente</span>
-        </div>
-        <div class="callout measure" style="margin-top:2rem">
-          <span class="k">Por que só três agora</span>
-          <p>A Fase 3 precisa dos seus próprios vídeos virais como matéria-prima — e eles só existem depois da Fase 2. A Fase 4 precisa que você tenha testado formatos suficientes para saber qual é o seu. <strong>Não dá para antecipar sem quebrar o método.</strong></p>
-        </div>
-
-        <hr class="rule">
 
         <!-- FASE 0 -->
-        <div class="sec-head">
-          <span class="sec-num">05 — Primeira etapa</span>
-          <h2>Fase 0 · Definir o campo</h2>
-        </div>
-        <article class="phase">
-          <div class="phase-head">
-            <span class="phase-id">Fase 0</span>
-            <h3>Escolher o tamanho da porta de entrada</h3>
-            <p class="goal">Antes de produzir qualquer coisa, três decisões precisam estar tomadas: onde você joga, sobre o que você fala e como você se apresenta.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">Fase 0</span>
+            <h3>Definir o campo</h3>
+            <p>Três decisões antes de produzir: onde você joga, sobre o que você fala e como você se apresenta.</p>
           </div>
-          <div class="phase-body">
-            <div>
-              <span class="block-label">O que você vai fazer</span>
-              <ol class="steps">
-                <li><b>Definir macro-nicho e subnicho.</b> Duas camadas, e para por aí. Exemplo: macro-nicho <em>negócios</em>, subnicho <em>mulheres de negócios</em>. Não desça para a terceira camada.</li>
-                <li><b>Escolher a sua comunidade.</b> De quem você fala. É o que transforma quem assiste em quem compartilha — e é a decisão mais importante desta fase.</li>
-                <li><b>Listar 10 grandes temas.</b> Temas amplos e pesquisáveis, não o seu método. "Delegação", "lucro", "trabalhar menos e ganhar mais" — coisas que alguém digitaria no YouTube.</li>
-                <li><b>Escrever a sua assinatura.</b> A frase fixa que fecha todo vídeo, na fórmula: <em>"Meu nome é [NOME] e eu [ENTREGA] [PROMESSA] todos os dias. Se inscreve para não perder a próxima."</em></li>
+
+          <section>
+            <span class="rotulo-bloco">O que você vai fazer</span>
+            <ol class="passos">
+              <li><b>Definir macro-nicho e subnicho.</b> Duas camadas, e para por aí. Exemplo: macro-nicho <i>negócios</i>, subnicho <i>mulheres de negócios</i>.</li>
+              <li><b>Escolher a sua comunidade.</b> De quem você fala. É o que transforma quem assiste em quem compartilha.</li>
+              <li><b>Listar 10 grandes temas.</b> Amplos e pesquisáveis, não o seu método.</li>
+              <li><b>Escrever a sua assinatura.</b> A frase fixa que fecha todo vídeo.</li>
+            </ol>
+          </section>
+
+          <section>
+            <span class="rotulo-bloco">Por que funciona assim</span>
+            <div class="pq">
+              <p>O algoritmo precisa decidir <b>em milissegundos</b> para quem empurrar o seu vídeo. "Mulher empresária que tem funcionários e quer sair do operacional" é um ICP de venda excelente — e um sinal ilegível para a plataforma.</p>
+              <p>Sobre os 10 temas: <q>a gente nunca sabe o que vai viralizar.</q> Na validação do método, a aposta inicial era falar de estratégia de marketing — e flopou. O que estourou foi <b>história de grandes empresas</b>, que nem estava na lista.</p>
+            </div>
+          </section>
+
+          <section>
+            <span class="rotulo-bloco">Views não viralizam. Compartilhamento viraliza.</span>
+            <div class="pq">
+              <p>Uma visualização é consumo passivo. Um compartilhamento é a pessoa <b>colocando a reputação dela em jogo</b> para levar o seu conteúdo até alguém — e isso empurra o vídeo para fora da sua rede.</p>
+            </div>
+            <div class="duo" style="margin-top:1rem">
+              <div class="duo-c">
+                <span class="k">Motivo 1 · Moeda social</span>
+                <p><b>"Eu queria ter dito isso."</b> O vídeo articula algo que a pessoa pensa mas não consegue formular. Compartilhar vira uma forma de dizer <i>isso sou eu</i>.</p>
+              </div>
+              <div class="duo-c">
+                <span class="k">Motivo 2 · Pertencimento</span>
+                <p><b>"Isso é sobre a gente."</b> A pessoa manda no privado, para alguém específico, porque o conteúdo fala da tribo dos dois.</p>
+              </div>
+            </div>
+            <div class="destaque" style="margin-bottom:0">
+              <span class="k">A raiz dos dois</span>
+              <p><b>Identidade.</b> Ninguém compartilha informação. As pessoas compartilham quem elas são.</p>
+            </div>
+          </section>
+
+          <section>
+            <span class="rotulo-bloco">A camada que quase ninguém tem: a comunidade</span>
+            <div class="duo">
+              <div class="duo-c sim">
+                <span class="k">A voz de uma região</span>
+                <p>Um criador falava de <b>empresas</b>. Recortou para <b>empresas do Nordeste</b> e virou a voz de uma região. Cada nordestino que vê um vídeo dele não vê conteúdo de negócios: vê <i>alguém defendendo os dele</i>.</p>
+              </div>
+              <div class="duo-c sim">
+                <span class="k">A voz de uma cultura</span>
+                <p>Outro fala de empresas, mas é <b>nerd</b>. Conta as mesmas histórias pelo vocabulário do mundo nerd. A taxa de compartilhamento dispara: <i>nerd manda pra nerd</i>.</p>
+              </div>
+            </div>
+            <div class="obs" style="margin-top:1rem"><b>Atenção — isto não é afunilar.</b> É fácil confundir comunidade com o recorte de ICP que a gente acabou de descartar. São eixos opostos.</div>
+            <div class="rolagem" style="margin-top:.75rem">
+              <table class="grade">
+                <thead><tr><th></th><th>Recorte comercial</th><th>Comunidade</th></tr></thead>
+                <tbody>
+                  <tr><td>A pergunta</td><td>Quem eu quero como cliente?</td><td>Por quem eu falo?</td></tr>
+                  <tr><td>Exemplo</td><td>"empresárias com funcionários"</td><td>"os nordestinos"</td></tr>
+                  <tr><td>Efeito</td><td>Estreita o alcance</td><td>Amplia o alcance</td></tr>
+                  <tr><td>Por quê</td><td>É um filtro que exclui</td><td>É uma identidade que convoca</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top:1.2rem">
+              <span class="rotulo-bloco">Os quatro testes da comunidade</span>
+              <ol class="passos">
+                <li><b>Bandeira.</b> Alguém se descreve com esse rótulo? "Sou nordestino", "sou nerd". Se ninguém usa a palavra para falar de si, não é comunidade.</li>
+                <li><b>"Somos nós".</b> Dá para mandar o vídeo a um amigo com a legenda <i>"olha, é a gente"</i>?</li>
+                <li><b>Orgulho ferido.</b> Existe algo que essa gente sente que é subestimado? É daí que sai a energia do compartilhamento.</li>
+                <li><b>Tamanho.</b> São milhões, não milhares. Comunidade pequena engaja, mas não viraliza.</li>
               </ol>
             </div>
-            <div>
-              <span class="block-label">Por que funciona assim</span>
-              <div class="why">
-                <p>O algoritmo precisa decidir <strong>em milissegundos</strong> para quem empurrar o seu vídeo. "Mulher empresária que tem funcionários e quer sair do operacional" é um ICP de venda excelente — e um sinal ilegível para a plataforma. Recorte fino demais mata a distribuição antes de o conteúdo ter chance.</p>
-                <p>Sobre os 10 temas: <q>a gente nunca sabe o que vai viralizar.</q> Na validação do método, a aposta inicial era crescer falando de estratégia de marketing e lançamento — e flopou. O que estourou foi <strong>história de grandes empresas</strong>, que nem estava na lista original. Cada tema é um ponto de teste e a taxa de acerto é baixa, então você precisa de vários. Dez temas também viram dez buscas diferentes na Fase 1: dez poços de referência em vez de um.</p>
+            <div class="risco" style="margin-top:1rem">
+              <div class="t"><span>Cuidado</span> Comunidade não é público-alvo.</div>
+              <p>Público-alvo é para onde você vende. Comunidade é <b>por quem você fala</b>. Você pode vender para o Brasil inteiro e ainda assim ser a voz do Nordeste.</p>
+            </div>
+          </section>
+
+          <section>
+            <span class="rotulo-bloco">A assinatura: errado × certo</span>
+            <div class="duo">
+              <div class="duo-c">
+                <span class="k">Viciado no método</span>
+                <ul>
+                  <li>"sou mentora e ajudo mulheres a saírem do operacional"</li>
+                  <li>"ensino mulheres a empreender" <i>(elas já empreendem)</i></li>
+                </ul>
+              </div>
+              <div class="duo-c sim">
+                <span class="k">Topo de funil</span>
+                <ul>
+                  <li>"ensino mulheres a terem mais lucro todos os dias"</li>
+                  <li>"analiso as melhores estratégias de negócio do mundo"</li>
+                </ul>
               </div>
             </div>
-            <div>
-              <span class="block-label">Views não viralizam. Compartilhamento viraliza.</span>
-              <div class="why">
-                <p>Uma visualização é consumo passivo — sinal fraco. Um compartilhamento é outra coisa: a pessoa está <strong>colocando a reputação dela em jogo</strong> para levar o seu conteúdo até alguém. Para a plataforma, é o sinal mais forte que existe, porque empurra o vídeo para fora da sua rede — direto para quem nunca ouviu falar de você.</p>
-                <p>Um vídeo pode ter meio milhão de views e crescer pouco. Outro, com um terço disso e vinte mil compartilhamentos, explode o perfil.</p>
-              </div>
-              <div class="gb" style="margin-top:1.4rem">
-                <div class="gb-col">
-                  <span class="h">Motivo 1 · Moeda social</span>
-                  <p style="margin:0;font-size:.93rem;color:var(--ink-2)"><strong>"Eu queria ter dito isso."</strong> O vídeo articula algo que a pessoa pensa mas não consegue formular. Compartilhar vira uma forma de dizer <em>isso sou eu</em> — sem precisar escrever nada.</p>
-                </div>
-                <div class="gb-col">
-                  <span class="h">Motivo 2 · Pertencimento</span>
-                  <p style="margin:0;font-size:.93rem;color:var(--ink-2)"><strong>"Isso é sobre a gente."</strong> A pessoa manda no privado, para alguém específico, porque o conteúdo fala da tribo dos dois. É o compartilhamento mais forte que existe: vem com recomendação pessoal embutida.</p>
-                </div>
-              </div>
-              <div class="callout" style="margin:1.4rem 0 0">
-                <span class="k">A raiz dos dois</span>
-                <p><strong>Identidade.</strong> Ninguém compartilha informação. As pessoas compartilham quem elas são.</p>
-              </div>
-            </div>
-
-            <div>
-              <span class="block-label">A camada que quase ninguém tem: a comunidade</span>
-              <div class="why">
-                <p>Se as pessoas compartilham identidade, a pergunta vira: <strong>como fazer conteúdo que sirva para alguém dizer quem é?</strong> A resposta é escolher uma comunidade e virar a voz dela.</p>
-              </div>
-
-              <div class="gb" style="margin-top:1.4rem">
-                <div class="gb-col yes">
-                  <span class="h">Exemplo · A voz de uma região</span>
-                  <p style="margin:0;font-size:.93rem;color:var(--ink-2)">Um criador falava de <strong>empresas</strong> — assunto que mil pessoas cobrem. Recortou para <strong>empresas do Nordeste</strong> e passou a exaltar negócios e empresários nordestinos. Virou a voz de uma região. Hoje, cada nordestino que vê um vídeo dele não está vendo conteúdo de negócios: está vendo <em>alguém defendendo os dele</em>.</p>
-                </div>
-                <div class="gb-col yes">
-                  <span class="h">Exemplo · A voz de uma cultura</span>
-                  <p style="margin:0;font-size:.93rem;color:var(--ink-2)">Outro fala de empresas também — mas é <strong>nerd</strong>. Então conta histórias de empresa pelo mundo nerd: as referências, o vocabulário, as piadas internas. A taxa de compartilhamento é altíssima, por um motivo simples: <em>nerd manda pra nerd</em>.</p>
-                </div>
-              </div>
-
-              <div class="note" style="margin-top:1.4rem">
-                <b>Atenção — isto não é afunilar.</b> É fácil confundir comunidade com aquele recorte de ICP que a gente acabou de descartar. São eixos opostos.
-              </div>
-
-              <div class="tbl-scroll" style="margin-top:1rem">
-                <table class="tools">
-                  <thead><tr><th></th><th>Recorte comercial</th><th>Comunidade</th></tr></thead>
-                  <tbody>
-                    <tr><td>A pergunta</td><td>Quem eu quero como cliente?</td><td>Por quem eu falo?</td></tr>
-                    <tr><td>Exemplo</td><td>"empresárias com funcionários"</td><td>"os nordestinos"</td></tr>
-                    <tr><td>Efeito</td><td>Estreita o alcance</td><td>Amplia o alcance</td></tr>
-                    <tr><td>Por quê</td><td>É um filtro que exclui</td><td>É uma identidade que convoca</td></tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div class="why" style="margin-top:1.4rem">
-                <p>Um recorte comercial <strong>exclui</strong> quem não se encaixa. Uma comunidade <strong>convoca</strong> todo mundo que carrega aquela identidade — e essa gente se conta aos milhões.</p>
-              </div>
-
-              <div style="margin-top:1.4rem">
-                <span class="block-label">Os quatro testes da comunidade</span>
-                <ol class="steps">
-                  <li><b>Bandeira.</b> Alguém se descreve com esse rótulo? "Sou nordestino", "sou nerd", "sou mãe atípica". Se ninguém usa a palavra para falar de si, não é comunidade.</li>
-                  <li><b>"Somos nós".</b> Dá para mandar o vídeo a um amigo com a legenda <em>"olha, é a gente"</em>? Se não dá, falta pertencimento.</li>
-                  <li><b>Orgulho ferido.</b> Existe algo que essa gente sente que é subestimado ou injustiçado? É daí que sai a energia do compartilhamento.</li>
-                  <li><b>Tamanho.</b> São milhões, não milhares. Comunidade pequena engaja, mas não viraliza.</li>
-                </ol>
-              </div>
-
-              <div class="trap" style="margin-top:1.4rem">
-                <div class="t"><span>Cuidado</span> Comunidade não é público-alvo.</div>
-                <p>Público-alvo é para onde você vende. Comunidade é <strong>por quem você fala</strong>. Você pode vender para empresários de qualquer lugar e ainda assim ser a voz do Nordeste — a comunidade é o que faz o conteúdo circular, não o que define quem compra.</p>
-              </div>
-            </div>
-
-            <div>
-              <span class="block-label">A assinatura: errado × certo</span>
-              <div class="gb">
-                <div class="gb-col">
-                  <span class="h">✕ Viciado no método</span>
-                  <ul>
-                    <li>"sou mentora de mulheres empresárias e ajudo a saírem do operacional"</li>
-                    <li>"ensino mulheres a empreender" <em>(elas já empreendem)</em></li>
-                    <li>"ensino empreendedorismo feminino com mais leveza"</li>
-                  </ul>
-                </div>
-                <div class="gb-col yes">
-                  <span class="h">✓ Topo de funil</span>
-                  <ul>
-                    <li>"ensino mulheres a terem mais lucro todos os dias"</li>
-                    <li>"analiso as melhores estratégias de negócio do mundo todos os dias"</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="trap">
+            <div class="risco" style="margin-top:1rem">
               <div class="t"><span>Erro fatal</span> Descrever o processo em vez do resultado.</div>
-              <p>O público não quer saber como você faz — quer saber o que ele ganha. E corte redundância: se você já disse "mulheres", não precisa dizer "feminino". Cada palavra a mais reduz a chance de a pessoa terminar de ouvir.</p>
+              <p>O público não quer saber como você faz — quer saber o que ele ganha. E corte redundância: se você já disse "mulheres", não precisa dizer "feminino".</p>
             </div>
-          </div>
-        </article>
+          </section>
+        </div>
 
         <!-- FASE 1 -->
-        <div class="sec-head" style="margin-top:3rem">
-          <span class="sec-num">06 — Segunda etapa</span>
-          <h2>Fase 1 · Minerar benchmarks</h2>
-        </div>
-        <article class="phase">
-          <div class="phase-head">
-            <span class="phase-id">Fase 1</span>
-            <h3>Descobrir o que é conteúdo bom — com dados, não com opinião</h3>
-            <p class="goal">Você vai montar um acervo de vídeos que já provaram funcionar no seu nicho, e extrair o texto de cada um.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">Fase 1</span>
+            <h3>Minerar benchmarks</h3>
+            <p>Descobrir o que é conteúdo bom — com dados, não com opinião.</p>
           </div>
-          <div class="phase-body">
-            <div>
-              <span class="block-label">O que você vai fazer</span>
-              <ol class="steps">
-                <li><b>Buscar cada um dos 10 temas no YouTube, em inglês.</b> Depois aplicar o filtro <em>Contagem de visualizações</em>. O filtro ordena o nicho inteiro por prova social acumulada.</li>
-                <li><b>Selecionar 10 canais e os 10 vídeos mais vistos de cada.</b> Para vídeos curtos, entre no canal → aba <em>Shorts</em> → ordenar por <em>Populares</em>: sai o ranking histórico daquele criador.</li>
-                <li><b>Extrair a transcrição de cada vídeo escolhido.</b> É o texto que interessa, não a imagem.</li>
-              </ol>
+          <section>
+            <span class="rotulo-bloco">O que você vai fazer</span>
+            <ol class="passos">
+              <li><b>Buscar cada tema no YouTube, em inglês.</b> Depois aplicar o filtro <i>Contagem de visualizações</i>.</li>
+              <li><b>Selecionar 10 canais e os 10 vídeos mais vistos de cada.</b> Para vídeos curtos: canal → aba Shorts → ordenar por Populares.</li>
+              <li><b>Extrair a transcrição de cada vídeo.</b> É o texto que interessa, não a imagem.</li>
+            </ol>
+          </section>
+          <section>
+            <span class="rotulo-bloco">Por que buscar fora do Brasil</span>
+            <div class="pq">
+              <p>O mercado de fora tem <b>volume muito maior</b>, então um vídeo que viralizou lá passou por um teste mais duro. O conteúdo <b>ainda não circulou aqui</b>, então a sua versão parece novidade. E a barreira de língua acabou — a IA traduz e adapta.</p>
+              <p><q>Talvez você não tenha vídeo viral porque você não tem bons benchmarks.</q></p>
             </div>
-            <div>
-              <span class="block-label">Por que buscar fora do Brasil</span>
-              <div class="why">
-                <p>Três razões. O mercado americano e europeu tem <strong>volume muito maior</strong>, então um vídeo que viralizou lá passou por um teste mais duro do que um vídeo que viralizou aqui. O conteúdo <strong>ainda não circulou no Brasil</strong>, então a sua versão parece novidade, não cópia. E a barreira de língua acabou — a IA traduz e adapta sem você falar o idioma.</p>
-                <p>A frase que sustenta a fase inteira: <q>talvez você não tenha vídeo viral porque você não tem bons benchmarks.</q></p>
-              </div>
+          </section>
+          <section>
+            <span class="rotulo-bloco">Ferramentas</span>
+            <div class="rolagem">
+              <table class="grade">
+                <thead><tr><th>Ferramenta</th><th>Quando usar</th><th>O que faz</th></tr></thead>
+                <tbody>
+                  <tr><td>Eightify</td><td>Vídeo longo</td><td>Extensão que transforma o vídeo em texto na hora</td></tr>
+                  <tr><td>ssyoutube</td><td>Short sem transcrição</td><td>Baixa o arquivo. 360p basta</td></tr>
+                  <tr><td>Cockatoo</td><td>Depois de baixar</td><td>Transcrição pronta em cerca de 1 minuto</td></tr>
+                  <tr><td>ChatGPT</td><td>Para ampliar a lista</td><td>Mapeia canais de fora que você não conhece</td></tr>
+                </tbody>
+              </table>
             </div>
-            <div>
-              <span class="block-label">Ferramentas</span>
-              <div class="tbl-scroll">
-                <table class="tools">
-                  <thead><tr><th>Ferramenta</th><th>Quando usar</th><th>O que faz</th></tr></thead>
-                  <tbody>
-                    <tr><td>Eightify</td><td>Vídeo longo do YouTube</td><td>Extensão de navegador — transforma o vídeo em texto direto na página</td></tr>
-                    <tr><td>ssyoutube</td><td>Short ou vídeo sem transcrição</td><td>Baixa o arquivo. 360p é suficiente: você quer o texto, não a imagem</td></tr>
-                    <tr><td>Cockatoo</td><td>Depois de baixar</td><td>Upload do vídeo → transcrição pronta em cerca de 1 minuto</td></tr>
-                    <tr><td>ChatGPT</td><td>Em paralelo, para ampliar a lista</td><td>Pesquisa profunda para mapear canais de fora que você não conhece</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <span class="block-label">Prompt de pesquisa</span>
-              <div class="prompt">Busque grandes canais de [TEMA] da gringa.
+          </section>
+          <section>
+            <span class="rotulo-bloco">Prompt de pesquisa</span>
+            <div class="receita">Busque grandes canais de [TEMA] da gringa.
 Europa, China, Índia, Estados Unidos, etc.
 Não me pergunte mais nada.
 
-<span class="cmt">// a última linha evita 10 minutos de ping-pong com o modelo</span></div>
-            </div>
-            <div class="trap">
-              <div class="t"><span>Erro fatal</span> Escolher os canais de que você gosta.</div>
-              <p>Você não está montando uma lista de inspiração. Está montando uma lista de <strong>vídeos que já ganharam</strong> — o critério é número, não gosto. E descarte vídeos curtos demais: sem estrutura suficiente para copiar, eles não servem de benchmark. Você quer roteiro, não frase solta.</p>
-            </div>
+<span class="c">// a última linha evita 10 minutos de ping-pong</span></div>
+          </section>
+          <div class="risco">
+            <div class="t"><span>Erro fatal</span> Escolher os canais de que você gosta.</div>
+            <p>Você não monta uma lista de inspiração. Monta uma lista de <b>vídeos que já ganharam</b> — o critério é número, não gosto.</p>
           </div>
-        </article>
+        </div>
 
         <!-- FASE 2 -->
-        <div class="sec-head" style="margin-top:3rem">
-          <span class="sec-num">07 — Terceira etapa</span>
-          <h2>Fase 2 · Replicar o validado</h2>
-        </div>
-        <article class="phase">
-          <div class="phase-head">
-            <span class="phase-id">Fase 2</span>
-            <h3>Copiar a estrutura do que já funciona — sem tempero</h3>
-            <p class="goal">Esta é a fase que separa quem executa o método de quem só concorda com ele. É também a mais desconfortável.</p>
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">Fase 2</span>
+            <h3>Replicar o validado</h3>
+            <p>A fase que separa quem executa o método de quem só concorda com ele.</p>
           </div>
-          <div class="phase-body">
-            <div>
-              <span class="block-label">O que você vai fazer</span>
-              <ol class="steps">
-                <li><b>Transformar cada transcrição em roteiro.</b> Um roteiro de <strong>até 3 minutos</strong>, adaptado ao seu tema, pronto para ser lido.</li>
-                <li><b>Gravar lendo no teleprompter.</b> Palavra por palavra. Sem improviso, sem "vou dar a minha versão".</li>
-                <li><b>Publicar em volume e medir.</b> No começo, três por dia. Anotar de cada um: visualizações, quantos pularam, quantos seguidores novos.</li>
-              </ol>
-            </div>
-            <div>
-              <span class="block-label">Os dois prompts</span>
-              <div class="prompt">Transforme o roteiro abaixo em um vídeo viral de até 3 minutos.
+          <section>
+            <span class="rotulo-bloco">O que você vai fazer</span>
+            <ol class="passos">
+              <li><b>Transformar cada transcrição em roteiro</b> de até 3 minutos, adaptado ao seu tema.</li>
+              <li><b>Gravar lendo no teleprompter.</b> Palavra por palavra, sem improviso.</li>
+              <li><b>Publicar em volume e medir.</b> No começo, três por dia.</li>
+            </ol>
+          </section>
+          <section>
+            <span class="rotulo-bloco">Os dois prompts</span>
+            <div class="receita">Transforme o roteiro abaixo em um vídeo viral de até 3 minutos.
 
 [colar a transcrição]</div>
-              <div class="prompt" style="margin-top:.7rem">Só o texto a ser lido no teleprompter.
+            <div class="receita" style="margin-top:.5rem">Só o texto a ser lido no teleprompter.
 
-<span class="cmt">// sem esta segunda mensagem a IA devolve marcação de cena
-// e indicação de corte, e você perde tempo limpando</span></div>
+<span class="c">// sem isso a IA devolve marcação de cena e você perde tempo limpando</span></div>
+          </section>
+          <section>
+            <span class="rotulo-bloco">A regra dos 3 minutos é distribuição, não estilo</span>
+            <div class="pq">
+              <p>Acima de ~3 minutos o Instagram entrega quase só para quem <b>já te segue</b>. Num vídeo longo de 13 minutos, apenas <b>8%</b> do alcance veio de não-seguidores. Num vídeo curto: <b>84%</b>.</p>
             </div>
-            <div>
-              <span class="block-label">A regra dos 3 minutos não é estilo — é distribuição</span>
-              <div class="why">
-                <p>Vídeos acima de ~3 minutos o Instagram entrega quase só para quem <strong>já te segue</strong>. Num vídeo longo de 13 minutos medido nos testes, apenas <strong>8%</strong> do alcance veio de não-seguidores. Num vídeo curto, no mesmo perfil: <strong>84%</strong>.</p>
-                <p>Ou seja: <strong>curto é máquina de aquisição, longo é aprofundamento</strong> com quem já chegou. Nesta fase você está adquirindo. Fique no curto.</p>
-              </div>
+          </section>
+          <section>
+            <span class="rotulo-bloco">"Mas minha marca não é feita das minhas ideias?"</span>
+            <div class="pq">
+              <p>Talvez as suas ideias sejam ruins — e é por isso que não viralizam. Insistir nelas é empurrar pedra montanha acima.</p>
+              <p>E mais estrutural: <b>audiência vem antes de mensagem</b>. João Batista e Jesus tinham mensagem; um pregou no deserto, o outro caminhou espalhando para multidões. Antes de ter audiência, você é só alguém gritando no vento.</p>
+              <p>A cópia é <b>andaime, não prédio</b>. Depois que a audiência existe, o conteúdo volta a ser autoral — e funciona porque agora tem alguém do outro lado querendo ouvir.</p>
             </div>
-            <div>
-              <span class="block-label">"Mas então minha marca não é feita das minhas ideias?"</span>
-              <div class="why">
-                <p>Essa é a objeção mais comum ao método — e a resposta é a parte mais importante dele.</p>
-                <p>Primeiro: talvez as suas ideias sejam ruins — e é exatamente por isso que elas não viralizam. Insistir nelas é empurrar uma pedra montanha acima quando dá para empurrar montanha abaixo.</p>
-                <p>Segundo, e mais estrutural: <strong>audiência vem antes de mensagem</strong>. A analogia é João Batista e Jesus. Os dois tinham mensagem; um pregou no deserto, o outro caminhou espalhando para multidões. Antes de ter audiência, você é só alguém gritando no vento.</p>
-                <p>A cópia é <strong>andaime, não prédio</strong>. Depois que a audiência existe, o conteúdo volta a ser 100% autoral — e funciona justamente porque agora tem alguém do outro lado querendo ouvir.</p>
-              </div>
-            </div>
-            <div class="trap">
-              <div class="t"><span>Erro fatal</span> Melhorar o roteiro antes de ter dado.</div>
-              <p>A tentação de editorializar, suavizar ou "deixar com a sua cara" é o que faz esta fase falhar. O roteiro é o ativo, não a pessoa: nos testes, <strong>o mesmo roteiro viralizou em três canais diferentes, com três pessoas diferentes gravando</strong>. Execute primeiro, personalize depois.</p>
-            </div>
-          </div>
-        </article>
-
-        <hr class="rule">
-
-        <!-- REGRAS -->
-        <div class="sec-head">
-          <span class="sec-num">08 — Inegociável</span>
-          <h2>Três regras que não se quebram</h2>
-          <p class="sub">Valem desde o primeiro vídeo, em todas as fases.</p>
-        </div>
-        <div class="rules">
-          <div class="rule">
-            <span class="big">3s</span>
-            <h3>Os primeiros três segundos decidem tudo</h3>
-            <p>É a métrica que a plataforma mais valoriza. A taxa de pessoas que pulam o seu vídeo precisa ficar <strong>abaixo de 30%</strong> — a média do mercado é 70 a 80%.</p>
-          </div>
-          <div class="rule">
-            <span class="big">≠</span>
-            <h3>Média é mentira</h3>
-            <p>Um vídeo trouxe 35 mil seguidores; a maioria trouxe 10 ou 12. A média diz "100 por vídeo" e está errada. Você não otimiza pela média — <strong>você clona os pontos fora da curva</strong>.</p>
-          </div>
-          <div class="rule">
-            <span class="big">1×</span>
-            <h3>Um vídeo por dia, e pare quando acertar</h3>
-            <p>O Instagram não mostra dois vídeos recomendados seus para a mesma pessoa no mesmo dia. Quando um vídeo estiver viralizando, <strong>não poste por 2 ou 3 dias</strong>.</p>
+          </section>
+          <div class="risco">
+            <div class="t"><span>Erro fatal</span> Melhorar o roteiro antes de ter dado.</div>
+            <p>O roteiro é o ativo, não a pessoa: nos testes, <b>o mesmo roteiro viralizou em três canais diferentes, com três pessoas diferentes gravando</b>.</p>
           </div>
         </div>
 
-        <!-- CTA -->
-        <div class="callout" style="margin-top:3rem;text-align:center">
-          <span class="k">Fim do briefing</span>
-          <p style="margin-bottom:1.4rem">Agora que você entendeu o processo, o próximo passo é montar o <strong>seu</strong> caso.</p>
-          <button class="btn primary" data-act="briefing-ok">
+        <!-- LEIS -->
+        <div class="cartao">
+          <div class="cartao-h">
+            <span class="eyebrow">Inegociável</span>
+            <h3>Três regras que não se quebram</h3>
+            <p>Valem desde o primeiro vídeo, em todas as fases.</p>
+          </div>
+          <div class="leis">
+            <div class="lei">
+              <span class="n">3s</span>
+              <h3>Os três primeiros segundos decidem tudo</h3>
+              <p>A taxa de pessoas que pulam precisa ficar <b>abaixo de 30%</b>. A média do mercado é 70 a 80%.</p>
+            </div>
+            <div class="lei">
+              <span class="n">≠</span>
+              <h3>Média é mentira</h3>
+              <p>Um vídeo trouxe 35 mil seguidores; a maioria trouxe 10. Você não otimiza pela média — <b>clona os pontos fora da curva</b>.</p>
+            </div>
+            <div class="lei">
+              <span class="n">1×</span>
+              <h3>Um por dia, e pare quando acertar</h3>
+              <p>O Instagram não mostra dois vídeos recomendados seus para a mesma pessoa no mesmo dia. Quando um viralizar, <b>não poste por 2 ou 3 dias</b>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center;margin-top:2rem">
+          <button class="bt forte" data-act="briefing-ok">
             Entendi — começar a Fase 0
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
@@ -437,225 +410,220 @@ Não me pergunte mais nada.
       </div>
     </div>
 
-    <!-- ################ FASE 0 — FORMULÁRIO ################ -->
-    <div class="view" id="view-fase0">
-      <div class="pad">
-        <span class="eyebrow"><span class="dot"></span>Fase 0 · Suas informações</span>
-        <h1 class="page-h1">Definir o campo</h1>
-        <p class="lede">Três decisões antes de qualquer produção: onde você joga, sobre o que você fala e como você se apresenta.</p>
-
-        <!-- NICHO -->
-        <div class="card" style="margin-top:2.5rem">
-          <div class="card-h"><h3>1. O seu nicho</h3></div>
-          <p class="hint">Duas camadas, e pare por aí. A terceira camada mata a distribuição: o algoritmo precisa entender para quem empurrar o vídeo em milissegundos.</p>
-          <div class="row2">
-            <div class="field">
-              <label class="lab" for="macroNicho">Macro-nicho</label>
-              <span class="hint">O território amplo. Ex: negócios, saúde, fé, finanças.</span>
-              <input type="text" id="macroNicho" placeholder="ex: negócios">
-            </div>
-            <div class="field">
-              <label class="lab" for="subNicho">Subnicho</label>
-              <span class="hint">Um recorte, só um. Ex: mulheres de negócios.</span>
-              <input type="text" id="subNicho" placeholder="ex: mulheres de negócios">
-            </div>
-          </div>
-          <div class="note">
-            <b>Não desça mais.</b> "Mulheres de negócios que têm funcionários e querem sair do operacional" é um ótimo perfil de cliente — e um péssimo filtro de conteúdo.
-          </div>
+    <!-- ################ FASE 0 ################ -->
+    <div class="vista" id="v-fase0">
+      <div class="larg corpo">
+        <div class="topo-grande">
+          <span class="eyebrow">Fase 0</span>
+          <h1>Definir o campo</h1>
+          <p class="abre">Onde você joga, por quem você fala, sobre o que você fala e como você se apresenta.</p>
         </div>
 
-        <!-- COMUNIDADE -->
-        <div class="card">
-          <div class="card-h"><h3>2. A sua comunidade</h3></div>
-          <p class="hint">A decisão mais importante desta fase. Views não viralizam — <strong>compartilhamento viraliza</strong>. E ninguém compartilha informação: as pessoas compartilham quem elas são. A comunidade é o grupo por quem você fala, e é o que faz a pessoa mandar o seu vídeo pra alguém dizendo <em>"olha, é a gente"</em>.</p>
-
-          <div class="field">
-            <label class="lab" for="comunidade">Qual comunidade você representa?</label>
-            <span class="hint">De quem você fala — não para quem você vende. Ex: os nordestinos, os nerds, quem começou do zero, mães que empreendem.</span>
-            <input type="text" id="comunidade" placeholder="ex: os nordestinos">
-          </div>
-
-          <div class="field">
-            <label class="lab" for="comunidadeBandeira">Como essa gente se descreve?</label>
-            <span class="hint">A palavra exata que a pessoa usa pra falar de si mesma. Se ninguém usa a palavra pra se descrever, não é uma comunidade.</span>
-            <input type="text" id="comunidadeBandeira" placeholder='ex: "sou nordestino"'>
-          </div>
-
-          <div class="field">
-            <label class="lab" for="comunidadeCausa">Qual o orgulho ferido dessa comunidade?</label>
-            <span class="hint">O que essa gente sente que é subestimado, ignorado ou injustiçado — e que ninguém diz em voz alta por ela. É daqui que sai a energia do compartilhamento.</span>
-            <textarea id="comunidadeCausa" rows="3" placeholder="ex: o Nordeste produz empresas gigantes e o Sudeste finge que não existe"></textarea>
-          </div>
-
-          <div class="note">
-            <b>Dois exemplos reais.</b> Um criador falava de empresas — assunto que mil pessoas cobrem. Recortou para <b>empresas do Nordeste</b> e virou a voz de uma região: cada nordestino que assiste não vê conteúdo de negócios, vê alguém defendendo os dele. Outro fala de empresas também, mas é <b>nerd</b> — conta as mesmas histórias pelo vocabulário do mundo nerd, e a taxa de compartilhamento dispara, porque nerd manda pra nerd.
-          </div>
-
-          <div class="note" style="margin-top:.9rem">
-            <b>Não confunda com o recorte do campo 1.</b> Recorte comercial pergunta "quem eu quero como cliente?" e <b>estreita</b> o alcance. Comunidade pergunta "por quem eu falo?" e <b>amplia</b> — porque é identidade, não filtro. Você pode vender pro Brasil inteiro e ainda assim ser a voz do Nordeste.
-          </div>
-        </div>
-
-        <!-- TEMAS -->
-        <div class="card">
-          <div class="card-h">
-            <h3>3. Os 10 grandes temas</h3>
-            <span class="counter" id="temasCount">0/10</span>
-          </div>
-          <p class="hint">Temas amplos e pesquisáveis — coisas que alguém digitaria no YouTube. Não escreva o seu método. Você precisa de dez porque ninguém sabe de antemão qual vai viralizar, e porque cada tema vira uma busca diferente na Fase 1.</p>
-          <div class="temas" id="temasBox"></div>
-        </div>
-
-        <!-- ASSINATURA -->
-        <div class="card">
-          <div class="card-h"><h3>4. A sua assinatura</h3></div>
-          <p class="hint">A frase fixa que fecha todo vídeo. Ela não é slogan — é o critério pelo qual a pessoa decide te seguir. Uma promessa só, e de topo de funil.</p>
-          <div class="field">
-            <label class="lab" for="sigNome">Seu nome</label>
-            <input type="text" id="sigNome" placeholder="ex: Ana Ribeiro">
-          </div>
-          <div class="row2">
-            <div class="field">
-              <label class="lab" for="sigEntrega">O que você faz</label>
-              <span class="hint">Um verbo. Ex: ensino, analiso, mostro.</span>
-              <input type="text" id="sigEntrega" placeholder="ex: ensino mulheres a">
+        <!-- nicho -->
+        <div class="grupo">
+          <span class="sec-rot">O seu nicho</span>
+          <div class="ilha">
+            <div class="linha">
+              <span class="rot">Macro-nicho</span>
+              <input type="text" id="macroNicho" placeholder="negócios">
             </div>
-            <div class="field">
-              <label class="lab" for="sigPromessa">A promessa</label>
-              <span class="hint">O resultado, não o processo.</span>
-              <input type="text" id="sigPromessa" placeholder="ex: terem mais lucro">
+            <div class="linha">
+              <span class="rot">Subnicho</span>
+              <input type="text" id="subNicho" placeholder="mulheres de negócios">
             </div>
           </div>
-          <div class="sig-preview">
+          <span class="sec-nota">Duas camadas, e pare por aí. Uma terceira camada mata a distribuição: o algoritmo precisa entender para quem empurrar o vídeo em milissegundos.</span>
+        </div>
+
+        <!-- comunidade -->
+        <div class="grupo">
+          <span class="sec-rot">A sua comunidade</span>
+          <div class="ilha">
+            <div class="linha empilha">
+              <span class="rot">Qual comunidade você representa?<small>De quem você fala — não para quem você vende.</small></span>
+              <input type="text" id="comunidade" placeholder="os nordestinos">
+            </div>
+            <div class="linha empilha">
+              <span class="rot">Como essa gente se descreve?<small>A palavra exata que a pessoa usa para falar de si.</small></span>
+              <input type="text" id="comunidadeBandeira" placeholder="sou nordestino">
+            </div>
+            <div class="linha empilha">
+              <span class="rot">Qual o orgulho ferido dessa comunidade?<small>O que ela sente que é subestimado e ninguém diz em voz alta.</small></span>
+              <textarea id="comunidadeCausa" rows="3" placeholder="o Nordeste produz empresas gigantes e o Sudeste finge que não existe"></textarea>
+            </div>
+          </div>
+          <span class="sec-nota">Views não viralizam — compartilhamento viraliza. E ninguém compartilha informação: as pessoas compartilham quem elas são. A comunidade é o que faz alguém mandar o seu vídeo dizendo "olha, é a gente".</span>
+        </div>
+
+        <!-- temas -->
+        <div class="grupo">
+          <div class="sec-linha">
+            <span class="sec-rot">Os grandes temas</span>
+            <span class="medidor" id="medTemas"><span class="b"><i></i></span><span class="v">0/10</span></span>
+          </div>
+          <div class="ilha" id="temasIlha"></div>
+          <span class="sec-nota">Temas amplos e pesquisáveis — coisas que alguém digitaria no YouTube. Não escreva o seu método. Você precisa de dez porque ninguém sabe qual vai viralizar, e porque cada tema vira uma busca diferente na Fase 1.</span>
+        </div>
+
+        <!-- assinatura -->
+        <div class="grupo">
+          <span class="sec-rot">A sua assinatura</span>
+          <div class="ilha">
+            <div class="linha">
+              <span class="rot">Seu nome</span>
+              <input type="text" id="sigNome" placeholder="Ana Ribeiro">
+            </div>
+            <div class="linha">
+              <span class="rot">O que você faz</span>
+              <input type="text" id="sigEntrega" placeholder="ensino mulheres a">
+            </div>
+            <div class="linha">
+              <span class="rot">A promessa</span>
+              <input type="text" id="sigPromessa" placeholder="terem mais lucro">
+            </div>
+          </div>
+          <div class="previa">
             <span class="k">Como vai soar</span>
-            <div class="sig-txt" id="sigTxt"></div>
-            <div class="sig-meta" id="sigMeta"></div>
+            <div class="previa-t" id="sigTxt"></div>
+            <div class="previa-m" id="sigMeta"></div>
           </div>
-          <div class="note" style="margin-top:1.2rem">
-            <b>O erro mais comum:</b> descrever o processo em vez do resultado. "Ajudo a sair do operacional delegando com assertividade" é método. "Ensino mulheres a terem mais lucro" é promessa. E se você já disse "mulheres", corte "feminino".
-          </div>
+          <span class="sec-nota">O erro mais comum é descrever o processo em vez do resultado. "Ajudo a sair do operacional delegando" é método. "Ensino mulheres a terem mais lucro" é promessa.</span>
         </div>
 
-        <div class="pager">
-          <button class="btn" data-go="briefing">← Voltar ao briefing</button>
-          <button class="btn primary" data-go="fase1">Ir para a Fase 1 →</button>
+        <div class="rodape-nav">
+          <button class="bt simples" data-go="briefing">Voltar ao briefing</button>
+          <button class="bt forte" data-go="fase1">Ir para a Fase 1</button>
         </div>
       </div>
     </div>
 
-    <!-- ################ FASE 1 — FORMULÁRIO ################ -->
-    <div class="view" id="view-fase1">
-      <div class="pad">
-        <span class="eyebrow"><span class="dot"></span>Fase 1 · Suas informações</span>
-        <h1 class="page-h1">Minerar benchmarks</h1>
-        <p class="lede">Monte o acervo de vídeos que já provaram funcionar. O critério é número, não gosto.</p>
+    <!-- ################ FASE 1 ################ -->
+    <div class="vista" id="v-fase1">
+      <div class="larg corpo">
+        <div class="topo-grande">
+          <span class="eyebrow">Fase 1</span>
+          <h1>Minerar benchmarks</h1>
+          <p class="abre">Monte o acervo de vídeos que já provaram funcionar. O critério é número, não gosto.</p>
+        </div>
 
-        <div class="callout">
+        <div class="destaque">
           <span class="k">Como encontrar</span>
-          <p>Busque cada um dos seus 10 temas <strong>em inglês</strong> no YouTube e aplique o filtro <strong>Contagem de visualizações</strong>. Para vídeos curtos: entre no canal → aba <em>Shorts</em> → ordenar por <em>Populares</em>.</p>
+          <p>Busque cada tema <b>em inglês</b> no YouTube e aplique o filtro <b>Contagem de visualizações</b>. Para vídeos curtos: entre no canal, aba Shorts, ordenar por Populares.</p>
         </div>
 
-        <div class="card">
-          <div class="card-h">
-            <h3>Os 10 canais</h3>
-            <span style="display:flex;gap:.4rem;flex-wrap:wrap">
-              <span class="counter" id="canaisCount">0/10 canais</span>
-              <span class="counter" id="videosCount">0/100 vídeos</span>
-            </span>
+        <div class="grupo">
+          <div class="sec-linha">
+            <span class="sec-rot">Os canais</span>
+            <span class="medidor" id="medCanais"><span class="b"><i></i></span><span class="v">0/10</span></span>
           </div>
-          <p class="hint">Clique em cada canal para abrir. Cole os links dos vídeos mais vistos, um por linha.</p>
-          <div id="canaisBox"></div>
-        </div>
-
-        <!-- TRANSCRIÇÃO -->
-        <div class="soon">
-          <span class="k">Próximo passo desta fase</span>
-          <h4>Extrair a transcrição de cada vídeo</h4>
-          <p>Depois de importar os canais e os vídeos, o texto de cada um é extraído automaticamente — é o texto que vira roteiro na Fase 2.</p>
-          <button class="btn primary" id="btnTranscrever" disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Extrair transcrição de cada vídeo
+          <div id="canaisCx"></div>
+          <button class="bt simples" id="btAddCanal" style="margin-top:.4rem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Adicionar canal
           </button>
-          <span class="btn-note" id="transcNota">Importe pelo menos um vídeo para liberar.</span>
+          <span class="sec-nota" id="notaVideos">Cole os links dos vídeos mais vistos de cada canal, um por linha.</span>
         </div>
 
-        <!-- ENVIO -->
-        <div class="card" style="margin-top:2rem">
-          <div class="card-h"><h3>Enviar para validação</h3></div>
-          <p class="hint">Quando terminar as Fases 0 e 1, gere a sua ficha e envie. Nada sai deste navegador sozinho — você controla o envio.</p>
-          <div class="actions" style="margin-top:0">
-            <button class="btn primary" data-act="copiar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Copiar a ficha completa
-            </button>
-            <button class="btn" data-act="baixar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Baixar arquivo
-            </button>
+        <div class="grupo">
+          <span class="sec-rot">Próximo passo</span>
+          <div class="ilha">
+            <div class="linha empilha">
+              <span class="rot">Extrair a transcrição de cada vídeo<small>O texto de cada vídeo é o que vira roteiro na Fase 2.</small></span>
+              <button class="bt forte cheio" id="btTranscrever" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Extrair transcrições
+              </button>
+              <span class="ex" id="notaTransc">Importe pelo menos um vídeo para liberar.</span>
+            </div>
           </div>
         </div>
 
-        <div class="pager">
-          <button class="btn" data-go="fase0">← Voltar à Fase 0</button>
+        <div class="grupo">
+          <span class="sec-rot">Enviar para validação</span>
+          <div class="ilha">
+            <div class="linha toca" data-act="copiar">
+              <span class="rot">Copiar a ficha completa</span>
+              <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="linha toca" data-act="baixar">
+              <span class="rot">Baixar arquivo</span>
+              <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
+          <span class="sec-nota">Tudo o que você preenche já é salvo automaticamente. Isto aqui é só para o caso de você querer enviar por conta própria.</span>
+        </div>
+
+        <div class="rodape-nav">
+          <button class="bt simples" data-go="fase0">Voltar à Fase 0</button>
         </div>
       </div>
     </div>
 
-    <!-- ################ FASES BLOQUEADAS ################ -->
-    <div class="view" id="view-fase2"><div class="pad"><div class="locked"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Fase 2 · Replicar o validado</h2><p>Destrava quando você concluir as Fases 0 e 1 e a sua ficha for validada.</p></div></div></div>
-    <div class="view" id="view-fase3"><div class="pad"><div class="locked"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Fase 3 · Retroalimentar a IA</h2><p>Precisa dos seus próprios vídeos virais como matéria-prima. Destrava depois da Fase 2.</p></div></div></div>
-    <div class="view" id="view-fase4"><div class="pad"><div class="locked"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Fase 4 · Travar o formato</h2><p>Precisa que você tenha testado formatos suficientes para saber qual é o seu.</p></div></div></div>
-    <div class="view" id="view-fase5"><div class="pad"><div class="locked"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Fase 5 · Industrializar</h2><p>Destrava quando o formato estiver travado.</p></div></div></div>
-    <div class="view" id="view-fase6"><div class="pad"><div class="locked"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Fase 6 · Monetizar</h2><p>A última etapa. Destrava com audiência construída.</p></div></div></div>
+    <!-- ################ TRAVADAS ################ -->
+    <div class="vista" id="v-fase2"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Replicar o validado</h2><p>Destrava quando você concluir as Fases 0 e 1 e a sua ficha for validada.</p></div></div></div>
+    <div class="vista" id="v-fase3"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Retroalimentar a IA</h2><p>Precisa dos seus próprios vídeos virais como matéria-prima. Destrava depois da Fase 2.</p></div></div></div>
+    <div class="vista" id="v-fase4"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Travar o formato</h2><p>Precisa que você tenha testado formatos suficientes para saber qual é o seu.</p></div></div></div>
+    <div class="vista" id="v-fase5"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Industrializar</h2><p>Destrava quando o formato estiver travado.</p></div></div></div>
+    <div class="vista" id="v-fase6"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Monetizar</h2><p>A última etapa. Destrava com audiência construída.</p></div></div></div>
 
   </main>
 </div>
 
-<!-- ============ GATE DE IDENTIFICAÇÃO ============ -->
-<div class="gate" id="gate">
-  <div class="gate-box">
-    <div class="gate-err" id="gateErr"></div>
+<!-- ============ PORTA DE ENTRADA ============ -->
+<div class="folha" id="porta">
+  <div class="folha-cx">
+    <div class="erro" id="portaErr"></div>
 
-    <div class="gate-swap on" id="gateNovo">
+    <div class="troca on" id="portaNova">
       <h2>Antes de começar</h2>
-      <p>A partir daqui o seu trabalho fica salvo e acompanhado. Precisamos saber de quem é a ficha.</p>
-      <div class="field">
-        <label class="lab" for="gNome">Seu nome</label>
-        <input type="text" id="gNome" autocomplete="name" placeholder="Nome e sobrenome">
+      <p>A partir daqui o seu trabalho fica salvo e acompanhado.</p>
+      <div class="grupo">
+        <div class="ilha">
+          <div class="linha">
+            <span class="rot">Nome</span>
+            <input type="text" id="gNome" autocomplete="name" placeholder="Nome e sobrenome">
+          </div>
+          <div class="linha">
+            <span class="rot">E-mail</span>
+            <input type="text" id="gEmail" autocomplete="email" inputmode="email" placeholder="voce@email.com">
+          </div>
+        </div>
       </div>
-      <div class="field">
-        <label class="lab" for="gEmail">Seu e-mail</label>
-        <input type="text" id="gEmail" autocomplete="email" inputmode="email" placeholder="voce@email.com">
-      </div>
-      <button class="btn primary" data-act="gate-entrar" style="width:100%;justify-content:center">
-        Começar a Fase 0
-      </button>
-      <div class="gate-alt">
-        Já preencheu em outro aparelho?
-        <button class="linkish" data-act="gate-modo-retomar">Recuperar com o meu código</button>
-      </div>
+      <button class="bt forte cheio" data-act="porta-entrar">Começar a Fase 0</button>
+      <div class="alt">Já preencheu em outro aparelho? <button class="elo" data-act="porta-modo-retomar">Recuperar</button></div>
     </div>
 
-    <div class="gate-swap" id="gateRetomar">
+    <div class="troca" id="portaRetomar">
       <h2>Recuperar a sua ficha</h2>
       <p>Cole o código que aparece no rodapé do menu, no aparelho onde você começou.</p>
-      <div class="field">
-        <label class="lab" for="gCodigo">Código</label>
-        <input type="text" id="gCodigo" placeholder="00000000-0000-0000-0000-000000000000">
+      <div class="grupo">
+        <div class="ilha">
+          <div class="linha empilha">
+            <span class="rot">Código</span>
+            <textarea id="gCodigo" rows="2" class="codigo-txt" placeholder="00000000-0000-0000-0000-000000000000"></textarea>
+          </div>
+        </div>
       </div>
-      <button class="btn primary" id="btnRetomar" data-act="gate-retomar" style="width:100%;justify-content:center">
-        Recuperar
-      </button>
-      <div class="gate-alt">
-        Não tem código?
-        <button class="linkish" data-act="gate-modo-novo">Começar do zero</button>
-      </div>
+      <button class="bt forte cheio" id="btRetomar" data-act="porta-retomar">Recuperar</button>
+      <div class="alt">Não tem código? <button class="elo" data-act="porta-modo-nova">Começar do zero</button></div>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- ============ MARCO DE CONCLUSÃO ============ -->
+<div class="folha" id="marco">
+  <div class="folha-cx">
+    <div class="marco-ic">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2 id="marcoTit"></h2>
+    <p id="marcoTxt"></p>
+    <button class="bt forte cheio" id="btMarco"></button>
+    <div class="alt"><button class="elo" data-act="marco-fechar">Continuar revisando</button></div>
+  </div>
+</div>
+
+<div class="aviso-f" id="aviso"></div>
 <script src="app.js"></script>
 </body>
 </html>
