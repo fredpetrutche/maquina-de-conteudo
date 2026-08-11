@@ -303,11 +303,72 @@
     }
     $('temasIlha').innerHTML = h;
     medidor('medTemas', cheios(state.temas), ALVO_TEMAS);
+    if ($('chipsTemas')) atualizarPerguntas();
   }
   function exTema(i) {
     var e = ['empreendedorismo', 'lucro', 'delegação', 'produtividade', 'trabalhar menos',
       'liderança', 'vendas', 'marketing', 'contratação', 'gestão do tempo'];
     return e[i] || 'outro tema';
+  }
+
+  /* ---------- a conversa reage ao que já foi respondido ---------- */
+  var SUGESTOES = {
+    'negócios': ['lucro', 'delegação', 'vendas', 'liderança', 'contratação', 'gestão do tempo'],
+    'saúde': ['sono', 'alimentação', 'ansiedade', 'energia', 'longevidade', 'hábitos'],
+    'fé': ['oração', 'propósito', 'perdão', 'ansiedade', 'relacionamento', 'provisão'],
+    'finanças': ['sair das dívidas', 'investir', 'renda extra', 'aposentadoria', 'orçamento'],
+    'maternidade': ['sono do bebê', 'culpa materna', 'volta ao trabalho', 'birra', 'rotina'],
+    'carreira': ['entrevista', 'promoção', 'salário', 'transição', 'currículo', 'chefe ruim'],
+    '': ['dinheiro', 'tempo', 'hábitos', 'relacionamento', 'produtividade', 'medo']
+  };
+
+  function atualizarPerguntas() {
+    var m = state.macroNicho.trim();
+    var eco = m ? '<span class="p-eco">' + esc(m) + '</span>' : '';
+
+    $('tit2').innerHTML = m
+      ? 'Dentro de ' + eco + ', qual é o seu recorte?'
+      : 'E dentro desse assunto, qual é o seu recorte?';
+
+    $('tit4').innerHTML = m
+      ? 'Sobre o que você vai falar dentro de ' + eco + '?'
+      : 'Sobre o que você vai falar?';
+
+    // sugestões de tema seguem o assunto escolhido
+    var chave = SUGESTOES[m.toLowerCase()] ? m.toLowerCase() : '';
+    var jaTem = state.temas.map(function (t) { return t.trim().toLowerCase(); });
+    var livres = SUGESTOES[chave].filter(function (s) { return jaTem.indexOf(s) < 0; });
+    $('chipsTemas').innerHTML = livres.map(function (s) {
+      return '<button class="chip-ex" data-add-tema-txt="' + esc(s) + '">' + esc(s) + '</button>';
+    }).join('');
+    $('sugTemas').style.display = livres.length ? '' : 'none';
+
+    // cada pergunta respondida ganha a marca verde
+    var feito = {
+      pg1: !!m,
+      pg2: !!state.subNicho.trim(),
+      pg3: !!(state.comunidade.trim() && state.comunidadeBandeira.trim() && state.comunidadeCausa.trim()),
+      pg4: cheios(state.temas) >= ALVO_TEMAS,
+      pg5: !!(state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim())
+    };
+    Object.keys(feito).forEach(function (id) {
+      var el = $(id); if (!el) return;
+      el.classList.toggle('pronta', feito[id]);
+      var ic = el.querySelector('.p-passo i');
+      if (ic) {
+        ic.innerHTML = feito[id]
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+          : id.replace('pg', '');
+      }
+    });
+  }
+
+  function primeiroTemaVazio() {
+    for (var i = 0; i < state.temas.length; i++) {
+      if (!state.temas[i].trim()) return i;
+    }
+    if (state.temas.length < ALVO_TEMAS) { state.temas.push(''); return state.temas.length - 1; }
+    return -1;
   }
   function medidor(id, n, alvo) {
     var el = $(id); if (!el) return;
@@ -487,10 +548,28 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-abrir],[data-add-tema],[data-rm-tema],[data-rm-canal],#btAddCanal') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-abrir],[data-add-tema],[data-rm-tema],[data-rm-canal],[data-preenche],[data-add-tema-txt],#btAddCanal') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
+
+      // exemplo tocado preenche o campo
+      if (t.hasAttribute('data-preenche')) {
+        var campo = $(t.getAttribute('data-preenche'));
+        campo.value = t.textContent.trim();
+        state[t.getAttribute('data-preenche')] = campo.value;
+        salvar(); pintarNav(); atualizarPerguntas(); checarMarco();
+        campo.focus();
+        return;
+      }
+      // sugestão de tema entra na primeira vaga livre
+      if (t.hasAttribute('data-add-tema-txt')) {
+        var vaga = primeiroTemaVazio();
+        if (vaga < 0) return avisar('Você já tem os dez temas');
+        state.temas[vaga] = t.getAttribute('data-add-tema-txt');
+        pintarTemas(); salvar(); pintarNav(); checarMarco();
+        return;
+      }
 
       if (t.hasAttribute('data-abrir')) {
         var i = +t.getAttribute('data-abrir');
@@ -589,7 +668,7 @@
         atualizarCanais(); marcarCanal(k);
       }
       else return;
-      salvar(); pintarNav(); checarMarco();
+      salvar(); pintarNav(); atualizarPerguntas(); checarMarco();
     });
 
     $('veu').addEventListener('click', fecharMenu);
@@ -634,7 +713,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarCanais(); pintarNav();
+    pintarTemas(); pintarAssinatura(); pintarCanais(); pintarNav(); atualizarPerguntas();
   }
 
   function boot() {

@@ -659,3 +659,76 @@ button{font:inherit;color:inherit}
 .zap{color:var(--tinta);text-decoration:none}
 .zap:hover{text-decoration:underline;text-underline-offset:3px}
 .det-cx .em .zap{font-size:14px}
+
+/* ============================================================
+   ENTREVISTA — a Fase 0 como conversa, não como formulário
+   ============================================================ */
+.pergunta{margin-bottom:2.75rem}
+.pergunta:last-of-type{margin-bottom:1.5rem}
+
+.p-passo{
+  display:inline-flex;align-items:center;gap:.4rem;
+  font-size:13px;font-weight:600;color:var(--tinta);margin-bottom:.5rem;
+}
+.p-passo i{
+  width:1.4rem;height:1.4rem;border-radius:99px;background:var(--tinta-fraca);
+  display:grid;place-items:center;font-size:11px;font-variant-numeric:tabular-nums;
+}
+.pergunta.pronta .p-passo{color:var(--verde)}
+.pergunta.pronta .p-passo i{background:var(--verde-fraco)}
+.p-passo svg{width:.75rem;height:.75rem}
+
+.p-titulo{
+  font-size:24px;font-weight:700;letter-spacing:-.028em;line-height:1.2;
+  margin-bottom:.7rem;text-wrap:balance;
+}
+.p-fala{margin-bottom:1.1rem}
+.p-fala p{
+  font-size:17px;line-height:1.5;letter-spacing:-.022em;color:var(--rotulo-2);
+  margin-bottom:.7rem;
+}
+.p-fala p:last-child{margin-bottom:0}
+.p-fala b{color:var(--rotulo)}
+.p-eco{color:var(--tinta);font-weight:600}
+
+/* exemplos que preenchem ao toque */
+.exemplos{margin-bottom:1rem}
+.exemplos .k{
+  font-size:13px;color:var(--rotulo-2);display:block;margin-bottom:.5rem;
+}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip-ex{
+  border:0;background:var(--preench);color:var(--rotulo);
+  border-radius:99px;padding:.45rem .85rem;font-size:15px;letter-spacing:-.016em;
+  cursor:pointer;transition:background .15s,transform .1s;
+}
+.chip-ex:hover{background:var(--preench-2)}
+.chip-ex:active{transform:scale(.96)}
+
+/* certo × errado dentro da conversa */
+.julgamento{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.jul{
+  display:flex;align-items:flex-start;gap:.6rem;
+  background:var(--preench);border-radius:10px;padding:.6rem .8rem;
+  font-size:15px;letter-spacing:-.016em;color:var(--rotulo-2);
+}
+.jul.sim{background:var(--verde-fraco)}
+.jul .m{
+  width:1.15rem;height:1.15rem;flex:none;border-radius:99px;margin-top:.15rem;
+  display:grid;place-items:center;background:var(--rotulo-3);color:var(--fundo);
+}
+.jul.sim .m{background:var(--verde);color:#fff}
+.jul .m svg{width:.7rem;height:.7rem}
+.jul i{font-style:normal;color:var(--rotulo);font-weight:500}
+.jul s{text-decoration:none;display:block;font-size:13px;color:var(--rotulo-2);margin-top:.1rem}
+
+/* campo de resposta, mais generoso que o de lista */
+.resposta{
+  background:var(--ilha);border-radius:var(--r-ilha);padding:.2rem 0;
+}
+.resposta .linha{min-height:3.2rem}
+.resposta .linha input[type=text],.resposta .linha textarea{
+  text-align:left;font-size:17px;
+}
+.resposta .linha.empilha .rot{font-size:15px;font-weight:600}
+.resposta .linha.empilha .rot small{font-weight:400}

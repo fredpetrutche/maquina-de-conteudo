@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608111413">
+<link rel="stylesheet" href="app.css?v=202608111446">
 </head>
 <body>
 
@@ -415,79 +415,148 @@ Não me pergunte mais nada.
       <div class="larg corpo">
         <div class="topo-grande">
           <span class="eyebrow">Fase 0</span>
-          <h1>Definir o campo</h1>
-          <p class="abre">Onde você joga, por quem você fala, sobre o que você fala e como você se apresenta.</p>
+          <h1>Vamos definir o seu campo</h1>
+          <p class="abre">Cinco perguntas. Elas decidem tudo o que vem depois — inclusive os roteiros que a gente vai escrever com você.</p>
         </div>
 
-        <!-- nicho -->
-        <div class="grupo">
-          <span class="sec-rot">O seu nicho</span>
-          <div class="ilha">
-            <div class="linha">
-              <span class="rot">Macro-nicho</span>
-              <input type="text" id="macroNicho" placeholder="negócios">
-            </div>
-            <div class="linha">
-              <span class="rot">Subnicho</span>
-              <input type="text" id="subNicho" placeholder="mulheres de negócios">
+        <!-- 1 · GRANDE ASSUNTO -->
+        <div class="pergunta" id="pg1">
+          <span class="p-passo"><i>1</i>Grande assunto</span>
+          <h2 class="p-titulo">Qual é o seu grande assunto?</h2>
+          <div class="p-fala">
+            <p>Todo criador joga dentro de um território. Não é o seu produto nem a sua profissão — é o assunto que alguém digitaria numa busca.</p>
+            <p>Um jeito rápido de achar: se um amigo fosse te apresentar para alguém, como ele completaria a frase <b>“ela fala sobre ___”</b>?</p>
+          </div>
+          <div class="exemplos">
+            <span class="k">Toque para usar, ou escreva o seu:</span>
+            <div class="chips">
+              <button class="chip-ex" data-preenche="macroNicho">negócios</button>
+              <button class="chip-ex" data-preenche="macroNicho">saúde</button>
+              <button class="chip-ex" data-preenche="macroNicho">fé</button>
+              <button class="chip-ex" data-preenche="macroNicho">finanças</button>
+              <button class="chip-ex" data-preenche="macroNicho">maternidade</button>
+              <button class="chip-ex" data-preenche="macroNicho">carreira</button>
             </div>
           </div>
-          <span class="sec-nota">Duas camadas, e pare por aí. Uma terceira camada mata a distribuição: o algoritmo precisa entender para quem empurrar o vídeo em milissegundos.</span>
+          <div class="resposta">
+            <div class="linha">
+              <input type="text" id="macroNicho" placeholder="escreva aqui" aria-label="Grande assunto">
+            </div>
+          </div>
         </div>
 
-        <!-- comunidade -->
-        <div class="grupo">
-          <span class="sec-rot">A sua comunidade</span>
-          <div class="ilha">
+        <!-- 2 · RECORTE -->
+        <div class="pergunta" id="pg2">
+          <span class="p-passo"><i>2</i>Recorte</span>
+          <h2 class="p-titulo" id="tit2">E dentro desse assunto, qual é o seu recorte?</h2>
+          <div class="p-fala">
+            <p>Um recorte, e só um. É o que separa você de todo mundo que fala da mesma coisa.</p>
+            <p>Mas existe um limite. Se o recorte fica fino demais, o algoritmo não consegue decidir para quem mostrar o vídeo em milissegundos — e ele simplesmente não sai.</p>
+          </div>
+          <div class="julgamento">
+            <div class="jul sim">
+              <span class="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span><i>“mulheres de negócios”</i><s>dá para entender num piscar de olhos</s></span>
+            </div>
+            <div class="jul">
+              <span class="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+              <span><i>“empresárias com mais de 10 funcionários que querem sair do operacional”</i><s>é um ótimo cliente — e um péssimo filtro de conteúdo</s></span>
+            </div>
+          </div>
+          <div class="resposta">
+            <div class="linha">
+              <input type="text" id="subNicho" placeholder="escreva aqui" aria-label="Recorte">
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 · COMUNIDADE -->
+        <div class="pergunta" id="pg3">
+          <span class="p-passo"><i>3</i>Comunidade</span>
+          <h2 class="p-titulo">Agora a pergunta que quase ninguém responde: por quem você fala?</h2>
+          <div class="p-fala">
+            <p>Views não fazem viralizar. <b>Compartilhamento</b> faz. E ninguém compartilha informação — as pessoas compartilham quem elas são.</p>
+            <p>Quando alguém manda o seu vídeo para um amigo com um <b>“olha, é a gente”</b>, é porque você falou pela tribo dela. Essa tribo é a sua comunidade.</p>
+            <p>Dois exemplos reais: um criador falava de empresas e recortou para <b>empresas do Nordeste</b> — virou a voz de uma região. Outro fala de empresas pelo vocabulário do <b>mundo nerd</b>, e nerd manda pra nerd.</p>
+          </div>
+          <div class="resposta">
             <div class="linha empilha">
-              <span class="rot">Qual comunidade você representa?<small>De quem você fala — não para quem você vende.</small></span>
+              <span class="rot">Que grupo é esse?<small>De quem você fala — não para quem você vende.</small></span>
               <input type="text" id="comunidade" placeholder="os nordestinos">
             </div>
             <div class="linha empilha">
-              <span class="rot">Como essa gente se descreve?<small>A palavra exata que a pessoa usa para falar de si.</small></span>
+              <span class="rot">Que palavra essa gente usa para falar de si?<small>Se ninguém se descreve assim, não é uma comunidade.</small></span>
               <input type="text" id="comunidadeBandeira" placeholder="sou nordestino">
             </div>
             <div class="linha empilha">
-              <span class="rot">Qual o orgulho ferido dessa comunidade?<small>O que ela sente que é subestimado e ninguém diz em voz alta.</small></span>
+              <span class="rot">O que essa gente sente que é subestimado?<small>Aquilo que ela pensa e ninguém diz em voz alta.</small></span>
               <textarea id="comunidadeCausa" rows="3" placeholder="o Nordeste produz empresas gigantes e o Sudeste finge que não existe"></textarea>
             </div>
           </div>
-          <span class="sec-nota">Views não viralizam — compartilhamento viraliza. E ninguém compartilha informação: as pessoas compartilham quem elas são. A comunidade é o que faz alguém mandar o seu vídeo dizendo "olha, é a gente".</span>
+          <span class="sec-nota">Esta última resposta é matéria-prima direta para os ganchos dos seus roteiros. Quanto mais específica, melhores os vídeos depois.</span>
         </div>
 
-        <!-- temas -->
-        <div class="grupo">
-          <div class="sec-linha">
-            <span class="sec-rot">Os grandes temas</span>
+        <!-- 4 · TEMAS -->
+        <div class="pergunta" id="pg4">
+          <span class="p-passo"><i>4</i>Temas</span>
+          <h2 class="p-titulo" id="tit4">Sobre o que você vai falar?</h2>
+          <div class="p-fala">
+            <p>Dez temas amplos — coisas que alguém digitaria no YouTube. Não o nome do seu método.</p>
+            <p>São dez porque ninguém acerta de primeira. Na validação do método, a aposta inicial era falar de estratégia de marketing; o que estourou foi <b>história de grandes empresas</b>, que nem estava na lista. Cada tema também vira uma busca diferente quando você for atrás das referências.</p>
+          </div>
+          <div class="exemplos" id="sugTemas">
+            <span class="k">Sugestões — toque para adicionar:</span>
+            <div class="chips" id="chipsTemas"></div>
+          </div>
+          <div class="sec-linha" style="padding-left:0;padding-right:0">
+            <span class="sec-rot" style="padding-left:0">Os seus temas</span>
             <span class="medidor" id="medTemas"><span class="b"><i></i></span><span class="v">0/10</span></span>
           </div>
           <div class="ilha" id="temasIlha"></div>
-          <span class="sec-nota">Temas amplos e pesquisáveis — coisas que alguém digitaria no YouTube. Não escreva o seu método. Você precisa de dez porque ninguém sabe qual vai viralizar, e porque cada tema vira uma busca diferente na Fase 1.</span>
         </div>
 
-        <!-- assinatura -->
-        <div class="grupo">
-          <span class="sec-rot">A sua assinatura</span>
-          <div class="ilha">
-            <div class="linha">
+        <!-- 5 · ASSINATURA -->
+        <div class="pergunta" id="pg5">
+          <span class="p-passo"><i>5</i>Assinatura</span>
+          <h2 class="p-titulo">E como você se apresenta?</h2>
+          <div class="p-fala">
+            <p>A frase fixa que fecha todo vídeo. Ela não é slogan — é o critério pelo qual a pessoa decide te seguir ou não, em cima de uma promessa só.</p>
+            <p>O erro mais comum é descrever o processo em vez do resultado.</p>
+          </div>
+          <div class="julgamento">
+            <div class="jul sim">
+              <span class="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span><i>“ensino mulheres a terem mais lucro”</i><s>promessa, e do tamanho de um fôlego</s></span>
+            </div>
+            <div class="jul">
+              <span class="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+              <span><i>“ajudo a sair do operacional delegando com assertividade”</i><s>isso é o seu método, não o que a pessoa ganha</s></span>
+            </div>
+          </div>
+          <div class="resposta">
+            <div class="linha empilha">
               <span class="rot">Seu nome</span>
               <input type="text" id="sigNome" placeholder="Ana Ribeiro">
             </div>
-            <div class="linha">
-              <span class="rot">O que você faz</span>
+            <div class="linha empilha">
+              <span class="rot">O que você faz<small>Um verbo: ensino, analiso, mostro.</small></span>
               <input type="text" id="sigEntrega" placeholder="ensino mulheres a">
             </div>
-            <div class="linha">
-              <span class="rot">A promessa</span>
+            <div class="linha empilha">
+              <span class="rot">A promessa<small>O resultado, não o caminho.</small></span>
               <input type="text" id="sigPromessa" placeholder="terem mais lucro">
             </div>
           </div>
           <div class="previa">
-            <span class="k">Como vai soar</span>
+            <span class="k">Como vai soar no fim de cada vídeo</span>
             <div class="previa-t" id="sigTxt"></div>
             <div class="previa-m" id="sigMeta"></div>
           </div>
-          <span class="sec-nota">O erro mais comum é descrever o processo em vez do resultado. "Ajudo a sair do operacional delegando" é método. "Ensino mulheres a terem mais lucro" é promessa.</span>
+        </div>
+
+        <div class="destaque">
+          <span class="k">O que acontece com isso</span>
+          <p>Tudo o que você respondeu aqui vira insumo para escrever os seus roteiros. O assunto e o recorte dizem para quem falar; a comunidade dá o gancho; os temas dizem o que buscar; a assinatura fecha cada vídeo.</p>
         </div>
 
         <div class="rodape-nav">
@@ -628,6 +697,6 @@ Não me pergunte mais nada.
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="app.js?v=202608111413"></script>
+<script src="app.js?v=202608111446"></script>
 </body>
 </html>
