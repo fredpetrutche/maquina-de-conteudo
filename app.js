@@ -282,6 +282,11 @@
     $('lateral').classList.remove('aberto');
     $('veu').classList.remove('on');
   }
+  function fecharFolhas() {
+    $('porta').classList.remove('on');
+    $('marco').classList.remove('on');
+    erroPorta('');
+  }
 
   /* ---------- Fase 0: temas ---------- */
   function pintarTemas() {
@@ -530,7 +535,8 @@
       else if (a === 'porta-retomar') recuperar();
       else if (a === 'porta-modo-retomar') trocarPorta('retomar');
       else if (a === 'porta-modo-nova') trocarPorta('nova');
-      else if (a === 'marco-fechar') $('marco').classList.remove('on');
+      else if (a === 'porta-fechar') fecharFolhas();
+      else if (a === 'marco-fechar') fecharFolhas();
       else if (a === 'copiar-codigo') copiar(ident.id || '', 'Código copiado');
       else if (a === 'copiar') copiar(texto(), 'Ficha copiada');
       else if (a === 'baixar') baixar();
@@ -587,6 +593,17 @@
     });
 
     $('veu').addEventListener('click', fecharMenu);
+
+    // toda folha fecha ao clicar no fundo, fora da caixa
+    ['porta', 'marco'].forEach(function (id) {
+      $(id).addEventListener('click', function (e) { if (e.target === this) fecharFolhas(); });
+    });
+
+    // e no Esc, venha de onde vier
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' || e.key === 'Esc') { fecharFolhas(); fecharMenu(); }
+    });
+
     $('porta').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();

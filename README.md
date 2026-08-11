@@ -54,3 +54,17 @@ Fases 2-6                 bloqueadas por enquanto
 O trabalho é salvo no navegador **e** no banco. Cada pessoa recebe um código para continuar em outro aparelho.
 
 O identificador é o **celular**, guardado em E.164 sem o "+" (`5511987654321`) — o formato que a Cloud API da Meta espera, para o disparo por WhatsApp no futuro.
+
+## Publicando uma mudança
+
+O `index.html` e o `admin.html` carregam os arquivos com um carimbo de versão
+(`app.js?v=…`). Sem isso, o navegador de quem já visitou continua servindo a
+versão antiga e a mudança "não aparece". Antes de publicar, rode:
+
+```bash
+V=$(date +%Y%m%d%H%M)
+sed -i '' -E "s/(app\.css|app\.js|admin\.js)\?v=[0-9]*/\1?v=$V/g" index.html admin.html
+```
+
+Evite dois pushes em sequência rápida: o GitHub Pages enfileira as builds e uma
+cancela a outra, deixando o status em `errored` sem que haja erro no código.
