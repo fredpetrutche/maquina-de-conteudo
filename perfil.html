@@ -67,6 +67,24 @@
 .pf-assin{font-size:19px;line-height:1.45;letter-spacing:-.02em;margin:0;
   padding:1rem 1.1rem;background:var(--tinta-fraca);border-radius:var(--r-campo)}
 
+/* divisória de etapa — a virada de fase precisa ser impossível de não ver */
+.pf-divisor{display:flex;gap:1rem;align-items:flex-start;
+  margin:3rem 0 1.4rem;padding-top:2rem;border-top:3px solid var(--sep-opaco)}
+.pf-divisor.primeiro{margin-top:.5rem;padding-top:0;border-top:0}
+.pf-div-n{width:3rem;height:3rem;flex:none;border-radius:15px;display:grid;place-items:center;
+  font-size:19px;font-weight:700;letter-spacing:-.03em;background:var(--tinta);color:#fff}
+.pf-div-n.feito{background:var(--verde)}
+.pf-div-n.agora{background:var(--tinta)}
+.pf-div-n.aberto{background:var(--preench-2);color:var(--rotulo-3)}
+.pf-div-n.diag{background:var(--preench-2);color:var(--rotulo-2);font-size:22px}
+.pf-div-t{flex:1;min-width:0;padding-top:.05rem}
+.pf-div-t .et{display:block;font-size:12px;font-weight:600;color:var(--tinta);
+  letter-spacing:-.004em;text-transform:uppercase}
+.pf-div-t .et.cinza{color:var(--rotulo-3)}
+.pf-div-t h2{font-size:27px;font-weight:700;letter-spacing:-.033em;line-height:1.12;
+  margin:.1rem 0 .3rem}
+.pf-div-t p{font-size:14.5px;color:var(--rotulo-2);margin:0;letter-spacing:-.014em;max-width:36rem}
+
 .pf-falta{color:var(--laranja)}
 .pf-carga{padding:4rem 0;text-align:center;color:var(--rotulo-2);font-size:15px}
 @media(max-width:34rem){
@@ -129,6 +147,21 @@
       '</p></div>';
   }
 
+  /* ---------- divisória de etapa ----------
+     Os nomes das fases são os mesmos do app (app.js, STEPS): quem vê a página
+     e quem preenche o formulário têm que estar falando da mesma coisa. */
+  function divisor(etapa, nome, oque, estado, primeiro) {
+    var marca = estado === 'feito' ? '&#10003;' : (estado === 'diag' ? '&#9679;' : etapa);
+    return '<div class="pf-divisor' + (primeiro ? ' primeiro' : '') + '">' +
+      '<span class="pf-div-n ' + estado + '">' + marca + '</span>' +
+      '<div class="pf-div-t">' +
+      '<span class="et' + (estado === 'aberto' || estado === 'diag' ? ' cinza' : '') + '">' +
+      (estado === 'diag' ? 'Ponto de partida' : 'Fase ' + etapa) +
+      (estado === 'feito' ? ' &middot; concluída' : estado === 'agora' ? ' &middot; é aqui que você está' :
+       estado === 'aberto' ? ' &middot; em aberto' : '') + '</span>' +
+      '<h2>' + esc(nome) + '</h2><p>' + esc(oque) + '</p></div></div>';
+  }
+
   /* ---------- blocos ---------- */
 
   function blocoTopo(f, p) {
@@ -183,7 +216,6 @@
     }
 
     return '<div class="grupo">' +
-      '<span class="rotulo-bloco">Estes são os seus números</span>' +
       '<div class="kpi">' + cels + '</div>' +
       '<p class="pf-nota">A distância entre a mediana e o pico é a informação mais útil daqui: ' +
       'ela mostra que <b>o alcance existe</b>. O que falta é repetir o acerto.<br><br>' +
@@ -245,7 +277,7 @@
         '</div>';
     }
 
-    var h = '<div class="grupo"><span class="rotulo-bloco">Fase 0 &middot; a sua ficha</span>' +
+    var h = '<div class="grupo">' +
       '<div class="cartao"><div class="cartao-h">' +
       '<p>Preenchida lendo o seu perfil, não perguntando. O seu trabalho aqui é corrigir.</p></div>' +
 
@@ -291,7 +323,7 @@
   function blocoFase1(d, p) {
     var vs = (d.videos || []).filter(function (v) { return v && v.views; });
     if (!vs.length) {
-      return '<div class="grupo"><span class="rotulo-bloco">Fase 1 &middot; os benchmarks</span>' +
+      return '<div class="grupo">' +
         '<div class="cartao"><p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
         'Ainda não preenchida.</p></div></div>';
     }
@@ -334,7 +366,7 @@
 
     var razao = (p.medianaJanela && mediana) ? Math.round(mediana / p.medianaJanela) : 0;
 
-    return '<div class="grupo"><span class="rotulo-bloco">Fase 1 &middot; os benchmarks</span>' +
+    return '<div class="grupo">' +
       '<div class="kpi">' +
       '<div><dt>Vídeos</dt><dd>' + vs.length + '<s>' + lista.length + ' perfis</s></dd></div>' +
       '<div><dt>Mediana</dt><dd class="destacado">' + curto(mediana) +
@@ -370,7 +402,7 @@
   function blocoFase2(d) {
     var rs = d.roteiros || [];
     if (!rs.length) {
-      return '<div class="grupo"><span class="rotulo-bloco">Fase 2 &middot; os roteiros</span>' +
+      return '<div class="grupo">' +
         '<div class="cartao"><p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
         'Ainda não preenchida.</p></div></div>';
     }
@@ -395,7 +427,7 @@
         '</div>';
     }).join('');
 
-    return '<div class="grupo"><span class="rotulo-bloco">Fase 2 &middot; os roteiros</span>' +
+    return '<div class="grupo">' +
       '<div class="cartao"><div class="cartao-h">' +
       '<h3 style="font-size:18px">Oito roteiros prontos para você revisar</h3>' +
       '<p>Cada um foi transcrito do original, convertido em texto de teleprompter e passado ' +
@@ -409,12 +441,15 @@
   }
 
   function blocoProximas() {
-    return '<div class="grupo"><span class="rotulo-bloco">O que vem depois</span>' +
-      '<div class="ilha">' +
-      '<div class="linha"><div style="flex:1"><span style="display:block;font-size:15px">Fase 3 &middot; retroalimentar a IA</span>' +
-      '<span style="display:block;font-size:12px;color:var(--rotulo-2)">Quando 3 a 5 destes virarem viral seu, o padrão deles vira um agente que escreve os próximos</span>' +
-      '</div><span class="selo">em aberto</span></div>' +
-      '</div></div>';
+    return '<div class="grupo"><div class="cartao">' +
+      '<p style="margin:0;font-size:15px;color:var(--rotulo-2);letter-spacing:-.015em">' +
+      'Ainda não começou — e ela tem pré-requisito. Só destrava quando <b style="color:var(--rotulo)">' +
+      '3 a 5 dos seus próprios vídeos</b> viralizarem. Aí a gente pega a transcrição só ' +
+      'desses e pergunta o que eles têm em comum. O padrão que sair vira um agente que ' +
+      'escreve os próximos por você.<br><br>' +
+      'Só entra outlier nessa conta. Alimentar a IA com o acervo inteiro faz ela otimizar ' +
+      'pela média — e a média é sempre puxada pelos vídeos que não foram a lugar nenhum.' +
+      '</p></div></div>';
   }
 
   /* ---------- montagem ---------- */
@@ -423,13 +458,38 @@
     var d = f.dados || {};
     var p = d.perfil || {};
     document.title = f.nome + ' — Máquina de Conteúdo';
+    var temRoteiros = (d.roteiros || []).length > 0;
     tela.innerHTML =
       blocoTopo(f, p) +
+
+      divisor('', 'Estes são os seus números',
+        'O que o seu perfil entrega hoje, medido — não achado. É a régua contra a qual ' +
+        'tudo daqui pra frente vai ser comparado.', 'diag', true) +
       blocoNumeros(p) +
       blocoVirais(p) +
+
+      divisor('0', 'Definir o campo',
+        'Escolher o tamanho da porta de entrada: o assunto na altura que o algoritmo ' +
+        'consegue ler, dez temas amplos o bastante para virar busca, e a frase que faz ' +
+        'quem passa decidir se te segue.',
+        f.progresso >= 2 ? 'feito' : 'agora') +
       blocoFase0(d) +
+
+      divisor('1', 'Minerar benchmarks',
+        'Responder "o que é conteúdo bom?" com dado em vez de opinião. Você não procura ' +
+        'canal de que gosta — procura o vídeo que já ganhou.',
+        f.progresso >= 3 ? 'feito' : 'aberto') +
       blocoFase1(d, p) +
+
+      divisor('2', 'Replicar o validado',
+        'Pegar o vídeo que já provou que funciona, transformar em roteiro de teleprompter ' +
+        'e gravar palavra por palavra. É a fase que todo mundo quer pular.',
+        temRoteiros ? 'agora' : 'aberto') +
       blocoFase2(d) +
+
+      divisor('3', 'Retroalimentar a IA',
+        'Extrair o padrão dos seus próprios virais e transformar em um agente que escreve ' +
+        'os próximos. É onde a curva vira.', 'aberto') +
       blocoProximas() +
       '<p class="pf-nota" style="margin-top:1.5rem">Ficha <span class="mono">' + esc(f.id) + '</span>' +
       (p.raspadoEm ? ' &middot; números lidos em ' + esc(p.raspadoEm) : '') +
