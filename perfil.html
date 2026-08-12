@@ -96,6 +96,13 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+  /* Texto de análise pode carregar negrito e quebra de linha. Escapamos tudo e
+     devolvemos só essas três tags — o resto continua neutralizado. */
+  function escRico(s) {
+    return esc(s)
+      .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
+      .replace(/&lt;br&gt;/g, '<br>');
+  }
   function num(v) {
     var n = Number(v) || 0;
     return n.toLocaleString('pt-BR');
@@ -251,7 +258,7 @@
       campo('Orgulho ferido', 'O que essa gente sente que é subestimado?',
             d.comunidadeCausa,
             { selo: 'hipótese, não leitura',
-              nota: hip.comunidadeCausa ? esc(hip.comunidadeCausa) : '' }) +
+              nota: hip.comunidadeCausa ? escRico(hip.comunidadeCausa) : '' }) +
 
       campo('Como essa gente se chama', 'Que palavra essa gente usa para falar de si mesma?',
             d.comunidadeBandeira ||
