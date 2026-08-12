@@ -694,12 +694,15 @@
         state.videos.forEach(function (v) {
           if (v.url) jaTem[String(v.url).replace(/\/$/, '')] = true;
         });
-        sugestoes[chave] = (d.videos || []).filter(function (v) {
+        var achados = (d.videos || []).filter(function (v) {
           return !jaTem[String(v.url).replace(/\/$/, '')];
         }).slice(0, ALVO_VIDEOS).map(function (v) { return { v: v, marcado: true }; });
+        achados.lidos = d.lidos || 0;
+        achados.comVideo = (d.videos || []).length;
+        sugestoes[chave] = achados;
         pintarAchados();
-        avisar(sugestoes[chave].length
-          ? sugestoes[chave].length + ' vídeo(s) encontrados'
+        avisar(achados.length
+          ? achados.length + ' vídeo(s) encontrados'
           : 'Você já tinha os melhores desse perfil');
       }).catch(function () {
         raspando[chave] = false; pintarAchados();
@@ -711,7 +714,13 @@
   function pintarSugestoes(chave) {
     var s = sugestoes[chave];
     if (!s || !s.length) return '';
-    return '<div class="sugerido"><span class="k">Os mais vistos deste perfil — marque os que você falaria</span>' +
+    var nota = '';
+    if (s.lidos && s.comVideo < ALVO_VIDEOS) {
+      nota = '<span class="sug-nota">Dos ' + s.lidos + ' posts recentes, só ' + s.comVideo +
+        ' eram vídeo com contagem visível — foto e carrossel não entram. ' +
+        'Se quiser mais deste perfil, procure os antigos na mão.</span>';
+    }
+    return '<div class="sugerido"><span class="k">Os mais vistos deste perfil — marque os que você falaria</span>' + nota +
       '<ul class="sug-lista">' + s.map(function (item, k) {
         return '<li><button class="marca" data-marcar="' + chave + '|' + k + '" aria-pressed="' + item.marcado + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>' +

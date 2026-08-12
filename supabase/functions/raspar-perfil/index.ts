@@ -13,7 +13,7 @@
 
 const APIFY = 'https://api.apify.com/v2';
 const ATOR = 'apify~instagram-scraper';
-const LIMITE = 60;          // posts lidos por perfil
+const LIMITE = 30;          // posts lidos por perfil
 const TETO_POR_PERFIL = 30; // quantos devolvemos, já ordenados
 
 const cors = {

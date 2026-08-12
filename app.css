@@ -876,3 +876,7 @@ button{font:inherit;color:inherit}
 .sug-lista .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--rotulo-2)}
 .sug-lista .v{font-size:12px;font-variant-numeric:tabular-nums;color:var(--tinta);font-weight:600;flex:none}
 .sug-pe{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap}
+.sug-nota{
+  display:block;font-size:12px;color:var(--rotulo-2);line-height:1.45;
+  margin:-.2rem 0 .6rem;
+}
