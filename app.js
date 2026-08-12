@@ -179,6 +179,12 @@
   }
   function aplicar(d) {
     if (!d || typeof d !== 'object') return;
+    /* A ficha pode carregar coisas que o formulário não edita — as métricas do
+       perfil, a foto, os recortes de cada tema. Copiamos essas chaves de volta
+       antes de tudo; sem isso o primeiro salvamento daqui as apagaria. */
+    Object.keys(d).forEach(function (k) {
+      if (!(k in state)) state[k] = d[k];
+    });
     state.briefingOk = !!d.briefingOk;
     state.plataforma = d.plataforma || '';
     state.macroNicho = d.macroNicho || '';

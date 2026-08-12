@@ -36,6 +36,7 @@
 .bar-pe{display:flex;gap:.6rem;align-items:baseline;margin-top:.3rem;font-size:12px;
   color:var(--rotulo-2);flex-wrap:wrap}
 .bar-pe .v{font-size:13px;color:var(--rotulo);font-variant-numeric:tabular-nums;font-weight:600}
+.bar-pe .pf-cmp{color:var(--tinta);font-weight:600;font-variant-numeric:tabular-nums}
 .bar-pe a{color:var(--tinta);text-decoration:none}
 
 .pf-nota{margin-top:.9rem;padding-top:.75rem;border-top:.5px solid var(--sep);
@@ -43,11 +44,25 @@
 .pf-nota b{color:var(--rotulo);font-weight:600}
 
 .pf-temas{list-style:none;margin:0;padding:0}
-.pf-temas li{display:flex;gap:.75rem;align-items:baseline;padding:.6rem 0;position:relative}
+.pf-temas li{display:flex;gap:.75rem;align-items:baseline;padding:.7rem 0;position:relative}
 .pf-temas li+li::before{content:"";position:absolute;top:0;left:1.75rem;right:0;height:.5px;background:var(--sep)}
 .pf-temas .n{width:1.25rem;flex:none;font-size:13px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
-.pf-temas .t{flex:1;font-size:15px;letter-spacing:-.015em}
-.pf-temas .p{font-size:12px;color:var(--rotulo-2);font-variant-numeric:tabular-nums;flex:none}
+.pf-tema-cx{flex:1;min-width:0}
+.pf-temas .t{display:block;font-size:16px;font-weight:600;letter-spacing:-.018em}
+.pf-rec{display:block;font-size:12.5px;color:var(--rotulo-2);margin-top:.2rem;line-height:1.5}
+.pf-rec b{color:var(--rotulo);font-weight:600;font-variant-numeric:tabular-nums}
+.pf-pt{color:var(--rotulo-3);margin:0 .4rem}
+
+/* campos da ficha: rótulo, a pergunta que ele responde, o valor */
+.pf-campo{padding:.85rem 0;position:relative;display:flex;flex-direction:column}
+.pf-campo+.pf-campo::before{content:"";position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+.pf-rot{font-size:13px;font-weight:600;letter-spacing:-.008em}
+.pf-perg{font-size:12.5px;color:var(--rotulo-2);margin-top:.1rem;line-height:1.45}
+.pf-val{font-size:16px;letter-spacing:-.018em;margin-top:.45rem}
+.pf-campo .selo{align-self:flex-start}
+.pf-como{font-size:12.5px;color:var(--rotulo-2);line-height:1.55;margin-top:.5rem;
+  padding-left:.7rem;border-left:2px solid var(--sep-opaco)}
+.pf-como b{color:var(--rotulo);font-weight:600}
 
 .pf-assin{font-size:19px;line-height:1.45;letter-spacing:-.02em;margin:0;
   padding:1rem 1.1rem;background:var(--tinta-fraca);border-radius:var(--r-campo)}
@@ -143,16 +158,27 @@
         esc(val) + (sub ? '<s>' + esc(sub) + '</s>' : '') + '</dd></div>';
     }
     var mult = p.medianaJanela ? (p.tetoJanela / p.medianaJanela).toFixed(1).replace('.', ',') : '';
+    var cels =
+      cel('Vídeos nos últimos ' + (p.diasJanela || '?') + ' dias', num(p.videosNaJanela),
+          p.janela ? p.janela.replace(' a ', ' até ') : '') +
+      cel('Mediana de views', num(p.medianaJanela), 'metade dos vídeos fica abaixo') +
+      cel('Mais visto no período', num(p.tetoJanela) + ' views',
+          mult ? mult + '× a mediana' : '', true) +
+      cel('Mais visto de todos', num(p.tetoHistorico) + ' views', 'desde 2022');
+
+    if (p.medianaCompart != null) {
+      cels += cel('Mediana de compartilhamentos', num(p.medianaCompart),
+                  p.taxaCompartMediana ? p.taxaCompartMediana + '% de quem viu' : '');
+    }
+
     return '<div class="grupo">' +
       '<span class="rotulo-bloco">Estes são os seus números</span>' +
-      '<div class="kpi">' +
-      cel('Vídeos no período', num(p.videosNaJanela), p.janela ? p.janela.replace(' a ', ' — ') : '') +
-      cel('Mediana', num(p.medianaJanela), 'metade fica abaixo') +
-      cel('Maior recente', num(p.tetoJanela), mult ? mult + '× a mediana' : '', true) +
-      cel('Maior de todos', num(p.tetoHistorico), 'desde 2022') +
-      '</div>' +
+      '<div class="kpi">' + cels + '</div>' +
       '<p class="pf-nota">A distância entre a mediana e o pico é a informação mais útil daqui: ' +
-      'ela mostra que <b>o alcance existe</b>. O que falta é repetir o acerto.</p>' +
+      'ela mostra que <b>o alcance existe</b>. O que falta é repetir o acerto.<br><br>' +
+      '<b>Compartilhamento é a métrica que decide.</b> View diz que a pessoa assistiu; ' +
+      'compartilhamento diz que ela se reconheceu a ponto de mandar pra alguém — e é ' +
+      'isso que faz um vídeo viajar para fora de quem já te segue.</p>' +
       '</div>';
   }
 
@@ -165,8 +191,13 @@
 
     var itens = vs.map(function (v) {
       var pct = Math.max(v.views / teto * 100, 1.2);
+      var taxa = (v.compartilhamentos && v.views)
+        ? (v.compartilhamentos / v.views * 100).toFixed(2).replace('.', ',') : '';
       var pe = [
         '<span class="v">' + num(v.views) + ' views</span>',
+        v.compartilhamentos != null
+          ? '<b class="pf-cmp">' + num(v.compartilhamentos) + ' compart.' +
+            (taxa ? ' (' + taxa + '%)' : '') + '</b>' : '',
         v.curtidas ? num(v.curtidas) + ' curtidas' : '',
         v.comentarios ? num(v.comentarios) + ' comentários' : '',
         v.quando ? String(v.quando).slice(0, 4) : '',
@@ -188,34 +219,71 @@
   }
 
   function blocoFase0(d) {
-    function par(rot, val, falta) {
-      return '<div class="linha"><div style="flex:1;min-width:0">' +
-        '<span style="display:block;font-size:12px;color:var(--rotulo-2)">' + esc(rot) + '</span>' +
-        '<span style="display:block;font-size:15px;letter-spacing:-.015em"' +
-        (falta ? ' class="pf-falta"' : '') + '>' + esc(val || 'não preencheu') + '</span>' +
-        '</div></div>';
+    var p = d.perfil || {};
+    /* Cada campo carrega a pergunta que ele responde. Quem lê precisa saber o que
+       está sendo perguntado, não só o rótulo do banco de dados. */
+    function campo(rot, perg, val, opc) {
+      opc = opc || {};
+      return '<div class="pf-campo">' +
+        '<span class="pf-rot">' + esc(rot) + '</span>' +
+        '<span class="pf-perg">' + esc(perg) + '</span>' +
+        '<span class="pf-val' + (opc.falta ? ' pf-falta' : '') + '">' +
+        esc(val || 'ainda não preenchido') + '</span>' +
+        (opc.selo ? '<span class="selo s1" style="margin-top:.4rem">' + esc(opc.selo) + '</span>' : '') +
+        (opc.nota ? '<span class="pf-como">' + opc.nota + '</span>' : '') +
+        '</div>';
     }
+
+    var hip = (p.hipoteses || {});
     var h = '<div class="grupo"><span class="rotulo-bloco">Fase 0 &middot; a sua ficha</span>' +
-      '<div class="ilha">' +
-      par('Macro-nicho', d.macroNicho) +
-      par('Recorte', d.subNicho) +
-      par('Comunidade', d.comunidade) +
-      par('Orgulho ferido', d.comunidadeCausa) +
-      par('Como essa gente se chama',
-          d.comunidadeBandeira || 'Só você sabe — é a única pergunta que o seu perfil não responde',
-          !d.comunidadeBandeira) +
+      '<div class="cartao"><div class="cartao-h">' +
+      '<p>Preenchida lendo o seu perfil, não perguntando. O seu trabalho aqui é corrigir.</p></div>' +
+
+      campo('Macro-nicho', 'Qual é o grande assunto? O que alguém digitaria numa busca.',
+            d.macroNicho) +
+
+      campo('Recorte do nicho', 'Qual é o recorte dentro do macro-nicho? Pare na segunda camada.',
+            d.subNicho) +
+
+      campo('Comunidade', 'Que grupo você representa? De quem você fala — não para quem vende.',
+            d.comunidade) +
+
+      campo('Orgulho ferido', 'O que essa gente sente que é subestimado?',
+            d.comunidadeCausa,
+            { selo: 'hipótese, não leitura',
+              nota: hip.comunidadeCausa ? esc(hip.comunidadeCausa) : '' }) +
+
+      campo('Como essa gente se chama', 'Que palavra essa gente usa para falar de si mesma?',
+            d.comunidadeBandeira ||
+            'Não deu para identificar assistindo aos vídeos. Pode ser que a palavra ainda ' +
+            'não exista, ou que ela não seja dita em voz alta. Ponto a definir com você.',
+            { falta: !d.comunidadeBandeira }) +
+
       '</div>';
 
     var temas = (d.temas || []).filter(function (t) { return t && t.trim(); });
     if (temas.length) {
-      var provas = ((d.perfil || {}).provasTemas) || {};
+      var rec = p.recortes || {};
       h += '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
         '<h3 style="font-size:18px">Os dez temas</h3>' +
-        '<p>Cada um já tem prova no seu próprio perfil.</p></div>' +
+        '<p>Um <b>tema</b> é amplo e pesquisável. O <b>recorte</b> é o ângulo dentro dele — ' +
+        'é o recorte que vira vídeo, nunca o tema inteiro. Abaixo, os recortes que você ' +
+        'já publicou, com o número que cada um fez.</p></div>' +
         '<ul class="pf-temas">' + temas.map(function (t, i) {
-          return '<li><span class="n">' + (i + 1) + '</span><span class="t">' + esc(t) + '</span>' +
-            (provas[t] ? '<span class="p">' + esc(provas[t]) + '</span>' : '') + '</li>';
-        }).join('') + '</ul></div>';
+          var rs = rec[t] || [];
+          return '<li><span class="n">' + (i + 1) + '</span>' +
+            '<div class="pf-tema-cx"><span class="t">' + esc(t) + '</span>' +
+            (rs.length
+              ? '<span class="pf-rec">' + rs.map(function (r) {
+                  return esc(r.o) + (r.v ? ' <b>' + esc(r.v) + '</b>' : '');
+                }).join('<span class="pf-pt">&middot;</span>') + '</span>'
+              : '') +
+            '</div></li>';
+        }).join('') + '</ul>' +
+        '<p class="pf-nota">Onde eu tinha errado: <b>“dízimo”</b> não é tema, é recorte de ' +
+        '<b>dinheiro</b>. <b>“Paulo”</b> não é tema, é recorte de <b>história dos personagens ' +
+        'bíblicos</b>. Tema errado fecha o assunto em cinco vídeos; tema certo abre em cinquenta.</p>' +
+        '</div>';
     }
 
     if (d.sigNome || d.sigEntrega) {
@@ -254,8 +322,13 @@
 
     var itens = vs.map(function (v) {
       var pct = Math.max(v.views / teto * 100, 1.2);
+      var tx = (v.compartilhamentos && v.views)
+        ? (v.compartilhamentos / v.views * 100).toFixed(2).replace('.', ',') : '';
       var pe = [
         '<span class="v">' + num(v.views) + ' views</span>',
+        v.compartilhamentos != null
+          ? '<b class="pf-cmp">' + num(v.compartilhamentos) + ' compart.' +
+            (tx ? ' (' + tx + '%)' : '') + '</b>' : '',
         v.duracao ? Math.round(v.duracao) + 's' : '',
         v.url ? '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">abrir</a>' : ''
       ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>');
