@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608121011">
+<link rel="stylesheet" href="app.css?v=202608121822">
 </head>
 <body>
 
@@ -240,15 +240,10 @@
                 </tbody>
               </table>
             </div>
-            <div style="margin-top:1.2rem">
-              <span class="rotulo-bloco">Os quatro testes da comunidade</span>
-              <ol class="passos">
-                <li><b>Bandeira.</b> Alguém se descreve com esse rótulo? "Sou nordestino", "sou nerd". Se ninguém usa a palavra para falar de si, não é comunidade.</li>
-                <li><b>"Somos nós".</b> Dá para mandar o vídeo a um amigo com a legenda <i>"olha, é a gente"</i>?</li>
-                <li><b>Orgulho ferido.</b> Existe algo que essa gente sente que é subestimado? É daí que sai a energia do compartilhamento.</li>
-                <li><b>Tamanho.</b> São milhões, não milhares. Comunidade pequena engaja, mas não viraliza.</li>
-              </ol>
+            <div class="obs" style="margin-top:1rem">
+              <b>Duas conferidas rápidas.</b> Alguém se descreve com esse rótulo? Se ninguém diz “sou nordestino”, “sou nerd”, não é comunidade — é categoria. E o tamanho: precisa ser gente aos milhões. Comunidade pequena engaja, mas não viraliza.
             </div>
+
             <div class="risco" style="margin-top:1rem">
               <div class="t"><span>Cuidado</span> Comunidade não é público-alvo.</div>
               <p>Público-alvo é para onde você vende. Comunidade é <b>por quem você fala</b>. Você pode vender para o Brasil inteiro e ainda assim ser a voz do Nordeste.</p>
@@ -303,27 +298,13 @@
             </div>
           </section>
           <section>
-            <span class="rotulo-bloco">Ferramentas</span>
-            <div class="rolagem">
-              <table class="grade">
-                <thead><tr><th>Ferramenta</th><th>Quando usar</th><th>O que faz</th></tr></thead>
-                <tbody>
-                  <tr><td>Eightify</td><td>Vídeo longo</td><td>Extensão que transforma o vídeo em texto na hora</td></tr>
-                  <tr><td>ssyoutube</td><td>Short sem transcrição</td><td>Baixa o arquivo. 360p basta</td></tr>
-                  <tr><td>Cockatoo</td><td>Depois de baixar</td><td>Transcrição pronta em cerca de 1 minuto</td></tr>
-                  <tr><td>ChatGPT</td><td>Para ampliar a lista</td><td>Mapeia canais de fora que você não conhece</td></tr>
-                </tbody>
-              </table>
+            <span class="rotulo-bloco">A extração é com a gente</span>
+            <div class="pq">
+              <p>Você não vai precisar baixar vídeo, instalar extensão nem transcrever nada. <b>Isso é trabalho nosso.</b></p>
+              <p>Você entrega os links dos vídeos que passaram na dobradinha — a gente extrai o texto de cada um e devolve pronto para virar roteiro.</p>
             </div>
           </section>
-          <section>
-            <span class="rotulo-bloco">Prompt de pesquisa</span>
-            <div class="receita">Busque grandes canais de [TEMA] da gringa.
-Europa, China, Índia, Estados Unidos, etc.
-Não me pergunte mais nada.
 
-<span class="c">// a última linha evita 10 minutos de ping-pong</span></div>
-          </section>
           <div class="risco">
             <div class="t"><span>Erro fatal</span> Parar no que você gosta, sem olhar o número.</div>
             <p>Escolher os temas e os canais é com você. Mas dentro deles, o que entra na lista são <b>vídeos que já ganharam</b> — gostar não basta. E o que você leva é a estrutura: o assunto você adapta para o seu mundo.</p>
@@ -344,15 +325,6 @@ Não me pergunte mais nada.
               <li><b>Gravar lendo no teleprompter.</b> Palavra por palavra, sem improviso.</li>
               <li><b>Publicar em volume e medir.</b> No começo, três por dia.</li>
             </ol>
-          </section>
-          <section>
-            <span class="rotulo-bloco">Os dois prompts</span>
-            <div class="receita">Transforme o roteiro abaixo em um vídeo viral de até 3 minutos.
-
-[colar a transcrição]</div>
-            <div class="receita" style="margin-top:.5rem">Só o texto a ser lido no teleprompter.
-
-<span class="c">// sem isso a IA devolve marcação de cena e você perde tempo limpando</span></div>
           </section>
           <section>
             <span class="rotulo-bloco">A regra dos 3 minutos é distribuição, não estilo</span>
@@ -489,8 +461,9 @@ Não me pergunte mais nada.
               <input type="text" id="comunidadeBandeira" placeholder="sou nordestino">
             </div>
             <div class="linha empilha">
-              <span class="rot">O que essa gente sente que é subestimado?<small>Aquilo que ela pensa e ninguém diz em voz alta.</small></span>
-              <textarea id="comunidadeCausa" rows="3" placeholder="o Nordeste produz empresas gigantes e o Sudeste finge que não existe"></textarea>
+              <span class="rot">O que essa gente comenta entre si, mas ninguém diz em público?<small>Aquela verdade que todo mundo do grupo sabe e que soaria ousada dita em voz alta.</small></span>
+              <textarea id="comunidadeCausa" rows="3" placeholder="o Nordeste sustenta empresa gigante e o Sudeste finge que não vê"></textarea>
+              <span class="ex">Outro exemplo — nerds: <b>“a gente entende de negócio melhor que MBA, só não usa terno”</b></span>
             </div>
           </div>
           <span class="sec-nota">Esta última resposta é matéria-prima direta para os ganchos dos seus roteiros. Quanto mais específica, melhores os vídeos depois.</span>
@@ -773,6 +746,6 @@ https://www.youtube.com/shorts/..."></textarea>
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="app.js?v=202608121011"></script>
+<script src="app.js?v=202608121822"></script>
 </body>
 </html>

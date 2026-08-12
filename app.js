@@ -803,7 +803,7 @@
     L.push('**Comunidade**');
     L.push('- Representa: ' + (state.comunidade.trim() || '(vazio)'));
     L.push('- Como se descreve: ' + (state.comunidadeBandeira.trim() || '(vazio)'));
-    L.push('- Orgulho ferido: ' + (state.comunidadeCausa.trim() || '(vazio)'), '');
+    L.push('- O que comentam entre si: ' + (state.comunidadeCausa.trim() || '(vazio)'), '');
     L.push('**Assinatura**');
     L.push('> Meu nome é ' + state.sigNome.trim() + ' e eu ' + state.sigEntrega.trim() +
       ' ' + state.sigPromessa.trim() + ' todos os dias.', '');
