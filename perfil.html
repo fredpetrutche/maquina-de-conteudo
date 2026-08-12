@@ -149,6 +149,10 @@
       (f.progresso >= 2 ? 'concluída' : 'em aberto') + '</span>';
     selos += '<span class="selo' + (f.progresso >= 3 ? ' s3' : '') + '">Fase 1 ' +
       (f.progresso >= 3 ? 'concluída' : 'em aberto') + '</span>';
+    if ((f.dados.roteiros || []).length) {
+      selos += '<span class="selo s2">Fase 2 &middot; ' + f.dados.roteiros.length +
+        ' roteiros a revisar</span>';
+    }
 
     return '<div class="pf-topo">' +
       '<div class="pf-av">' + foto + '</div>' +
@@ -241,7 +245,6 @@
         '</div>';
     }
 
-    var hip = (p.hipoteses || {});
     var h = '<div class="grupo"><span class="rotulo-bloco">Fase 0 &middot; a sua ficha</span>' +
       '<div class="cartao"><div class="cartao-h">' +
       '<p>Preenchida lendo o seu perfil, não perguntando. O seu trabalho aqui é corrigir.</p></div>' +
@@ -251,20 +254,6 @@
 
       campo('Recorte do nicho', 'Qual é o recorte dentro do macro-nicho? Pare na segunda camada.',
             d.subNicho) +
-
-      campo('Comunidade', 'Que grupo você representa? De quem você fala — não para quem vende.',
-            d.comunidade) +
-
-      campo('Orgulho ferido', 'O que essa gente sente que é subestimado?',
-            d.comunidadeCausa,
-            { selo: 'hipótese, não leitura',
-              nota: hip.comunidadeCausa ? escRico(hip.comunidadeCausa) : '' }) +
-
-      campo('Como essa gente se chama', 'Que palavra essa gente usa para falar de si mesma?',
-            d.comunidadeBandeira ||
-            'Não deu para identificar assistindo aos vídeos. Pode ser que a palavra ainda ' +
-            'não exista, ou que ela não seja dita em voz alta. Ponto a definir com você.',
-            { falta: !d.comunidadeBandeira }) +
 
       '</div>';
 
@@ -335,7 +324,10 @@
         v.duracao ? Math.round(v.duracao) + 's' : '',
         v.url ? '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">abrir</a>' : ''
       ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>');
-      return '<li class="bar-l"><b>@' + esc(v.canal) + ' — ' + esc(v.titulo || '') + '</b>' +
+      var marca = v.idioma === 'en'
+        ? '<span class="selo s3" style="margin-left:.4rem">roteiro pronto</span>'
+        : '<span class="selo s1" style="margin-left:.4rem">fora da leva</span>';
+      return '<li class="bar-l"><b>@' + esc(v.canal) + marca + '<br>' + esc(v.titulo || '') + '</b>' +
         '<span class="bar-t"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
         '<span class="bar-pe">' + pe + '</span></li>';
     }).join('');
@@ -356,6 +348,12 @@
       '<h3 style="font-size:18px">As referências que você escolheu</h3>' +
       '<p>Como foi você quem escolheu, o "eu falaria isso" já veio resolvido. ' +
       'O que se copia é a estrutura, nunca o assunto.</p></div>' +
+      '<p class="pf-nota" style="margin:0 0 1rem;padding-top:0;border:0">' +
+      '<b>Nove das dezessete são de perfis brasileiros</b> — e essas ficaram de fora da ' +
+      'primeira leva. O método justifica a cópia dizendo que o conteúdo ainda não circulou ' +
+      'aqui, então chega como novidade. Isso não vale para quem fala a mesma língua para ' +
+      'a mesma audiência: ali não é novidade, é cópia visível. As oito em inglês viraram ' +
+      'roteiro.</p>' +
       '<ul class="bar-lista">' + itens + '</ul></div>' +
 
       '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
@@ -369,14 +367,52 @@
       }).join('') + '</div></div></div>';
   }
 
+  function blocoFase2(d) {
+    var rs = d.roteiros || [];
+    if (!rs.length) {
+      return '<div class="grupo"><span class="rotulo-bloco">Fase 2 &middot; os roteiros</span>' +
+        '<div class="cartao"><p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
+        'Ainda não preenchida.</p></div></div>';
+    }
+    var itens = rs.map(function (r) {
+      var tx = (r.compartilhamentos && r.views)
+        ? (r.compartilhamentos / r.views * 100).toFixed(2).replace('.', ',') : '';
+      return '<div class="linha" style="align-items:flex-start">' +
+        '<span class="pf-rot" style="width:1.5rem;flex:none;color:var(--rotulo-2);' +
+        'font-variant-numeric:tabular-nums;padding-top:.15rem">' + r.n + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+        '<span style="display:block;font-size:15px;letter-spacing:-.018em">' + esc(r.titulo) + '</span>' +
+        '<span style="display:block;font-size:12px;color:var(--rotulo-2);margin-top:.15rem">' +
+        'de <a href="' + esc(r.url) + '" target="_blank" rel="noopener" ' +
+        'style="color:var(--tinta);text-decoration:none">@' + esc(r.canal) + '</a> · ' +
+        num(r.views) + ' views · <b class="pf-cmp">' + num(r.compartilhamentos) +
+        ' compart.' + (tx ? ' (' + tx + '%)' : '') + '</b> · ' + r.duracao + 's</span>' +
+        (r.porque ? '<span class="pf-como" style="margin-top:.4rem">' + escRico(r.porque) + '</span>' : '') +
+        (r.aviso ? '<span class="pf-como" style="margin-top:.4rem;border-left-color:var(--laranja)">' +
+          '<b style="color:var(--laranja)">Atenção.</b> ' + escRico(r.aviso) + '</span>' : '') +
+        '</div>' +
+        '<span class="selo s2" style="flex:none">' + esc(r.status || 'pronto') + '</span>' +
+        '</div>';
+    }).join('');
+
+    return '<div class="grupo"><span class="rotulo-bloco">Fase 2 &middot; os roteiros</span>' +
+      '<div class="cartao"><div class="cartao-h">' +
+      '<h3 style="font-size:18px">Oito roteiros prontos para você revisar</h3>' +
+      '<p>Cada um foi transcrito do original, convertido em texto de teleprompter e passado ' +
+      'para a sua voz. A ordem é por encaixe com o que você já provou que funciona, não por ' +
+      'view. Nada aqui está gravável antes de você passar o olho.</p></div>' +
+      '<div class="ilha" style="background:transparent">' + itens + '</div>' +
+      '<p class="pf-nota">Cada roteiro traz o texto limpo para ler, o original em inglês ' +
+      'alinhado trecho a trecho, e a lista do que foi mudado na tradução — para você trocar ' +
+      'qualquer palavra sabendo o que estava escrito lá.</p>' +
+      '</div></div>';
+  }
+
   function blocoProximas() {
     return '<div class="grupo"><span class="rotulo-bloco">O que vem depois</span>' +
       '<div class="ilha">' +
-      '<div class="linha"><div style="flex:1"><span style="display:block;font-size:15px">Fase 2 &middot; os roteiros</span>' +
-      '<span style="display:block;font-size:12px;color:var(--rotulo-2)">Destrinchar a estrutura de cada referência e trocar o assunto pela sua história</span>' +
-      '</div><span class="selo">em aberto</span></div>' +
-      '<div class="linha"><div style="flex:1"><span style="display:block;font-size:15px">Fase 3 &middot; a gravação</span>' +
-      '<span style="display:block;font-size:12px;color:var(--rotulo-2)">Cronograma de produção a partir dos roteiros aprovados</span>' +
+      '<div class="linha"><div style="flex:1"><span style="display:block;font-size:15px">Fase 3 &middot; retroalimentar a IA</span>' +
+      '<span style="display:block;font-size:12px;color:var(--rotulo-2)">Quando 3 a 5 destes virarem viral seu, o padrão deles vira um agente que escreve os próximos</span>' +
       '</div><span class="selo">em aberto</span></div>' +
       '</div></div>';
   }
@@ -393,6 +429,7 @@
       blocoVirais(p) +
       blocoFase0(d) +
       blocoFase1(d, p) +
+      blocoFase2(d) +
       blocoProximas() +
       '<p class="pf-nota" style="margin-top:1.5rem">Ficha <span class="mono">' + esc(f.id) + '</span>' +
       (p.raspadoEm ? ' &middot; números lidos em ' + esc(p.raspadoEm) : '') +
