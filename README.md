@@ -14,6 +14,7 @@ App de fluxo guiado para construir audiência própria. Hospedado no GitHub Page
 | `app.css` | Design system, usado pelo app e pelo painel |
 | `admin.html` / `admin.js` | Painel para acompanhar quem preencheu |
 | `schema.sql` | Estrutura inicial do banco |
+| `worker/transcrever.js` | Transcreve os vídeos da fila (roda na máquina do Fred, no pm2) |
 | `migracao-telefone.sql` | Troca do identificador para celular (já aplicada) |
 
 Sem framework, sem build, sem dependência externa. É só abrir.
@@ -68,3 +69,35 @@ sed -i '' -E "s/(app\.css|app\.js|admin\.js)\?v=[0-9]*/\1?v=$V/g" index.html adm
 
 Evite dois pushes em sequência rápida: o GitHub Pages enfileira as builds e uma
 cancela a outra, deixando o status em `errored` sem que haja erro no código.
+
+## Transcrição
+
+Roda **na máquina do Fred**, não no servidor: baixar vídeo exige `yt-dlp` com cookies de
+sessão, e `yt-dlp`/`ffmpeg` são binários que não rodam em função do Supabase.
+
+```bash
+pm2 status maquina-transcricao   # ver
+pm2 logs maquina-transcricao     # acompanhar
+pm2 restart maquina-transcricao  # reiniciar
+```
+
+O processo pega sempre o item de menor `ordem`, então os dez primeiros vídeos que a pessoa
+manda saem na frente — ela começa a gravar enquanto o resto processa.
+
+### O princípio do idioma
+
+Benchmark **precisa** estar em outra língua. Copiado palavra por palavra e gravado em
+português, vira conteúdo novo — não há plágio. Referência em português fica registrada no
+estado `portugues` e não vira roteiro.
+
+De cada vídeo estrangeiro guardamos **duas versões**: a transcrição original e a tradução.
+O especialista, lendo em português, costuma querer trocar uma palavra — e para isso precisa
+ver o que a frase dizia antes.
+
+### O que funciona hoje
+
+| Plataforma | Estado |
+|---|---|
+| Instagram | ✅ funciona (cookies em `telegram-transcricao-video-instagram/cookies.txt`) |
+| YouTube | ❌ bloqueio anti-bot — precisa de cookies do YouTube em `YT_COOKIES` |
+| TikTok | ❌ desafio JS — precisaria de cookies do TikTok |

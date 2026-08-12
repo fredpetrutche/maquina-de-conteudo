@@ -18,6 +18,18 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+
+/* lê o .env ao lado do arquivo, sem depender de pacote —
+   assim o pm2 sobe o processo sem precisar exportar nada antes */
+(function carregarEnv() {
+  const f = path.join(__dirname, '.env');
+  if (!fs.existsSync(f)) return;
+  for (const linha of fs.readFileSync(f, 'utf8').split('\n')) {
+    const m = linha.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$/i);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim().replace(/^["']|["']$/g, '');
+  }
+})();
+
 const SUPA = 'https://mkajvxyiyqxotiydkylq.supabase.co';
 const SERVICE = process.env.SUPABASE_SERVICE_KEY;
 const GROQ = process.env.GROQ_API_KEY;
