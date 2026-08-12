@@ -770,12 +770,14 @@
       var el = $('notaTransc');
       if (!el) return;
       if (!f.total) { el.textContent = 'Assim que você adicionar vídeos, a transcrição começa sozinha.'; return; }
-      var falta = f.total - f.prontos - f.erros;
+      var pt = f.em_portugues || 0;
+      var falta = f.total - f.prontos - f.erros - pt;
+      var nota = pt ? ' · ' + pt + ' em português, que não vira roteiro' : '';
       el.textContent = falta > 0
-        ? 'Transcrevendo — ' + f.prontos + ' de ' + f.total + ' prontas' +
-          (f.fazendo ? ' (uma em andamento)' : '') + '. Você já pode gravar as prontas.'
-        : f.prontos + ' de ' + f.total + ' transcrições prontas' +
-          (f.erros ? ' · ' + f.erros + ' falharam' : '') + '.';
+        ? 'Transcrevendo — ' + f.prontos + ' de ' + (f.total - pt) + ' prontas' +
+          (f.fazendo ? ' (uma em andamento)' : '') + '. Você já pode gravar as prontas.' + nota
+        : f.prontos + ' transcrição(ões) pronta(s), com original e tradução' +
+          (f.erros ? ' · ' + f.erros + ' falharam' : '') + nota + '.';
       var bt = $('btTranscrever');
       if (bt) bt.disabled = true;
     }).catch(function () {});
