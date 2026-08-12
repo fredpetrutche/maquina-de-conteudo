@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608112058">
+<link rel="stylesheet" href="app.css?v=202608120812">
 </head>
 <body>
 
@@ -576,21 +576,40 @@ Não me pergunte mais nada.
         </div>
 
         <div class="pergunta">
-          <span class="p-passo"><i>1</i>Onde procurar</span>
-          <h2 class="p-titulo">O que você vai fazer agora</h2>
+          <span class="p-passo"><i>1</i>Plataforma</span>
+          <h2 class="p-titulo">Onde você vai publicar?</h2>
           <div class="p-fala">
-            <p>Nesta ordem:</p>
+            <p>Isso muda tudo daqui para frente: onde você garimpa, como garimpa e o formato do que você vai gravar.</p>
           </div>
+          <div class="segm" id="segPlat">
+            <button data-plat="instagram" aria-pressed="false">Instagram</button>
+            <button data-plat="youtube" aria-pressed="false">YouTube</button>
+          </div>
+        </div>
+
+        <!-- caminho do YOUTUBE -->
+        <div class="pergunta" id="camYoutube" style="display:none">
+          <span class="p-passo"><i>2</i>Onde procurar</span>
+          <h2 class="p-titulo">O que você vai fazer agora</h2>
+          <div class="p-fala"><p>Nesta ordem:</p></div>
           <ol class="passos">
             <li><b>Pegue os dez temas que você escolheu na Fase 0.</b> Se algum mudou de ideia no caminho, use o que faz sentido agora.</li>
             <li><b>Busque cada tema em inglês no YouTube</b> e aplique o filtro <b>Contagem de visualizações</b>.</li>
-            <li><b>Bata o olho e escolha dez canais.</b> O critério é simples e é seu: você olha os vídeos e pensa <i>“gostei disso, eu falaria isso”</i>. Se você não se imagina dizendo aquilo, o canal não é o seu benchmark.</li>
+            <li><b>Bata o olho e escolha dez canais.</b> O critério é seu: você olha os vídeos e pensa <i>“gostei disso, eu falaria isso”</i>.</li>
             <li><b>Dentro de cada canal, abra os mais bem ranqueados e escolha dez que você falaria.</b> Copia e cola aqui embaixo.</li>
-            <li><b>Para vídeos curtos</b>, entre no canal, vá na aba <b>Shorts</b> e ordene por <b>Populares</b>: sai o ranking histórico daquele criador.</li>
+            <li><b>Para vídeos curtos</b>, entre no canal, aba <b>Shorts</b>, ordene por <b>Populares</b>.</li>
           </ol>
+        </div>
 
-          <div class="p-fala" style="margin-top:1.2rem">
-            <p>Repare que o passo 4 é uma <b>dobradinha</b>: o vídeo precisa passar nas duas provas ao mesmo tempo.</p>
+        <!-- caminho do INSTAGRAM -->
+        <div class="pergunta" id="camInstagram" style="display:none">
+          <span class="p-passo"><i>2</i>Onde procurar</span>
+          <h2 class="p-titulo">Aqui é garimpo, não passo a passo</h2>
+          <div class="p-fala">
+            <p>O Instagram não deixa ordenar por visualizações — nem na busca, nem dentro do perfil. Então não existe atalho: <b>você vai ter que assistir.</b></p>
+            <p>Pesquise o seu tema e vá rolando. O que você procura é vídeo com as duas coisas ao mesmo tempo: <b>viralização alta</b> — a contagem aparece embaixo de cada Reel — e <b>assunto que você falaria</b>.</p>
+            <p>Quando um vídeo te fisgar, entre no perfil de quem postou. Vá na aba de Reels e percorra atrás dos que mais performaram. Você não vai conseguir ver todos, e não precisa: os que estouram saltam da lista.</p>
+            <p>Junte dez perfis assim. De cada um, tire os vídeos que passam na dobradinha.</p>
           </div>
           <div class="julgamento">
             <div class="jul sim">
@@ -599,21 +618,21 @@ Não me pergunte mais nada.
             </div>
             <div class="jul sim">
               <span class="m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-              <span><i>“Está bem ranqueado”</i><s>a confirmação de que aquilo funciona</s></span>
+              <span><i>“Estourou de visualização”</i><s>a confirmação de que aquilo funciona</s></span>
             </div>
           </div>
           <div class="p-fala" style="margin-top:1rem">
-            <p>Falta uma das duas e o vídeo não serve. Milhões de views numa coisa que você jamais diria? Você vai gravar sem convicção e soar falso. Um assunto que você adoraria falar, mas que ninguém assistiu? Não existe prova de que funciona — e é justamente essa prova que você veio buscar aqui.</p>
-            <p>E o que você leva daqui é a <b>estrutura</b>, não o assunto. Um vídeo sobre a Zara pode virar um vídeo sobre a Luiza Trajano: mesmo gancho, mesmo ritmo, história completamente outra. Você fica com a forma e põe a sua história dentro.</p>
+            <p>Como aqui não dá para o app ler o Instagram sozinho, a contagem de visualizações você anota na mão. É ela que substitui o filtro que a plataforma não tem — sem esse número, some metade da dobradinha.</p>
           </div>
         </div>
 
-        <div class="pergunta">
-          <span class="p-passo"><i>2</i>Colar</span>
+        <!-- COLETA: YOUTUBE -->
+        <div class="pergunta" id="colaYoutube" style="display:none">
+          <span class="p-passo"><i>3</i>Colar</span>
           <h2 class="p-titulo">Cole os links aqui</h2>
           <div class="p-fala">
-            <p>Um por linha, do jeito que vier — <span class="mono" style="font-size:.9em">watch</span>, <span class="mono" style="font-size:.9em">youtu.be</span>, <span class="mono" style="font-size:.9em">shorts</span>, tanto faz. Pode colar tudo de uma vez.</p>
-            <p>Eu leio cada link, descubro de que canal é e junto sozinho. Você não precisa digitar nome nem link de canal.</p>
+            <p>Um por linha, do jeito que vier — <span class="mono">watch</span>, <span class="mono">youtu.be</span>, <span class="mono">shorts</span>, tanto faz. Pode colar tudo de uma vez.</p>
+            <p>Eu leio cada link, descubro de que canal é e junto sozinho.</p>
           </div>
           <div class="colar">
             <textarea id="colaLinks" rows="5" placeholder="https://www.youtube.com/watch?v=...
@@ -626,7 +645,21 @@ https://www.youtube.com/shorts/..."></textarea>
           </div>
         </div>
 
-        <div class="pergunta">
+        <!-- COLETA: INSTAGRAM -->
+        <div class="pergunta" id="colaInstagram" style="display:none">
+          <span class="p-passo"><i>3</i>Anotar</span>
+          <h2 class="p-titulo">Anote cada vídeo que passou na dobradinha</h2>
+          <div class="p-fala">
+            <p>Três coisas por vídeo: de quem é, o link e quantas visualizações tem. Eu agrupo por perfil sozinho.</p>
+          </div>
+          <div class="ig-lista" id="igLista"></div>
+          <button class="bt simples" id="btAddIg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Adicionar vídeo
+          </button>
+        </div>
+
+        <div class="pergunta" id="blocoAchados" style="display:none">
           <div class="sec-linha" style="padding-left:0;padding-right:0">
             <span class="p-passo" style="margin-bottom:0"><i>3</i>O que eu encontrei</span>
             <span class="medidor" id="medCanais"><span class="b"><i></i></span><span class="v">0/10</span></span>
@@ -740,6 +773,6 @@ https://www.youtube.com/shorts/..."></textarea>
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="app.js?v=202608112058"></script>
+<script src="app.js?v=202608120812"></script>
 </body>
 </html>

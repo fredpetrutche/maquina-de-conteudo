@@ -34,7 +34,7 @@
   /* ---------- estado ---------- */
   function novoEstado() {
     var s = {
-      v: 3, briefingOk: false,
+      v: 4, briefingOk: false, plataforma: '',
       macroNicho: '', subNicho: '',
       comunidade: '', comunidadeBandeira: '', comunidadeCausa: '',
       temas: [], sigNome: '', sigEntrega: '', sigPromessa: '',
@@ -98,7 +98,8 @@
   function agrupar() {
     var mapa = {}, ordem = [];
     state.videos.forEach(function (v, i) {
-      var chave = v.canalUrl || v.canal || '';
+      if (v.fonte === 'ig' && !(v.canal.trim() && v.url.trim())) return;
+      var chave = (v.canalUrl || v.canal || '').toLowerCase();
       if (!chave) return;
       if (!mapa[chave]) {
         mapa[chave] = { nome: v.canal || chave, url: v.canalUrl || '', videos: [] };
@@ -106,7 +107,11 @@
       }
       mapa[chave].videos.push({ v: v, i: i });
     });
-    return ordem.map(function (k) { return mapa[k]; });
+    return ordem.map(function (k) {
+      var g = mapa[k];
+      g.videos.sort(function (a, b) { return lerNumero(b.v.views) - lerNumero(a.v.views); });
+      return g;
+    });
   }
   function canaisOk() { return agrupar().length; }
   function naoLidos() {
@@ -175,6 +180,7 @@
   function aplicar(d) {
     if (!d || typeof d !== 'object') return;
     state.briefingOk = !!d.briefingOk;
+    state.plataforma = d.plataforma || '';
     state.macroNicho = d.macroNicho || '';
     state.subNicho = d.subNicho || '';
     state.comunidade = d.comunidade || '';
@@ -190,7 +196,8 @@
       state.videos = d.videos.filter(Boolean).map(function (v) {
         return {
           url: v.url || '', id: v.id || '', titulo: v.titulo || '',
-          canal: v.canal || '', canalUrl: v.canalUrl || '', estado: v.estado || 'novo'
+          canal: v.canal || '', canalUrl: v.canalUrl || '',
+          views: v.views || '', fonte: v.fonte || 'yt', estado: v.estado || 'novo'
         };
       });
     } else if (Array.isArray(d.canais)) {
@@ -226,7 +233,7 @@
         cheios(state.temas) >= ALVO_TEMAS &&
         state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim());
     }
-    if (id === 'fase1') return canaisOk() >= ALVO_CANAIS;
+    if (id === 'fase1') return !!state.plataforma && canaisOk() >= ALVO_CANAIS;
     return false;
   }
 
@@ -543,6 +550,7 @@
         '<ul class="achado-v">' + g.videos.map(function (item, k) {
           return '<li><span class="ord">' + (k + 1) + '</span>' +
             '<span class="tit">' + esc(item.v.titulo || item.v.url) + '</span>' +
+            (item.v.views ? '<span class="views">' + esc(numeroBonito(lerNumero(item.v.views)) || item.v.views) + '</span>' : '') +
             '<button class="x" data-rm-video="' + item.i + '" aria-label="Remover vídeo">' + IC_X + '</button></li>';
         }).join('') + '</ul></div>';
     }).join('');
@@ -567,6 +575,76 @@
         ? prontos + ' vídeo(s) identificados. Esta função abre na próxima etapa.'
         : 'Cole pelo menos um vídeo para liberar.';
     }
+  }
+
+
+  /* ============================================================
+     INSTAGRAM — entrada na mão
+     A plataforma não permite ordenar por visualizações nem ler
+     metadados de fora, então a pessoa anota o que viu.
+     ============================================================ */
+  function lerNumero(v) {
+    var t = String(v || '').trim().toLowerCase().replace(/\s|visualizações|views/g, '');
+    if (!t) return 0;
+    var mult = 1;
+    if (/(mi|mm|m)$/.test(t) && !/mil$/.test(t)) { mult = 1e6; t = t.replace(/(mi|mm|m)$/, ''); }
+    else if (/(mil|k)$/.test(t)) { mult = 1e3; t = t.replace(/(mil|k)$/, ''); }
+    var n;
+    if (t.indexOf(',') > -1) n = parseFloat(t.replace(/\./g, '').replace(',', '.'));
+    else if (/^\d{1,3}(\.\d{3})+$/.test(t)) n = parseFloat(t.replace(/\./g, ''));
+    else n = parseFloat(t);
+    return isNaN(n) ? 0 : Math.round(n * mult);
+  }
+  function numeroBonito(n) {
+    if (!n) return '';
+    if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace('.', ',') + ' mi';
+    if (n >= 1e3) return Math.round(n / 1e3) + ' mil';
+    return String(n);
+  }
+  function perfilUrl(h) {
+    var u = String(h || '').trim().replace(/^@/, '').replace(/\/$/, '');
+    var m = u.match(/instagram\.com\/([^\/?#]+)/i);
+    if (m) u = m[1];
+    return u ? 'https://www.instagram.com/' + u : '';
+  }
+
+  function pintarIg() {
+    var lista = state.videos.filter(function (v) { return v.fonte === 'ig'; });
+    if (!lista.length) { state.videos.push(novoIg()); lista = [state.videos[state.videos.length - 1]]; }
+    $('igLista').innerHTML = lista.map(function (v) {
+      var i = state.videos.indexOf(v);
+      var ok = v.canal.trim() && v.url.trim();
+      return '<div class="ig-item' + (ok ? ' ok' : '') + '">' +
+        '<div class="ig-topo"><span class="ig-n">' + (ok ? '✓' : lista.indexOf(v) + 1) + '</span>' +
+        '<div class="ig-campos">' +
+        '<div class="ig-campo"><label>Perfil</label>' +
+        '<input type="text" data-ig-canal="' + i + '" value="' + esc(v.canal) + '" placeholder="@perfil"></div>' +
+        '<div class="ig-campo"><label>Link do vídeo</label>' +
+        '<input type="text" data-ig-url="' + i + '" value="' + esc(v.url) + '" placeholder="instagram.com/reel/..."></div>' +
+        '<div class="ig-campo num"><label>Visualizações</label>' +
+        '<input type="text" data-ig-views="' + i + '" value="' + esc(v.views) + '" placeholder="1,2 mi"></div>' +
+        '</div></div>' +
+        '<button class="ig-x" data-rm-video="' + i + '" aria-label="Remover">' + IC_X + '</button>' +
+        '</div>';
+    }).join('');
+  }
+  function novoIg() {
+    return { url: '', id: '', titulo: '', canal: '', canalUrl: '', views: '', fonte: 'ig', estado: 'ok' };
+  }
+
+  /* ---------- alterna o caminho conforme a plataforma ---------- */
+  function pintarPlataforma() {
+    var p = state.plataforma;
+    var bts = $('segPlat').querySelectorAll('button');
+    for (var i = 0; i < bts.length; i++) {
+      bts[i].setAttribute('aria-pressed', bts[i].getAttribute('data-plat') === p);
+    }
+    $('camYoutube').style.display = p === 'youtube' ? '' : 'none';
+    $('camInstagram').style.display = p === 'instagram' ? '' : 'none';
+    $('colaYoutube').style.display = p === 'youtube' ? '' : 'none';
+    $('colaInstagram').style.display = p === 'instagram' ? '' : 'none';
+    $('blocoAchados').style.display = p ? '' : 'none';
+    if (p === 'instagram') pintarIg();
   }
 
   /* ---------- porta ---------- */
@@ -640,13 +718,15 @@
     L.push('**Temas**');
     state.temas.forEach(function (t, i) { if (t.trim()) L.push((i + 1) + '. ' + t.trim()); });
     L.push('', '## Fase 1 — Benchmarks', '');
+    L.push('Plataforma: ' + (state.plataforma === 'instagram' ? 'Instagram' : state.plataforma === 'youtube' ? 'YouTube' : '(não escolhida)'), '');
     agrupar().forEach(function (g, i) {
       L.push('### ' + (i + 1) + '. ' + g.nome);
       if (g.url) L.push(g.url);
       L.push('');
       g.videos.forEach(function (item, k) {
-        L.push('  ' + (k + 1) + '. ' + (item.v.titulo || '(sem título)'));
-        L.push('     ' + item.v.url);
+        L.push('  ' + (k + 1) + '. ' + (item.v.titulo || item.v.url) +
+          (item.v.views ? '  — ' + numeroBonito(lerNumero(item.v.views)) + ' views' : ''));
+        if (item.v.titulo) L.push('     ' + item.v.url);
       });
       L.push('');
     });
@@ -690,7 +770,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],#btLer') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],[data-plat],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -723,10 +803,23 @@
         if (!state.temas.length) state.temas.push('');
         pintarTemas(); salvar(); pintarNav(); return;
       }
+      if (t.hasAttribute('data-plat')) {
+        state.plataforma = t.getAttribute('data-plat');
+        pintarPlataforma(); pintarAchados(); salvar(); pintarNav();
+        return;
+      }
+      if (t.id === 'btAddIg') {
+        state.videos.push(novoIg());
+        pintarIg(); salvar();
+        var novos = $('igLista').querySelectorAll('[data-ig-canal]');
+        if (novos.length) novos[novos.length - 1].focus();
+        return;
+      }
       if (t.id === 'btLer') { lerLinks(); return; }
       if (t.hasAttribute('data-rm-video')) {
         state.videos.splice(+t.getAttribute('data-rm-video'), 1);
-        pintarAchados(); salvar(); pintarNav(); return;
+        if (state.plataforma === 'instagram') pintarIg();
+        pintarAchados(); salvar(); pintarNav(); checarMarco(); return;
       }
 
       var a = t.getAttribute('data-act');
@@ -767,6 +860,20 @@
       else if (el.id === 'comunidadeCausa') state.comunidadeCausa = v;
       else if (el.id === 'sigNome' || el.id === 'sigEntrega' || el.id === 'sigPromessa') {
         state[el.id] = v; pintarAssinatura();
+      }
+      else if (el.hasAttribute('data-ig-canal')) {
+        var iv = +el.getAttribute('data-ig-canal');
+        state.videos[iv].canal = v.trim().replace(/^@/, '') ? '@' + v.trim().replace(/^@/, '') : '';
+        state.videos[iv].canalUrl = perfilUrl(v);
+        pintarAchados();
+      }
+      else if (el.hasAttribute('data-ig-url')) {
+        state.videos[+el.getAttribute('data-ig-url')].url = v.trim();
+        pintarAchados();
+      }
+      else if (el.hasAttribute('data-ig-views')) {
+        state.videos[+el.getAttribute('data-ig-views')].views = v;
+        pintarAchados();
       }
       else if (el.hasAttribute('data-tema')) {
         state.temas[+el.getAttribute('data-tema')] = v;
@@ -809,7 +916,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarAchados(); pintarNav(); atualizarPerguntas();
+    pintarTemas(); pintarAssinatura(); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
   }
 
   function boot() {
