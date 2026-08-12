@@ -228,6 +228,7 @@
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
     }, 250);
     sincronizar();
+    enfileirar();
   }
 
   /* ---------- conclusão ---------- */
@@ -313,6 +314,8 @@
     fecharMenu();
     if (history.replaceState) history.replaceState(null, '', '#' + id);
     if (!quieto) window.scrollTo(0, 0);
+    clearInterval(filaPoll);
+    if (id === 'fase1' && ident.id) { olharFila(); filaPoll = setInterval(olharFila, 12000); }
   }
   function fecharMenu() {
     $('lateral').classList.remove('aberto');
@@ -737,6 +740,45 @@
       '<button class="bt forte mini" data-aceitar="' + chave + '">Adicionar marcados</button>' +
       '<button class="bt simples mini" data-descartar="' + chave + '">Descartar</button>' +
       '</div></div>';
+  }
+
+
+  /* ---------- fila de transcrição ----------
+     A pessoa não aperta nada: assim que os vídeos entram, os dez
+     primeiros vão para a fila e ela já pode começar a gravar. */
+  var filaTimer = null, filaPoll = null;
+
+  function enfileirar() {
+    if (!ident.id) return;
+    var lista = state.videos
+      .filter(function (v) { return v.url && (v.fonte !== 'ig' || v.canal); })
+      .map(function (v) {
+        return { url: v.url, perfil: v.canal || '', titulo: v.titulo || '' };
+      });
+    if (!lista.length) return;
+    clearTimeout(filaTimer);
+    filaTimer = setTimeout(function () {
+      rpc('enfileirar', { p_ficha: ident.id, p_videos: lista })
+        .then(olharFila).catch(function () {});
+    }, 1500);
+  }
+
+  function olharFila() {
+    if (!ident.id) return;
+    rpc('estado_fila', { p_ficha: ident.id }).then(function (r) {
+      var f = (r && r[0]) || {};
+      var el = $('notaTransc');
+      if (!el) return;
+      if (!f.total) { el.textContent = 'Assim que você adicionar vídeos, a transcrição começa sozinha.'; return; }
+      var falta = f.total - f.prontos - f.erros;
+      el.textContent = falta > 0
+        ? 'Transcrevendo — ' + f.prontos + ' de ' + f.total + ' prontas' +
+          (f.fazendo ? ' (uma em andamento)' : '') + '. Você já pode gravar as prontas.'
+        : f.prontos + ' de ' + f.total + ' transcrições prontas' +
+          (f.erros ? ' · ' + f.erros + ' falharam' : '') + '.';
+      var bt = $('btTranscrever');
+      if (bt) bt.disabled = true;
+    }).catch(function () {});
   }
 
   /* ---------- porta ---------- */

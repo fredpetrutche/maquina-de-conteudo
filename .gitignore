@@ -2,3 +2,5 @@
 .env
 .env.*
 supabase/.temp/
+worker/.env
+worker/node_modules/
