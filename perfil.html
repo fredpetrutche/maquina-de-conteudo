@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Perfil — Máquina de Conteúdo</title>
+<link rel="stylesheet" href="app.css">
+<style>
+/* Só o que a tela de perfil acrescenta. Tudo sai dos tokens do app.css. */
+.pf-topo{display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.75rem}
+.pf-av{width:4.5rem;height:4.5rem;flex:none;border-radius:99px;background:var(--tinta);
+  color:#fff;display:grid;place-items:center;font-size:26px;font-weight:600;overflow:hidden}
+.pf-av img{width:100%;height:100%;object-fit:cover;display:block}
+.pf-id{min-width:0;flex:1}
+.pf-id h1{font-size:30px;font-weight:700;letter-spacing:-.035em;line-height:1.1;margin:.1rem 0 .25rem}
+.pf-vf{color:var(--tinta);font-size:18px;vertical-align:.06em;margin-left:.25rem}
+.pf-arroba{font-size:14px;color:var(--rotulo-2);letter-spacing:-.01em}
+.pf-arroba a{color:var(--tinta);text-decoration:none}
+.pf-selos{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.6rem}
+
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:.5px;
+  background:var(--sep);border-radius:var(--r-ilha);overflow:hidden}
+.kpi>div{background:var(--ilha);padding:.85rem 1rem}
+.kpi dt{font-size:12px;color:var(--rotulo-2);margin:0 0 .3rem;letter-spacing:-.006em}
+.kpi dd{margin:0;font-size:26px;font-weight:600;letter-spacing:-.03em;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.kpi dd.destacado{color:var(--tinta)}
+.kpi dd s{display:block;text-decoration:none;font-size:12px;font-weight:400;
+  color:var(--rotulo-2);letter-spacing:-.006em;margin-top:.25rem}
+
+.bar-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.85rem}
+.bar-l b{display:block;font-size:14px;font-weight:400;letter-spacing:-.015em;margin-bottom:.35rem}
+.bar-t{display:block;height:8px;background:var(--preench);border-radius:0 4px 4px 0;position:relative}
+.bar-t i{display:block;height:100%;background:var(--tinta);border-radius:0 4px 4px 0}
+.bar-t.morno i{background:var(--rotulo-3)}
+.bar-pe{display:flex;gap:.6rem;align-items:baseline;margin-top:.3rem;font-size:12px;
+  color:var(--rotulo-2);flex-wrap:wrap}
+.bar-pe .v{font-size:13px;color:var(--rotulo);font-variant-numeric:tabular-nums;font-weight:600}
+.bar-pe a{color:var(--tinta);text-decoration:none}
+
+.pf-nota{margin-top:.9rem;padding-top:.75rem;border-top:.5px solid var(--sep);
+  font-size:13px;color:var(--rotulo-2);letter-spacing:-.01em;line-height:1.5}
+.pf-nota b{color:var(--rotulo);font-weight:600}
+
+.pf-temas{list-style:none;margin:0;padding:0}
+.pf-temas li{display:flex;gap:.75rem;align-items:baseline;padding:.6rem 0;position:relative}
+.pf-temas li+li::before{content:"";position:absolute;top:0;left:1.75rem;right:0;height:.5px;background:var(--sep)}
+.pf-temas .n{width:1.25rem;flex:none;font-size:13px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
+.pf-temas .t{flex:1;font-size:15px;letter-spacing:-.015em}
+.pf-temas .p{font-size:12px;color:var(--rotulo-2);font-variant-numeric:tabular-nums;flex:none}
+
+.pf-assin{font-size:19px;line-height:1.45;letter-spacing:-.02em;margin:0;
+  padding:1rem 1.1rem;background:var(--tinta-fraca);border-radius:var(--r-campo)}
+
+.pf-falta{color:var(--laranja)}
+.pf-carga{padding:4rem 0;text-align:center;color:var(--rotulo-2);font-size:15px}
+@media(max-width:34rem){
+  .pf-topo{gap:.85rem}
+  .pf-av{width:3.5rem;height:3.5rem;font-size:20px}
+  .pf-id h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+
+<main class="larg corpo" id="tela">
+  <p class="pf-carga">Abrindo a ficha…</p>
+</main>
+
+<script>
+(function () {
+  'use strict';
+
+  var SUPA_URL = 'https://mkajvxyiyqxotiydkylq.supabase.co';
+  var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rYWp2eHlpeXF4b3RpeWRreWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgzNzcsImV4cCI6MjEwMjAzNDM3N30.vfHCb8BRcshufnp_7eAt9ch4aVEMpcbVA5u16IS0Kao';
+
+  var tela = document.getElementById('tela');
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function num(v) {
+    var n = Number(v) || 0;
+    return n.toLocaleString('pt-BR');
+  }
+  function curto(v) {
+    var n = Number(v) || 0;
+    if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace('.', ',') + ' mi';
+    if (n >= 1e3) return (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace('.', ',') + ' mil';
+    return String(n);
+  }
+  function iniciais(nome) {
+    var p = String(nome || '?').trim().split(/\s+/);
+    return ((p[0] || '')[0] + (p.length > 1 ? (p[p.length - 1] || '')[0] : '')).toUpperCase();
+  }
+
+  function aviso(msg, sub) {
+    tela.innerHTML =
+      '<div class="topo-grande"><span class="eyebrow">Máquina de Conteúdo</span>' +
+      '<h1>' + esc(msg) + '</h1>' +
+      (sub ? '<p class="abre">' + esc(sub) + '</p>' : '') + '</div>' +
+      '<div class="cartao"><p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
+      'Abra o app pela porta principal para começar ou retomar a sua ficha.<br><br>' +
+      '<a href="./" style="color:var(--tinta);text-decoration:none;font-weight:600">Ir para a Máquina de Conteúdo &rsaquo;</a>' +
+      '</p></div>';
+  }
+
+  /* ---------- blocos ---------- */
+
+  function blocoTopo(f, p) {
+    var foto = p.foto
+      ? '<img src="' + esc(p.foto) + '" alt="Foto de perfil de ' + esc(f.nome) + '">'
+      : esc(iniciais(f.nome));
+    var arroba = p.instagram
+      ? '<a href="' + esc(p.url || ('https://www.instagram.com/' + p.instagram + '/')) +
+        '" target="_blank" rel="noopener">@' + esc(p.instagram) + '</a>'
+      : '';
+    var meta = [arroba, p.plataforma || 'Instagram', p.posts ? num(p.posts) + ' posts' : '']
+      .filter(Boolean).join(' &middot; ');
+
+    var selos = '';
+    if (f.dados.macroNicho) selos += '<span class="selo s2">' + esc(f.dados.macroNicho) + '</span>';
+    if (f.dados.subNicho) selos += '<span class="selo s2">' + esc(f.dados.subNicho) + '</span>';
+    selos += '<span class="selo' + (f.progresso >= 2 ? ' s3' : '') + '">Fase 0 ' +
+      (f.progresso >= 2 ? 'concluída' : 'em aberto') + '</span>';
+    selos += '<span class="selo' + (f.progresso >= 3 ? ' s3' : '') + '">Fase 1 ' +
+      (f.progresso >= 3 ? 'concluída' : 'em aberto') + '</span>';
+
+    return '<div class="pf-topo">' +
+      '<div class="pf-av">' + foto + '</div>' +
+      '<div class="pf-id"><h1>' + esc(f.nome) +
+      (p.verificado ? '<span class="pf-vf" title="Perfil verificado">&#10003;</span>' : '') +
+      '</h1><p class="pf-arroba">' + meta + '</p>' +
+      '<div class="pf-selos">' + selos + '</div></div></div>';
+  }
+
+  function blocoNumeros(p) {
+    if (!p.medianaJanela && !p.tetoJanela) return '';
+    function cel(rot, val, sub, dest) {
+      return '<div><dt>' + esc(rot) + '</dt><dd' + (dest ? ' class="destacado"' : '') + '>' +
+        esc(val) + (sub ? '<s>' + esc(sub) + '</s>' : '') + '</dd></div>';
+    }
+    var mult = p.medianaJanela ? (p.tetoJanela / p.medianaJanela).toFixed(1).replace('.', ',') : '';
+    return '<div class="grupo">' +
+      '<span class="rotulo-bloco">Estes são os seus números</span>' +
+      '<div class="kpi">' +
+      cel('Vídeos no período', num(p.videosNaJanela), p.janela ? p.janela.replace(' a ', ' — ') : '') +
+      cel('Mediana', num(p.medianaJanela), 'metade fica abaixo') +
+      cel('Maior recente', num(p.tetoJanela), mult ? mult + '× a mediana' : '', true) +
+      cel('Maior de todos', num(p.tetoHistorico), 'desde 2022') +
+      '</div>' +
+      '<p class="pf-nota">A distância entre a mediana e o pico é a informação mais útil daqui: ' +
+      'ela mostra que <b>o alcance existe</b>. O que falta é repetir o acerto.</p>' +
+      '</div>';
+  }
+
+  function blocoVirais(p) {
+    var vs = (p.topVideos || []).filter(function (v) { return v && v.views; });
+    if (!vs.length) return '';
+    vs.sort(function (a, b) { return b.views - a.views; });
+    var teto = vs[0].views;
+    var med = p.medianaJanela || 0;
+
+    var itens = vs.map(function (v) {
+      var pct = Math.max(v.views / teto * 100, 1.2);
+      var pe = [
+        '<span class="v">' + num(v.views) + ' views</span>',
+        v.curtidas ? num(v.curtidas) + ' curtidas' : '',
+        v.comentarios ? num(v.comentarios) + ' comentários' : '',
+        v.quando ? String(v.quando).slice(0, 4) : '',
+        v.fixado ? 'fixado no topo' : '',
+        v.url ? '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">abrir</a>' : ''
+      ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>');
+      return '<li class="bar-l"><b>' + esc(v.legenda || 'sem legenda') + '</b>' +
+        '<span class="bar-t' + (med && v.views < med ? ' morno' : '') + '">' +
+        '<i style="width:' + pct.toFixed(1) + '%"></i></span>' +
+        '<span class="bar-pe">' + pe + '</span></li>';
+    }).join('');
+
+    return '<div class="grupo">' +
+      '<span class="rotulo-bloco">O que mais viralizou</span>' +
+      '<div class="cartao"><ul class="bar-lista">' + itens + '</ul>' +
+      (med ? '<p class="pf-nota">Linha de corte: a mediana, <b>' + num(med) + ' views</b>. ' +
+        'Barras em cinza ficaram abaixo dela.</p>' : '') +
+      '</div></div>';
+  }
+
+  function blocoFase0(d) {
+    function par(rot, val, falta) {
+      return '<div class="linha"><div style="flex:1;min-width:0">' +
+        '<span style="display:block;font-size:12px;color:var(--rotulo-2)">' + esc(rot) + '</span>' +
+        '<span style="display:block;font-size:15px;letter-spacing:-.015em"' +
+        (falta ? ' class="pf-falta"' : '') + '>' + esc(val || 'não preencheu') + '</span>' +
+        '</div></div>';
+    }
+    var h = '<div class="grupo"><span class="rotulo-bloco">Fase 0 &middot; a sua ficha</span>' +
+      '<div class="ilha">' +
+      par('Macro-nicho', d.macroNicho) +
+      par('Recorte', d.subNicho) +
+      par('Comunidade', d.comunidade) +
+      par('Orgulho ferido', d.comunidadeCausa) +
+      par('Como essa gente se chama',
+          d.comunidadeBandeira || 'Só você sabe — é a única pergunta que o seu perfil não responde',
+          !d.comunidadeBandeira) +
+      '</div>';
+
+    var temas = (d.temas || []).filter(function (t) { return t && t.trim(); });
+    if (temas.length) {
+      var provas = ((d.perfil || {}).provasTemas) || {};
+      h += '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+        '<h3 style="font-size:18px">Os dez temas</h3>' +
+        '<p>Cada um já tem prova no seu próprio perfil.</p></div>' +
+        '<ul class="pf-temas">' + temas.map(function (t, i) {
+          return '<li><span class="n">' + (i + 1) + '</span><span class="t">' + esc(t) + '</span>' +
+            (provas[t] ? '<span class="p">' + esc(provas[t]) + '</span>' : '') + '</li>';
+        }).join('') + '</ul></div>';
+    }
+
+    if (d.sigNome || d.sigEntrega) {
+      h += '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+        '<h3 style="font-size:18px">A sua assinatura</h3></div>' +
+        '<p class="pf-assin">Meu nome é ' + esc(d.sigNome || '…') + ' e eu ' +
+        esc(d.sigEntrega || '…') + ' ' + esc(d.sigPromessa || '') +
+        ' todos os dias. Se inscreve para não perder a próxima.</p></div>';
+    }
+    return h + '</div>';
+  }
+
+  function blocoFase1(d, p) {
+    var vs = (d.videos || []).filter(function (v) { return v && v.views; });
+    if (!vs.length) {
+      return '<div class="grupo"><span class="rotulo-bloco">Fase 1 &middot; os benchmarks</span>' +
+        '<div class="cartao"><p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
+        'Ainda não preenchida.</p></div></div>';
+    }
+    vs = vs.slice().sort(function (a, b) { return b.views - a.views; });
+    var teto = vs[0].views;
+
+    var canais = {};
+    vs.forEach(function (v) {
+      var k = v.canal || v.canalUrl;
+      if (!canais[k]) canais[k] = { nome: v.canal, url: v.canalUrl, n: 0, pico: 0 };
+      canais[k].n++;
+      canais[k].pico = Math.max(canais[k].pico, v.views);
+    });
+    var lista = Object.keys(canais).map(function (k) { return canais[k]; })
+      .sort(function (a, b) { return b.pico - a.pico; });
+
+    var ord = vs.map(function (v) { return v.views; });
+    var mediana = ord[Math.floor(ord.length / 2)];
+    var minha = p.tetoHistorico || 0;
+
+    var itens = vs.map(function (v) {
+      var pct = Math.max(v.views / teto * 100, 1.2);
+      var pe = [
+        '<span class="v">' + num(v.views) + ' views</span>',
+        v.duracao ? Math.round(v.duracao) + 's' : '',
+        v.url ? '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">abrir</a>' : ''
+      ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>');
+      return '<li class="bar-l"><b>@' + esc(v.canal) + ' — ' + esc(v.titulo || '') + '</b>' +
+        '<span class="bar-t"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
+        '<span class="bar-pe">' + pe + '</span></li>';
+    }).join('');
+
+    var razao = (p.medianaJanela && mediana) ? Math.round(mediana / p.medianaJanela) : 0;
+
+    return '<div class="grupo"><span class="rotulo-bloco">Fase 1 &middot; os benchmarks</span>' +
+      '<div class="kpi">' +
+      '<div><dt>Vídeos</dt><dd>' + vs.length + '<s>' + lista.length + ' perfis</s></dd></div>' +
+      '<div><dt>Mediana</dt><dd class="destacado">' + curto(mediana) +
+        (razao ? '<s>' + razao + '× a sua</s>' : '') + '</dd></div>' +
+      '<div><dt>Maior</dt><dd>' + curto(teto) + '<s>o alvo do topo</s></dd></div>' +
+      '<div><dt>O seu recorde</dt><dd>' + curto(minha) +
+        '<s>' + (minha ? (minha / teto * 100).toFixed(0) + '% do maior' : '') + '</s></dd></div>' +
+      '</div>' +
+
+      '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+      '<h3 style="font-size:18px">As referências que você escolheu</h3>' +
+      '<p>Como foi você quem escolheu, o "eu falaria isso" já veio resolvido. ' +
+      'O que se copia é a estrutura, nunca o assunto.</p></div>' +
+      '<ul class="bar-lista">' + itens + '</ul></div>' +
+
+      '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+      '<h3 style="font-size:18px">Os ' + lista.length + ' perfis</h3></div>' +
+      '<div class="ilha" style="background:transparent">' + lista.map(function (c) {
+        return '<div class="linha"><div style="flex:1;min-width:0">' +
+          '<a href="' + esc(c.url || '#') + '" target="_blank" rel="noopener" ' +
+          'style="color:var(--tinta);text-decoration:none;font-size:15px">@' + esc(c.nome) + '</a>' +
+          '</div><span class="medidor">' + c.n + (c.n > 1 ? ' vídeos' : ' vídeo') +
+          '<span style="color:var(--rotulo-3)">&middot;</span>' + curto(c.pico) + '</span></div>';
+      }).join('') + '</div></div></div>';
+  }
+
+  function blocoProximas() {
+    return '<div class="grupo"><span class="rotulo-bloco">O que vem depois</span>' +
+      '<div class="ilha">' +
+      '<div class="linha"><div style="flex:1"><span style="display:block;font-size:15px">Fase 2 &middot; os roteiros</span>' +
+      '<span style="display:block;font-size:12px;color:var(--rotulo-2)">Destrinchar a estrutura de cada referência e trocar o assunto pela sua história</span>' +
+      '</div><span class="selo">em aberto</span></div>' +
+      '<div class="linha"><div style="flex:1"><span style="display:block;font-size:15px">Fase 3 &middot; a gravação</span>' +
+      '<span style="display:block;font-size:12px;color:var(--rotulo-2)">Cronograma de produção a partir dos roteiros aprovados</span>' +
+      '</div><span class="selo">em aberto</span></div>' +
+      '</div></div>';
+  }
+
+  /* ---------- montagem ---------- */
+
+  function pintar(f) {
+    var d = f.dados || {};
+    var p = d.perfil || {};
+    document.title = f.nome + ' — Máquina de Conteúdo';
+    tela.innerHTML =
+      blocoTopo(f, p) +
+      blocoNumeros(p) +
+      blocoVirais(p) +
+      blocoFase0(d) +
+      blocoFase1(d, p) +
+      blocoProximas() +
+      '<p class="pf-nota" style="margin-top:1.5rem">Ficha <span class="mono">' + esc(f.id) + '</span>' +
+      (p.raspadoEm ? ' &middot; números lidos em ' + esc(p.raspadoEm) : '') +
+      '<br><a href="./" style="color:var(--tinta);text-decoration:none">Voltar para a Máquina de Conteúdo &rsaquo;</a></p>';
+  }
+
+  /* ---------- entrada ---------- */
+
+  var codigo = (location.hash || '').replace('#', '').trim();
+  if (!/^[0-9a-f-]{36}$/i.test(codigo)) {
+    aviso('Sem código de ficha', 'O endereço precisa terminar com o código de 36 caracteres.');
+    return;
+  }
+
+  fetch(SUPA_URL + '/rest/v1/rpc/retomar_ficha', {
+    method: 'POST',
+    headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ p_id: codigo })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      if (!Array.isArray(rows) || !rows.length) {
+        return aviso('Não encontrei essa ficha', 'Confira o código no endereço.');
+      }
+      pintar(rows[0]);
+    })
+    .catch(function () {
+      aviso('Não consegui conectar', 'Tente de novo daqui a pouco.');
+    });
+
+  window.addEventListener('hashchange', function () { location.reload(); });
+})();
+</script>
+</body>
+</html>
