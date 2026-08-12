@@ -1,0 +1,4 @@
+# segredos nunca entram no repositório
+.env
+.env.*
+supabase/.temp/

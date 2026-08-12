@@ -647,6 +647,83 @@
     if (p === 'instagram') pintarIg();
   }
 
+
+  /* ============================================================
+     COMPLETAR PERFIL — a pessoa escolhe o perfil, o servidor
+     descobre quais vídeos dele realmente performaram.
+     Rolar o Instagram mostra o recente, não o melhor.
+     ============================================================ */
+  var raspando = {};
+  var sugestoes = {};
+
+  function raspar(perfil, alvoBotao) {
+    var chave = perfil.toLowerCase();
+    if (raspando[chave]) return;
+    raspando[chave] = true;
+    if (alvoBotao) { alvoBotao.disabled = true; alvoBotao.textContent = 'Buscando…'; }
+
+    fetch(SUPA_URL + '/functions/v1/raspar-perfil', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perfil: perfil })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.erro || !d.runId) throw new Error(d.erro || 'sem resposta');
+      esperar(chave, d.runId, 0);
+    }).catch(function (e) {
+      raspando[chave] = false;
+      pintarAchados();
+      avisar('Não consegui buscar: ' + String(e.message || e).slice(0, 60));
+    });
+  }
+
+  function esperar(chave, runId, tentativa) {
+    if (tentativa > 60) {
+      raspando[chave] = false; pintarAchados();
+      return avisar('A busca demorou demais. Tente de novo.');
+    }
+    setTimeout(function () {
+      fetch(SUPA_URL + '/functions/v1/raspar-perfil', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runId: runId })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (!d.pronto) return esperar(chave, runId, tentativa + 1);
+        raspando[chave] = false;
+        if (d.erro) { pintarAchados(); return avisar(d.erro); }
+        var jaTem = {};
+        state.videos.forEach(function (v) {
+          if (v.url) jaTem[String(v.url).replace(/\/$/, '')] = true;
+        });
+        sugestoes[chave] = (d.videos || []).filter(function (v) {
+          return !jaTem[String(v.url).replace(/\/$/, '')];
+        }).slice(0, ALVO_VIDEOS).map(function (v) { return { v: v, marcado: true }; });
+        pintarAchados();
+        avisar(sugestoes[chave].length
+          ? sugestoes[chave].length + ' vídeo(s) encontrados'
+          : 'Você já tinha os melhores desse perfil');
+      }).catch(function () {
+        raspando[chave] = false; pintarAchados();
+        avisar('Perdi a conexão com a busca');
+      });
+    }, tentativa === 0 ? 4000 : 3000);
+  }
+
+  function pintarSugestoes(chave) {
+    var s = sugestoes[chave];
+    if (!s || !s.length) return '';
+    return '<div class="sugerido"><span class="k">Os mais vistos deste perfil — marque os que você falaria</span>' +
+      '<ul class="sug-lista">' + s.map(function (item, k) {
+        return '<li><button class="marca" data-marcar="' + chave + '|' + k + '" aria-pressed="' + item.marcado + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>' +
+          '<span class="t">' + esc(item.v.legenda || item.v.url) + '</span>' +
+          '<span class="v">' + numeroBonito(item.v.views) + '</span></li>';
+      }).join('') + '</ul>' +
+      '<div class="sug-pe">' +
+      '<button class="bt forte mini" data-aceitar="' + chave + '">Adicionar marcados</button>' +
+      '<button class="bt simples mini" data-descartar="' + chave + '">Descartar</button>' +
+      '</div></div>';
+  }
+
   /* ---------- porta ---------- */
   function abrirPorta(modo) {
     $('porta').classList.add('on');
@@ -770,7 +847,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],[data-plat],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],[data-plat],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -806,6 +883,39 @@
       if (t.hasAttribute('data-plat')) {
         state.plataforma = t.getAttribute('data-plat');
         pintarPlataforma(); pintarAchados(); salvar(); pintarNav();
+        return;
+      }
+      if (t.hasAttribute('data-raspar')) {
+        raspar(t.getAttribute('data-raspar').replace(/^@/, ''), t);
+        pintarAchados();
+        return;
+      }
+      if (t.hasAttribute('data-marcar')) {
+        var pr = t.getAttribute('data-marcar').split('|');
+        var it = sugestoes[pr[0]][+pr[1]];
+        it.marcado = !it.marcado;
+        t.setAttribute('aria-pressed', it.marcado);
+        return;
+      }
+      if (t.hasAttribute('data-aceitar')) {
+        var ch = t.getAttribute('data-aceitar');
+        var escolhidos = (sugestoes[ch] || []).filter(function (x) { return x.marcado; });
+        escolhidos.forEach(function (x) {
+          state.videos.push({
+            url: x.v.url, id: x.v.codigo || '', titulo: x.v.legenda || '',
+            canal: '@' + ch, canalUrl: 'https://www.instagram.com/' + ch,
+            views: String(x.v.views), fonte: 'ig', estado: 'ok'
+          });
+        });
+        delete sugestoes[ch];
+        if (state.plataforma === 'instagram') pintarIg();
+        pintarAchados(); salvar(); pintarNav(); checarMarco();
+        avisar(escolhidos.length + ' vídeo(s) adicionados');
+        return;
+      }
+      if (t.hasAttribute('data-descartar')) {
+        delete sugestoes[t.getAttribute('data-descartar')];
+        pintarAchados();
         return;
       }
       if (t.id === 'btAddIg') {
