@@ -1044,9 +1044,12 @@
          que responde "o meu está mais longo que o dele?". Com o alinhamento
          por parágrafo o lado inglês da faixa é a soma das frases dela. */
       var meuS = (typeof t.final === 'string' ? t.final.length : (t.txt || '').length) / 16;
-      var chEn = linhas.length
-        ? linhas.reduce(function (a, l) { return a + (l.en || '').length; }, 0)
-        : (lados ? lados[i].length : 0);
+      /* O tempo do original sai do corte do PRÓPRIO original em três faixas.
+         Assim ele existe até quando a faixa em português é toda nova e não
+         tem frase inglesa pareada — o vídeo original correu naquele intervalo
+         de qualquer jeito. Somar os pares fica de reserva. */
+      var chEn = lados ? lados[i].length
+        : linhas.reduce(function (a, l) { return a + (l.en || '').length; }, 0);
       var origS = (chEn && cps) ? chEn / cps : 0;
 
       return '<div class="rt-faixa ' + cls + '">' +
