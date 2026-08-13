@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608130024">
+<link rel="stylesheet" href="app.css?v=202608130036">
 </head>
 <body>
 
@@ -640,16 +640,20 @@ https://www.youtube.com/shorts/..."></textarea>
 
         <!-- COLETA: INSTAGRAM -->
         <div class="pergunta" id="colaInstagram" style="display:none">
-          <span class="p-passo"><i>3</i>Anotar</span>
-          <h2 class="p-titulo">Anote cada vídeo que passou na dobradinha</h2>
+          <span class="p-passo"><i>3</i>Colar</span>
+          <h2 class="p-titulo">Cole os links aqui</h2>
           <div class="p-fala">
-            <p>Três coisas por vídeo: de quem é, o link e quantas visualizações tem. Eu agrupo por perfil sozinho.</p>
+            <p>Um por linha, direto do Instagram. Pode colar tudo de uma vez.</p>
+            <p>Você <b>não precisa digitar nada além do link</b> — eu descubro o perfil, as visualizações, os compartilhamentos e a duração de cada um.</p>
           </div>
-          <div class="ig-lista" id="igLista"></div>
-          <button class="bt simples" id="btAddIg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Adicionar vídeo
-          </button>
+          <div class="colar">
+            <textarea id="colaIg" rows="5" placeholder="https://www.instagram.com/reel/...
+https://www.instagram.com/reel/..."></textarea>
+            <div class="colar-pe">
+              <span id="colaIgEstado" class="sub" style="color:var(--rotulo-2)"></span>
+              <button class="bt forte" id="btLerIg">Ler os links</button>
+            </div>
+          </div>
         </div>
 
         <div class="pergunta" id="blocoAchados" style="display:none">
@@ -803,7 +807,7 @@ https://www.youtube.com/shorts/..."></textarea>
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="sessao.js?v=202608130024"></script>
-<script src="app.js?v=202608130024"></script>
+<script src="sessao.js?v=202608130036"></script>
+<script src="app.js?v=202608130036"></script>
 </body>
 </html>

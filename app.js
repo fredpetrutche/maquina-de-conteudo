@@ -258,7 +258,7 @@
         cheios(state.temas) >= MIN_TEMAS &&
         state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim());
     }
-    if (id === 'fase1') return !!state.plataforma && canaisOk() >= ALVO_CANAIS;
+    if (id === 'fase1') return !!state.plataforma && perfisProntos() >= ALVO_CANAIS;
     return false;
   }
 
@@ -330,7 +330,7 @@
     if (!quieto) window.scrollTo(0, 0);
     clearInterval(filaPoll);
     if (ident.id) buscarVoz();
-    if (id === 'fase1' && ident.id) { enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
+    if (id === 'fase1' && ident.id) { olharBenchmarks(); enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
   }
   function fecharMenu() {
     $('lateral').classList.remove('aberto');
@@ -635,6 +635,8 @@
   }
 
   function pintarIg() {
+    // a digitação manual saiu da tela: agora o Instagram é colar link
+    if (!$('igLista')) return;
     var lista = state.videos.filter(function (v) { return v.fonte === 'ig'; });
     if (!lista.length) { state.videos.push(novoIg()); lista = [state.videos[state.videos.length - 1]]; }
     $('igLista').innerHTML = lista.map(function (v) {
@@ -974,6 +976,119 @@
   }
 
 
+
+  /* ============================================================
+     BENCHMARKS — uma tabela só para os dois caminhos
+     YouTube o navegador resolve na hora pelo oEmbed. Instagram
+     depende do worker, porque exige a sessão logada. Os dois
+     gravam no mesmo lugar, para não haver duas verdades.
+     ============================================================ */
+  var bms = [];
+  var bmPoll = null;
+
+  function colarLinks(cru, botao) {
+    if (!ident.id) return avisar('Entre primeiro para eu guardar os seus links');
+    var urls = linhas(cru);
+    if (!urls.length) return avisar('Cole pelo menos um link');
+    if (botao) { botao.disabled = true; botao.textContent = 'Guardando…'; }
+    rpc('guardar_benchmarks', { p_ficha: ident.id, p_urls: urls }).then(function (n) {
+      if (botao) { botao.disabled = false; botao.textContent = 'Ler os links'; }
+      var novos = typeof n === 'number' ? n : (n && n[0]) || 0;
+      avisar(novos ? novos + ' link(s) novos' : 'Esses links eu já tinha');
+      if ($('colaLinks')) $('colaLinks').value = '';
+      if ($('colaIg')) $('colaIg').value = '';
+      olharBenchmarks();
+    }).catch(function (e) {
+      if (botao) { botao.disabled = false; botao.textContent = 'Ler os links'; }
+      avisar('Não consegui guardar: ' + String(e.message || e).slice(0, 60));
+    });
+  }
+
+  function olharBenchmarks() {
+    if (!ident.id) return;
+    clearTimeout(bmPoll);
+    rpc('meus_benchmarks', { p_ficha: ident.id }).then(function (lista) {
+      bms = Array.isArray(lista) ? lista : [];
+      pintarBenchmarks();
+      resolverPeloNavegador();
+      var faltam = bms.filter(function (b) {
+        return b.estado === 'pendente' || b.estado === 'navegador';
+      }).length;
+      if (faltam) bmPoll = setTimeout(olharBenchmarks, 6000);
+    }).catch(function () {});
+  }
+
+  /* o que é do YouTube o próprio navegador resolve, de graça */
+  function resolverPeloNavegador() {
+    var alvo = bms.filter(function (b) { return b.estado === 'navegador'; })[0];
+    if (!alvo) return;
+    var id = idDoVideo(alvo.url);
+    var terminar = function (perfil, titulo) {
+      return rpc('resolver_benchmark', {
+        p_ficha: ident.id, p_url: alvo.url,
+        p_perfil: perfil || null, p_titulo: titulo || null, p_metricas: {}
+      }).then(olharBenchmarks);
+    };
+    if (!id) return terminar(null, null);
+    consultar(id).then(function (d) {
+      return terminar((d.author_url || '').split('/@')[1] || d.author_name, d.title || '');
+    }).catch(function () { return terminar(null, null); });
+  }
+
+  function agruparBms() {
+    var mapa = {}, ordem = [];
+    bms.forEach(function (b) {
+      var k = (b.perfil || '?').toLowerCase();
+      if (!mapa[k]) { mapa[k] = { nome: b.perfil || 'ainda lendo', videos: [] }; ordem.push(k); }
+      mapa[k].videos.push(b);
+    });
+    return ordem.map(function (k) { return mapa[k]; });
+  }
+
+  function perfisProntos() {
+    return agruparBms().filter(function (g) { return g.nome !== 'ainda lendo'; }).length;
+  }
+
+  function pintarBenchmarks() {
+    var alvo = $('achados'); if (!alvo) return;
+    var grupos = agruparBms();
+
+    alvo.innerHTML = grupos.map(function (g) {
+      var completo = g.videos.length >= ALVO_VIDEOS;
+      return '<div class="achado' + (completo ? ' completo' : '') + '">' +
+        '<div class="achado-h">' +
+        '<span class="av">' + esc((g.nome || '?').charAt(0).toUpperCase()) + '</span>' +
+        '<span class="achado-t"><b>@' + esc(g.nome) + '</b>' +
+        '<a href="https://www.instagram.com/' + esc(g.nome) + '" target="_blank" rel="noopener">ver o perfil</a></span>' +
+        '<span class="achado-n">' + g.videos.length + '/' + ALVO_VIDEOS + '</span>' +
+        '</div><ul class="achado-v">' + g.videos.map(function (b, k) {
+          var m = b.metricas || {};
+          var num = b.estado === 'pendente' ? '<span class="views">na fila</span>'
+                  : b.estado === 'erro' ? '<span class="views">não li</span>'
+                  : (m.views ? '<span class="views">' + numeroBonito(m.views) + '</span>' : '');
+          var comp = m.taxa_compartilhamento != null
+            ? '<span class="views">' + String(m.taxa_compartilhamento).replace('.', ',') + '% compart.</span>' : '';
+          return '<li><span class="ord">' + (k + 1) + '</span>' +
+            '<span class="tit">' + esc(b.titulo || b.url) + '</span>' + comp + num +
+            '<button class="x" data-rm-bm="' + esc(b.url) + '" aria-label="Remover">' + IC_X + '</button></li>';
+        }).join('') + '</ul></div>';
+    }).join('');
+
+    var pend = bms.filter(function (b) {
+      return b.estado === 'pendente' || b.estado === 'navegador';
+    }).length;
+    var ruins = bms.filter(function (b) { return b.estado === 'erro'; });
+    $('naoLidos').innerHTML = ruins.length
+      ? '<div class="nao-lidos"><span class="k">' + ruins.length + ' link(s) que eu não consegui ler</span><ul>' +
+        ruins.map(function (b) { return '<li>' + esc(b.url) + '</li>'; }).join('') + '</ul></div>'
+      : '';
+
+    medidor('medCanais', perfisProntos(), ALVO_CANAIS);
+    $('notaVideos').innerHTML = 'Meta: ' + ALVO_CANAIS + ' perfis, com os ' + ALVO_VIDEOS +
+      ' vídeos mais vistos de cada. Você tem ' + perfisProntos() + ' perfil(is) e ' + bms.length + ' vídeo(s).' +
+      (pend ? ' <span class="lendo"><span class="giro"></span>' + pend + ' sendo lidos</span>' : '');
+  }
+
   /* ---------- oferta de preencher pelo perfil ----------
      Nunca automático. Preencher sozinho assume que a pessoa quer
      continuar o que já faz — e muita gente procura um método
@@ -1257,7 +1372,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -1347,7 +1462,13 @@
         if (novos.length) novos[novos.length - 1].focus();
         return;
       }
-      if (t.id === 'btLer') { lerLinks(); return; }
+      if (t.id === 'btLer') { colarLinks($('colaLinks').value, t); return; }
+      if (t.id === 'btLerIg') { colarLinks($('colaIg').value, t); return; }
+      if (t.hasAttribute('data-rm-bm')) {
+        rpc('tirar_benchmark', { p_ficha: ident.id, p_url: t.getAttribute('data-rm-bm') })
+          .then(olharBenchmarks);
+        return;
+      }
       if (t.hasAttribute('data-rm-video')) {
         state.videos.splice(+t.getAttribute('data-rm-video'), 1);
         if (state.plataforma === 'instagram') pintarIg();
