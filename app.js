@@ -21,7 +21,9 @@
     { id: 'briefing', ph: 'Etapa 0', nm: 'Briefing', grupo: 'Comece aqui' },
     { id: 'fase0', ph: 'Fase 0', nm: 'Definir o campo', grupo: 'Suas informações' },
     { id: 'fase1', ph: 'Fase 1', nm: 'Minerar benchmarks' },
-    { id: 'fase2', ph: 'Fase 2', nm: 'Replicar o validado', lock: 1, grupo: 'Destrava depois' },
+    /* A Fase 2 não é preenchida, é entregue: destrava sozinha quando os
+       roteiros chegam na ficha. Por isso `entrega` em vez de `lock`. */
+    { id: 'fase2', ph: 'Fase 2', nm: 'Replicar o validado', entrega: 1, grupo: 'Destrava depois' },
     { id: 'fase3', ph: 'Fase 3', nm: 'Retroalimentar a IA', lock: 1 },
     { id: 'fase4', ph: 'Fase 4', nm: 'Travar o formato', lock: 1 },
     { id: 'fase5', ph: 'Fase 5', nm: 'Industrializar', lock: 1 },
@@ -262,6 +264,12 @@
     return false;
   }
 
+  function temRoteiros() { return ((state.roteiros || []).length) > 0; }
+
+  /* Trancada é o estado, não uma propriedade fixa: a Fase 2 abre sozinha
+     quando os roteiros chegam. As outras continuam presas no `lock`. */
+  function travada(s) { return s.entrega ? !temRoteiros() : !!s.lock; }
+
   var MARCOS = {
     fase0: { t: 'Campo definido', p: 'Você já sabe onde joga, por quem fala e como se apresenta. Agora vamos atrás das referências.', b: 'Ir para a Fase 1', ir: 'fase1' },
     fase1: { t: 'Acervo montado', p: 'Os seus benchmarks estão prontos. É deles que saem os roteiros da Fase 2.', b: 'Continuar', ir: null }
@@ -287,16 +295,25 @@
   function pintarNav() {
     var html = '';
     STEPS.forEach(function (s, i) {
-      if (s.grupo) html += '<span class="nav-rot">' + esc(s.grupo) + '</span>';
+      /* com roteiros na mão a Fase 2 sai de "destrava depois" e vira seção
+         da pessoa; o rótulo antigo desce uma linha, para a Fase 3 */
+      var rot = s.grupo;
+      if (s.id === 'fase2' && temRoteiros()) rot = 'Os seus roteiros';
+      if (s.id === 'fase3' && temRoteiros()) rot = 'Destrava depois';
+      if (rot) html += '<span class="nav-rot">' + esc(rot) + '</span>';
+
+      var preso = travada(s);
       var ok = concluida(s.id);
       html += '<button class="etapa' + (ok ? ' feito' : '') + '" data-go="' + s.id + '"' +
-        (s.lock ? ' disabled' : '') + ' aria-current="' + (s.id === atual) + '">' +
-        '<span class="et-ic">' + (s.lock ? IC_LOCK : ok ? IC_CHECK : '<span>' + i + '</span>') + '</span>' +
+        (preso ? ' disabled' : '') + ' aria-current="' + (s.id === atual) + '">' +
+        '<span class="et-ic">' + (preso ? IC_LOCK : ok ? IC_CHECK : '<span>' + i + '</span>') + '</span>' +
         '<span class="et-nm">' + esc(s.nm) + '</span></button>';
     });
     $('nav').innerHTML = html;
 
-    var abertas = STEPS.filter(function (s) { return !s.lock; });
+    /* a barra mede o que a PESSOA preenche. A Fase 2 é entrega: contá-la
+       daria progresso por trabalho que não é dela. */
+    var abertas = STEPS.filter(function (s) { return !travada(s) && !s.entrega; });
     var feitas = abertas.filter(function (s) { return concluida(s.id); }).length;
     $('progBarra').style.width = Math.round((feitas / abertas.length) * 100) + '%';
     $('progVal').textContent = feitas + ' de ' + abertas.length;
@@ -320,7 +337,7 @@
   /* ---------- navegação ---------- */
   function ir(id, quieto) {
     var st = STEPS.filter(function (s) { return s.id === id; })[0];
-    if (!st || st.lock) return;
+    if (!st || travada(st)) return;
     atual = id;
     var v = document.querySelectorAll('.vista');
     for (var i = 0; i < v.length; i++) v[i].classList.toggle('on', v[i].id === 'v-' + id);
@@ -331,6 +348,12 @@
     clearInterval(filaPoll);
     if (ident.id) buscarVoz();
     if (id === 'fase1' && ident.id) { olharBenchmarks(); enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
+    if (id === 'fase2') {
+      pintarFase2();
+      /* o texto original de cada roteiro mora nas transcrições. Se a pessoa
+         entrou direto na Fase 2, ainda não passamos por lá. */
+      if (ident.id && !transcricoes.length) olharFila().then(pintarFase2);
+    }
   }
   function fecharMenu() {
     $('lateral').classList.remove('aberto');
@@ -788,10 +811,11 @@
   }
 
   var trAbertas = {};
+  var transcricoes = [];
 
   function olharFila() {
-    if (!ident.id) return;
-    rpc('minhas_transcricoes', { p_ficha: ident.id })
+    if (!ident.id) return Promise.resolve();
+    return rpc('minhas_transcricoes', { p_ficha: ident.id })
       .then(pintarTranscricoes)
       .catch(function (e) {
         var n = $('notaTransc');
@@ -801,6 +825,7 @@
 
   function pintarTranscricoes(lista) {
     lista = Array.isArray(lista) ? lista : [];
+    transcricoes = lista;   // a Fase 2 lê daqui o original de cada roteiro
     var bloco = $('blocoTranscricoes');
     if (!bloco) return;
     if (!lista.length) { bloco.style.display = 'none'; return; }
@@ -853,6 +878,153 @@
       '<span class="k">' + esc(rotulo) +
       '<button class="tr-copiar" data-copiar-tr="' + i + '|' + tipo + '">copiar</button></span>' +
       '<p>' + esc(texto) + '</p></div>';
+  }
+
+  /* ---------- Fase 2: os roteiros prontos ----------
+     Aqui não se preenche nada. O trabalho já foi feito: a pessoa lê,
+     confere se soa como ela e grava. Editar é da tela de quem revisa —
+     nesta, mostramos o texto já corrigido e ponto. */
+  var rtAbertos = {};
+
+  /* o negrito das notas é escrito em <b>; escapamos tudo e devolvemos
+     só essas duas tags, o resto continua neutralizado */
+  function escRico(s) {
+    return esc(s)
+      .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;\/b&gt;/g, '</b>')
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/\*(.+?)\*/g, '<i>$1</i>');
+  }
+  function juntarLinhas(t) {
+    return String(t || '').trim().split(/\n\s*\n/)
+      .map(function (b) { return b.replace(/\s*\n\s*/g, ' ').trim(); })
+      .join('\n\n');
+  }
+  function seg(s) { return String(Math.round(s * 10) / 10).replace('.', ','); }
+
+  /* Copiar tem que entregar o que está na tela: se um trecho foi corrigido,
+     é o corrigido que vai — senão a pessoa grava a versão velha. */
+  function textoFalado(r) {
+    var ts = (r.trechos || []).filter(function (t) { return t && (t.final || t.txt); });
+    if (!ts.length) return r.texto || '';
+    return ts.map(function (t) {
+      return typeof t.final === 'string' ? t.final : t.txt;
+    }).join('\n\n');
+  }
+
+  /* O português vem antes do original — é ele que vai ser gravado. As duas
+     línguas ficam na MESMA faixa de tempo: assim o gancho de um se compara
+     com o gancho do outro, não com o vídeo inteiro. */
+  function corpoRoteiro(r, orig) {
+    var faixas = (r.trechos || []).length
+      ? r.trechos
+      : (r.texto ? [{ rot: 'Teleprompter', seg: '', txt: r.texto }] : []);
+    if (!faixas.length) return '';
+
+    /* No original o tempo é medido: a duração do vídeo é conhecida e a
+       transcrição é dele inteiro, então caractere por segundo sai da conta. */
+    var cortes = r.cortesOrig;
+    var cps = (orig && r.duracao) ? orig.length / r.duracao : 0;
+    var lados = (orig && cortes && cortes.length === 2 && faixas.length === 3)
+      ? [orig.slice(0, cortes[0]), orig.slice(cortes[0], cortes[1]), orig.slice(cortes[1])]
+      : null;
+
+    var h = lados
+      ? '<div class="rt-colrot"><span>Português — é isto que você grava</span>' +
+        '<span>Original</span></div>'
+      : '<span class="rt-rot">Roteiro em português — leia exatamente assim</span>';
+
+    h += faixas.map(function (t, i) {
+      var cls = faixas.length > 1 ? (['g', 'r', 'c'][i] || 'c') : 'c';
+      var en = lados ? juntarLinhas(lados[i]) : '';
+      var pt = '<p class="rt-txt">' +
+        esc(typeof t.final === 'string' ? t.final : t.txt) + '</p>';
+      return '<div class="rt-faixa ' + cls + '">' +
+        '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot || '') + '</span>' +
+        (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
+        (t.estoura ? '<span class="rt-real">seu: ' + seg(t.s) + 's</span>' : '') +
+        (en && cps ? '<span class="rt-seg">original: ' +
+          seg(lados[i].length / cps) + 's</span>' : '') +
+        '</div>' +
+        (lados
+          ? '<div class="rt-par">' + pt +
+            '<div class="rt-en"><p class="rt-txt orig">' + esc(en) + '</p></div></div>'
+          : pt) +
+        '</div>';
+    }).join('');
+
+    if (faixas.length > 1) {
+      h += '<p class="rt-legenda">No original o tempo é medido — a duração do vídeo é ' +
+        'conhecida. <b>No português ele é estimado</b> pela quantidade de texto, a 16 ' +
+        'caracteres por segundo; quando aparece em laranja, o trecho está passando da faixa.</p>';
+    }
+
+    /* sem os cortes do original não dá para parear faixa a faixa — aí ele vai
+       inteiro, embaixo, em vez de sumir */
+    if (orig && !lados) {
+      h += '<span class="rt-rot">O original</span>' +
+        '<p class="rt-txt orig">' + esc(juntarLinhas(orig)) + '</p>';
+    }
+    if (r.nota) {
+      h += '<span class="rt-rot">O que mudou em relação ao original</span>' +
+        '<p class="rt-txt orig">' + escRico(r.nota) + '</p>';
+    }
+    if ((r.conferencia || []).length) {
+      h += '<span class="rt-rot">Conferir antes de gravar</span><ul class="rt-conf">' +
+        r.conferencia.map(function (c) { return '<li>' + escRico(c) + '</li>'; }).join('') +
+        '</ul>';
+    }
+    return h;
+  }
+
+  function pintarFase2() {
+    var vazio = $('fase2Vazio'), corpo = $('fase2Corpo');
+    if (!vazio || !corpo) return;
+    var lista = state.roteiros || [];
+    if (!lista.length) {
+      vazio.style.display = ''; corpo.style.display = 'none';
+      return;
+    }
+    vazio.style.display = 'none'; corpo.style.display = '';
+
+    /* o original vive na tabela de transcrições, não na ficha. Casa pela url
+       para não guardar o mesmo texto em dois lugares. */
+    var porUrl = {};
+    transcricoes.forEach(function (t) { if (t.url) porUrl[t.url] = t; });
+
+    $('fase2Cont').textContent = lista.length === 1
+      ? 'Um roteiro pronto para você revisar'
+      : lista.length + ' roteiros prontos para você revisar';
+
+    $('fase2Lista').innerHTML = lista.map(function (r, i) {
+      var tr = porUrl[r.url] || {};
+      var aberto = !!rtAbertos[i];
+      var taxa = (r.compartilhamentos && r.views)
+        ? (r.compartilhamentos / r.views * 100).toFixed(2).replace('.', ',') : '';
+      var ficha = [
+        r.views ? numeroBonito(r.views) + ' views' : '',
+        r.compartilhamentos != null
+          ? numeroBonito(r.compartilhamentos) + ' compart.' + (taxa ? ' (' + taxa + '%)' : '') : '',
+        r.duracao ? r.duracao + 's' : ''
+      ].filter(Boolean).join(' · ');
+
+      return '<div class="rt' + (aberto ? ' aberto' : '') + '">' +
+        '<div class="rt-h"><span class="rt-ord">' + (r.n || i + 1) + '</span>' +
+        '<span class="rt-tit"><b>' + esc(r.titulo || 'Sem título') + '</b>' +
+        '<s>de @' + esc(r.canal || '?') + (ficha ? ' · ' + ficha : '') + '</s></span></div>' +
+        (r.porque ? '<p class="rt-por">' + escRico(r.porque) + '</p>' : '') +
+        (r.aviso ? '<p class="rt-por alerta"><b>Atenção.</b> ' + escRico(r.aviso) + '</p>' : '') +
+        '<div class="acoes">' +
+        /* assistir vem antes de ler: ninguém devia precisar abrir o texto
+           para achar o vídeo que deu origem a ele */
+        (r.url ? '<a class="bt mini" href="' + esc(r.url) + '" target="_blank" ' +
+          'rel="noopener">Assistir o original</a>' : '') +
+        (r.texto ? '<button class="bt mini" data-abrir-rot="' + i + '">' +
+          (aberto ? 'Fechar' : 'Ler o roteiro') + '</button>' +
+          '<button class="bt simples mini" data-copiar-rot="' + i + '">Copiar o texto</button>' : '') +
+        '</div>' +
+        (aberto ? '<div class="rt-b">' + corpoRoteiro(r, tr.texto || '') + '</div>' : '') +
+        '</div>';
+    }).join('');
   }
 
   /* ---------- o que já funcionou com a própria pessoa ----------
@@ -1284,7 +1456,9 @@
         salvarIdent();
       }
       montar(); pintarPe();
-      ir(concluida('fase0') ? 'fase1' : 'fase0');
+      /* se há roteiro esperando, é ali que a pessoa tem trabalho agora —
+         cair na Fase 0 seria mandá-la reler o que já respondeu */
+      ir(temRoteiros() ? 'fase2' : concluida('fase0') ? 'fase1' : 'fase0');
     }).catch(function () { montar(); ir('fase0'); });
   }
 
@@ -1405,7 +1579,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-copiar-rot],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -1453,6 +1627,17 @@
         var pr = t.getAttribute('data-copiar-tr').split('|');
         var cx = t.closest('.tr-texto');
         copiar(cx.querySelector('p').textContent, 'Texto copiado');
+        return;
+      }
+      if (t.hasAttribute('data-abrir-rot')) {
+        var ro = +t.getAttribute('data-abrir-rot');
+        rtAbertos[ro] = !rtAbertos[ro];
+        pintarFase2();
+        return;
+      }
+      if (t.hasAttribute('data-copiar-rot')) {
+        var rr = (state.roteiros || [])[+t.getAttribute('data-copiar-rot')];
+        if (rr) copiar(textoFalado(rr), 'Roteiro copiado');
         return;
       }
       if (t.hasAttribute('data-raspar')) {
@@ -1613,7 +1798,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarOferta(state.sugestao ? 'pronta' : '', state.sugestao); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
+    pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarOferta(state.sugestao ? 'pronta' : '', state.sugestao); pintarPlataforma(); pintarAchados(); pintarFase2(); pintarNav(); atualizarPerguntas();
   }
 
   function abrirLeitura(fichaId) {
@@ -1649,7 +1834,7 @@
     try { jaFestejou = JSON.parse(localStorage.getItem(KEY + '.marcos') || '{}') || {}; } catch (e) {}
     montar(); pintarPe(); ligar();
     var h = (location.hash || '').replace('#', '');
-    var alvo = STEPS.filter(function (s) { return s.id === h && !s.lock; })[0];
+    var alvo = STEPS.filter(function (s) { return s.id === h && !travada(s); })[0];
     ir(alvo ? h : 'briefing', true);
   }
 

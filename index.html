@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608130049">
+<link rel="stylesheet" href="app.css?v=202608130111">
 </head>
 <body>
 
@@ -698,8 +698,46 @@ https://www.instagram.com/reel/..."></textarea>
       </div>
     </div>
 
+    <!-- ################ FASE 2 ################ -->
+    <div class="vista" id="v-fase2">
+      <div class="larg corpo">
+        <div class="topo-grande">
+          <span class="eyebrow">Fase 2</span>
+          <h1>Os seus roteiros</h1>
+          <p class="abre">Cada um saiu de um vídeo que já provou que funciona. A estrutura é dele; o texto é seu.</p>
+        </div>
+
+        <!-- ainda não chegou nenhum: mesma cara das fases travadas -->
+        <div id="fase2Vazio">
+          <div class="travado">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+            <h2>Replicar o validado</h2>
+            <p>Os roteiros aparecem aqui depois que os seus benchmarks forem lidos e transcritos. Não tem nada para preencher: quando chegarem, é ler, conferir se soa como você e gravar.</p>
+          </div>
+        </div>
+
+        <div id="fase2Corpo" style="display:none">
+          <div class="pergunta">
+            <h2 class="p-titulo" id="fase2Cont">Roteiros prontos</h2>
+            <div class="p-fala">
+              <p>Cada roteiro vem cortado em três faixas de tempo: <b>gancho</b> (os 3 primeiros segundos), <b>retenção</b> (3 a 10) e <b>corpo</b> (10 em diante). Os três primeiros segundos são a única coisa que decide se o vídeo sai para quem ainda não te segue.</p>
+              <p>Ao lado do português fica o texto original. Se você quiser trocar uma palavra na hora de gravar, dá para ver o que a frase dizia antes.</p>
+            </div>
+            <div class="obs"><b>O que se copia é a estrutura, nunca o assunto.</b> A ordem da lista é por encaixe com o que você já provou que funciona — não por visualização.</div>
+          </div>
+
+          <div id="fase2Lista"></div>
+
+          <div class="obs" style="margin-top:1rem">Nada aqui está pronto para gravar antes de você passar o olho. Se um trecho não soar como você, troque a palavra — a estrutura é que precisa ficar de pé.</div>
+        </div>
+
+        <div class="rodape-nav">
+          <button class="bt simples" data-go="fase1">Voltar à Fase 1</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ################ TRAVADAS ################ -->
-    <div class="vista" id="v-fase2"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Replicar o validado</h2><p>Destrava quando você concluir as Fases 0 e 1 e a sua ficha for validada.</p></div></div></div>
     <div class="vista" id="v-fase3"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Retroalimentar a IA</h2><p>Precisa dos seus próprios vídeos virais como matéria-prima. Destrava depois da Fase 2.</p></div></div></div>
     <div class="vista" id="v-fase4"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Travar o formato</h2><p>Precisa que você tenha testado formatos suficientes para saber qual é o seu.</p></div></div></div>
     <div class="vista" id="v-fase5"><div class="larg corpo"><div class="travado"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h2>Industrializar</h2><p>Destrava quando o formato estiver travado.</p></div></div></div>
@@ -808,7 +846,7 @@ https://www.instagram.com/reel/..."></textarea>
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="sessao.js?v=202608130049"></script>
-<script src="app.js?v=202608130049"></script>
+<script src="sessao.js?v=202608130111"></script>
+<script src="app.js?v=202608130111"></script>
 </body>
 </html>

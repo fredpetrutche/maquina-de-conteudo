@@ -969,3 +969,66 @@ body.leitura [data-raspar]{display:none !important}
 .recortes li{font-size:13px;color:var(--rotulo-2);padding:.15rem 0;display:flex;gap:.5rem}
 .recortes .rv{color:var(--rotulo-3);font-variant-numeric:tabular-nums;flex:none}
 .achado-v .views.duvida{background:rgba(255,149,0,.16);color:var(--laranja);cursor:help}
+
+/* ---------- FASE 2: os roteiros prontos ----------
+   Cartão fechado por padrão: a lista tem que caber num olhar, e só o
+   roteiro que a pessoa vai gravar agora precisa estar aberto. */
+.rt{background:var(--ilha);border-radius:var(--r-cartao);padding:1rem 1.1rem;margin-bottom:.6rem}
+.rt-h{display:flex;gap:.7rem;align-items:flex-start}
+.rt-ord{width:1.6rem;height:1.6rem;flex:none;border-radius:7px;display:grid;place-items:center;
+  font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;
+  background:var(--tinta-fraca);color:var(--tinta)}
+.rt-tit{flex:1;min-width:0}
+.rt-tit b{display:block;font-size:16px;font-weight:600;letter-spacing:-.018em;line-height:1.3}
+.rt-tit s{display:block;text-decoration:none;font-size:12px;color:var(--rotulo-2);margin-top:.15rem}
+.rt-por{font-size:14px;line-height:1.5;color:var(--rotulo-2);letter-spacing:-.01em;
+  margin:.7rem 0 0 2.3rem;padding-left:.7rem;border-left:2px solid var(--sep-opaco)}
+.rt-por.alerta{border-left-color:var(--laranja)}
+.rt-por.alerta b{color:var(--laranja)}
+.rt .acoes{margin:.85rem 0 0 2.3rem}
+.rt-b{margin:1rem 0 0 2.3rem;padding-top:.9rem;border-top:.5px solid var(--sep)}
+
+.rt-rot{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);margin:.9rem 0 .3rem}
+.rt-rot:first-child{margin-top:0}
+.rt-txt{font-size:14px;line-height:1.65;letter-spacing:-.011em;margin:0;
+  white-space:pre-wrap;color:var(--rotulo)}
+.rt-txt.orig{color:var(--rotulo-2)}
+
+/* O gancho decide se o vídeo sai para quem não te segue, então leva a cor
+   cheia; a régua vai clareando conforme o segundo pesa menos. */
+.rt-faixa{border-left:3px solid var(--sep-opaco);padding:.1rem 0 .1rem .8rem;margin-bottom:1.1rem}
+.rt-faixa.g{border-left-color:var(--tinta)}
+.rt-faixa.r{border-left-color:color-mix(in srgb,var(--tinta) 45%,transparent)}
+.rt-cab{display:flex;gap:.45rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.35rem}
+.rt-nm{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--rotulo-3)}
+.rt-faixa.g .rt-nm{color:var(--tinta)}
+.rt-seg{font-size:11px;font-weight:600;color:var(--rotulo-3);font-variant-numeric:tabular-nums}
+.rt-real{font-size:11px;font-weight:600;color:var(--laranja);font-variant-numeric:tabular-nums}
+.rt-legenda{font-size:12.5px;color:var(--rotulo-2);line-height:1.5;margin:.7rem 0 0}
+.rt-legenda b{color:var(--rotulo);font-weight:600}
+
+/* as duas línguas na MESMA faixa de tempo — gancho contra gancho */
+.rt-par{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;align-items:start}
+.rt-colrot{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin:0 0 .5rem}
+.rt-colrot span{font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3)}
+.rt-colrot span:first-child{color:var(--tinta)}
+
+.rt-conf{list-style:none;margin:.2rem 0 0;padding:0}
+.rt-conf li{position:relative;padding:.3rem 0 .3rem 1.35rem;font-size:13px;
+  color:var(--rotulo-2);line-height:1.5}
+.rt-conf li::before{content:"";position:absolute;left:.15rem;top:.65rem;
+  width:.7rem;height:.7rem;border:1.5px solid var(--sep-opaco);border-radius:3px}
+
+@media(max-width:52rem){
+  .rt-par{grid-template-columns:1fr;gap:.6rem}
+  .rt-colrot{display:none}
+  /* empilhado, cada lado precisa se apresentar sozinho */
+  .rt-en::before{content:"Original";display:block;font-size:10px;font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--rotulo-3);margin-bottom:.15rem}
+}
+@media(max-width:34rem){
+  .rt-por,.rt .acoes,.rt-b{margin-left:0}
+}
