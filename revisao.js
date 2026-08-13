@@ -386,13 +386,16 @@
        a Fase 0 em vez de abrir: preenchendo ela seria pista, revisando ela é
        resultado. É contra ela que se confere se um roteiro soa como a pessoa. */
     if (VOZ) {
-      h += '<details class="cartao" data-ch="voz" style="margin-top:1rem">' +
-        '<summary class="tr-it"><div class="tr-linha" style="padding:.5rem .6rem">' +
-        '<span class="tr-seta">&#9654;</span>' +
-        '<span class="tr-cx"><span class="tr-nm">O seu jeito de falar</span>' +
-        '<span class="tr-sub">tirado das transcrições dos seus próprios vídeos</span></span>' +
-        '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
-        '<div class="tr-corpo pf-voz">' + marcar(VOZ) + '</div></details>';
+      /* O mesmo cartão do app, não uma linha de lista com "abrir ›" — aquele
+         desenho é o das transcrições, e aqui não é lista, é um card só. */
+      h += '<div class="cartao pf-vozcard" style="margin-top:1rem">' +
+        '<span class="k">O seu jeito de falar</span>' +
+        '<h3>A sua voz</h3>' +
+        '<p>Tirado das transcrições dos seus próprios vídeos. Use para conferir se um ' +
+        'roteiro copiado soa como você <b>antes</b> de gravar.</p>' +
+        '<button class="bt mini" data-abre="voz" data-fecha="Fechar">Ler a minha voz</button>' +
+        '<details class="rt-painel" data-ch="voz"><summary></summary>' +
+        '<div class="pf-voz">' + marcar(VOZ) + '</div></details></div>';
     }
     return h + '</div>';
   }

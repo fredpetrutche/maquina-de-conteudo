@@ -308,7 +308,12 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 .rt-painel>summary::-webkit-details-marker{display:none}
 
 /* ---------- o card da voz ----------
-   Vem em markdown, escrito por quem leu as transcrições dela. */
+   O mesmo desenho do app: rótulo verde, título, explicação e um botão. O texto
+   vem em markdown, escrito por quem leu as transcrições dela. */
+.pf-vozcard .k{font-size:13px;font-weight:600;color:var(--verde);display:block;margin-bottom:.3rem}
+.pf-vozcard h3{font-size:20px;letter-spacing:-.024em;margin-bottom:.4rem}
+.pf-vozcard>p{font-size:15px;color:var(--rotulo-2);letter-spacing:-.015em;margin-bottom:1rem;line-height:1.5}
+.pf-vozcard .pf-voz{background:var(--preench);border-radius:12px;padding:1rem 1.15rem;margin-top:.7rem}
 .pf-voz h1,.pf-voz h2{font-size:16px;margin:1.1rem 0 .4rem;letter-spacing:-.018em}
 .pf-voz h1:first-child,.pf-voz h2:first-child{margin-top:0}
 .pf-voz p{font-size:14px;line-height:1.6;color:var(--rotulo-2);margin:0 0 .7rem}
