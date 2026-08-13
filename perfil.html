@@ -120,6 +120,11 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 .tr-falta{font-size:13px;color:var(--laranja);margin:.3rem 0 0}
 .tr-abrir{font-size:12px;color:var(--tinta);text-decoration:none;
   display:inline-block;margin-top:.6rem}
+.rt-conf{list-style:none;margin:.2rem 0 0;padding:0}
+.rt-conf li{position:relative;padding:.3rem 0 .3rem 1.35rem;font-size:13px;
+  color:var(--rotulo-2);line-height:1.5}
+.rt-conf li::before{content:"";position:absolute;left:.15rem;top:.65rem;
+  width:.7rem;height:.7rem;border:1.5px solid var(--sep-opaco);border-radius:3px}
 
 .pf-falta{color:var(--laranja)}
 .pf-carga{padding:4rem 0;text-align:center;color:var(--rotulo-2);font-size:15px}
@@ -603,6 +608,24 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         (r.porque ? '<span class="pf-como" style="margin-top:.4rem">' + escRico(r.porque) + '</span>' : '') +
         (r.aviso ? '<span class="pf-como" style="margin-top:.4rem;border-left-color:var(--laranja)">' +
           '<b style="color:var(--laranja)">Atenção.</b> ' + escRico(r.aviso) + '</span>' : '') +
+        (r.texto ? '<details style="margin-top:.6rem"><summary class="tr-it">' +
+          '<div class="tr-linha" style="padding:.5rem .6rem">' +
+          '<span class="tr-seta">&#9654;</span>' +
+          '<span class="tr-cx"><span class="tr-nm">Ler o roteiro</span>' +
+          '<span class="tr-sub">' + Math.round(r.texto.length / 100) / 10 + ' mil caracteres · ' +
+          'texto de teleprompter</span></span>' +
+          '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
+          '<div class="tr-corpo">' +
+          '<span class="tr-rot">Teleprompter — leia exatamente assim</span>' +
+          '<p class="tr-txt">' + esc(r.texto) + '</p>' +
+          (r.nota ? '<span class="tr-rot">O que eu mudei em relação ao original</span>' +
+            '<p class="tr-txt orig">' + escRico(r.nota) + '</p>' : '') +
+          ((r.conferencia || []).length
+            ? '<span class="tr-rot">Conferir antes de gravar</span><ul class="rt-conf">' +
+              r.conferencia.map(function (c) { return '<li>' + escRico(c) + '</li>'; }).join('') +
+              '</ul>'
+            : '') +
+          '</div></details>' : '') +
         '</div>' +
         '<span class="selo s2" style="flex:none">' + esc(r.status || 'pronto') + '</span>' +
         '</div>';
