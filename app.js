@@ -330,7 +330,7 @@
     if (history.replaceState) history.replaceState(null, '', '#' + id);
     if (!quieto) window.scrollTo(0, 0);
     clearInterval(filaPoll);
-    if (id === 'fase1' && ident.id) { olharFila(); filaPoll = setInterval(olharFila, 12000); }
+    if (id === 'fase1' && ident.id) { enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
   }
   function fecharMenu() {
     $('lateral').classList.remove('aberto');
@@ -590,15 +590,6 @@
     $('notaVideos').textContent = 'Meta: 10 canais, com os 10 vídeos mais vistos de cada. ' +
       'Você tem ' + grupos.length + ' canal(is) e ' + totalVideos() + ' vídeo(s).' +
       (pendentes ? ' ' + pendentes + ' ainda sendo lidos.' : '');
-
-    var bt = $('btTranscrever');
-    if (bt) {
-      var prontos = state.videos.filter(function (v) { return v.estado === 'ok'; }).length;
-      bt.disabled = prontos < 1;
-      $('notaTransc').textContent = prontos >= 1
-        ? prontos + ' vídeo(s) identificados. Esta função abre na próxima etapa.'
-        : 'Cole pelo menos um vídeo para liberar.';
-    }
   }
 
 
@@ -774,30 +765,82 @@
     clearTimeout(filaTimer);
     filaTimer = setTimeout(function () {
       rpc('enfileirar', { p_ficha: ident.id, p_videos: lista })
-        .then(olharFila).catch(function () {});
+        .then(olharFila)
+        .catch(function (e) {
+          var n = $('notaTransc');
+          if (n) n.textContent = 'Não consegui enfileirar as transcrições: ' +
+            String(e.message || e).slice(0, 90);
+        });
     }, 1500);
   }
 
+  var trAbertas = {};
+
   function olharFila() {
     if (!ident.id) return;
-    rpc('estado_fila', { p_ficha: ident.id }).then(function (r) {
-      var f = (r && r[0]) || {};
-      var el = $('notaTransc');
-      if (!el) return;
-      if (!f.total) { el.textContent = 'Assim que você adicionar vídeos, a transcrição começa sozinha.'; return; }
-      var pt = f.em_portugues || 0;
-      var falta = f.total - f.prontos - f.erros - pt;
-      var nota = pt ? ' · ' + pt + ' em português, que não vira roteiro' : '';
-      el.textContent = falta > 0
-        ? 'Transcrevendo — ' + f.prontos + ' de ' + (f.total - pt) + ' prontas' +
-          (f.fazendo ? ' (uma em andamento)' : '') + '. Você já pode gravar as prontas.' + nota
-        : f.prontos + ' transcrição(ões) pronta(s), com original e tradução' +
-          (f.erros ? ' · ' + f.erros + ' falharam' : '') + nota + '.';
-      var bt = $('btTranscrever');
-      if (bt) bt.disabled = true;
-    }).catch(function () {});
+    rpc('minhas_transcricoes', { p_ficha: ident.id })
+      .then(pintarTranscricoes)
+      .catch(function (e) {
+        var n = $('notaTransc');
+        if (n) n.textContent = 'Não consegui carregar as transcrições agora.';
+      });
   }
 
+  function pintarTranscricoes(lista) {
+    lista = Array.isArray(lista) ? lista : [];
+    var bloco = $('blocoTranscricoes');
+    if (!bloco) return;
+    if (!lista.length) { bloco.style.display = 'none'; return; }
+    bloco.style.display = '';
+
+    var prontas = lista.filter(function (t) { return t.estado === 'pronto'; });
+    var pt = lista.filter(function (t) { return t.estado === 'portugues'; }).length;
+    var ruins = lista.filter(function (t) { return t.estado === 'erro'; }).length;
+    var uteis = lista.length - pt;
+
+    medidor('medTransc', prontas.length, Math.max(uteis, 1));
+    $('medTransc').querySelector('.v').textContent = prontas.length + '/' + uteis;
+
+    var faltam = uteis - prontas.length - ruins;
+    $('notaTransc').innerHTML = faltam > 0
+      ? '<span class="lendo"><span class="giro"></span>Transcrevendo — ' + prontas.length +
+        ' de ' + uteis + ' prontas. As que já saíram você pode gravar agora.</span>' +
+        (pt ? '<br><span style="color:var(--rotulo-2)">' + pt + ' em português ficaram de fora: referência precisa ser em outra língua.</span>' : '')
+      : 'Prontas. Cada uma vem no idioma original e em português — se quiser trocar uma palavra, dá para ver o que a frase dizia antes.' +
+        (pt ? ' ' + pt + ' em português ficaram de fora.' : '') +
+        (ruins ? ' ' + ruins + ' não deram certo.' : '');
+
+    $('listaTransc').innerHTML = lista.map(function (t, i) {
+      var cls = t.estado === 'pronto' ? '' :
+                t.estado === 'portugues' ? ' fora' :
+                t.estado === 'erro' ? ' ruim' : ' esperando';
+      var marca = t.estado === 'pronto' ? '✓' :
+                  t.estado === 'portugues' ? 'pt' :
+                  t.estado === 'erro' ? '!' : (i + 1);
+      var sub = t.estado === 'pronto' ? ((t.idioma || 'original') + ' · com tradução')
+              : t.estado === 'portugues' ? 'já está em português — não vira roteiro'
+              : t.estado === 'erro' ? 'não consegui transcrever'
+              : t.estado === 'fazendo' ? 'transcrevendo agora…' : 'na fila';
+      var podeAbrir = t.estado === 'pronto' || t.estado === 'portugues';
+      return '<div class="tr-item' + cls + (trAbertas[i] ? ' aberto' : '') + '" data-tr="' + i + '">' +
+        '<button class="tr-h"' + (podeAbrir ? ' data-abrir-tr="' + i + '"' : ' disabled') + '>' +
+        '<span class="tr-n">' + marca + '</span>' +
+        '<span class="tr-t"><b>' + esc('@' + String(t.perfil || '').replace(/^@/, '')) + '</b>' +
+        '<s>' + esc(sub) + '</s></span></button>' +
+        (podeAbrir ? '<div class="tr-b">' +
+          (t.texto_pt ? bloquinho('Em português', t.texto_pt, i, 'pt') : '') +
+          (t.texto ? bloquinho(t.texto_pt ? 'Original' : 'Texto', t.texto, i, 'or') : '') +
+          '</div>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  function bloquinho(rotulo, texto, i, tipo) {
+    return '<div class="tr-texto' + (tipo === 'or' ? ' orig' : '') + '">' +
+      '<span class="k">' + esc(rotulo) +
+      '<button class="tr-copiar" data-copiar-tr="' + i + '|' + tipo + '">copiar</button></span>' +
+      '<p>' + esc(texto) + '</p></div>';
+  }
 
   /* ---------- o que já funcionou com a própria pessoa ----------
      Com o @ em mãos, mostramos os vídeos dela ordenados por
@@ -987,7 +1030,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],[data-plat],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -1023,6 +1066,18 @@
       if (t.hasAttribute('data-plat')) {
         state.plataforma = t.getAttribute('data-plat');
         pintarPlataforma(); pintarAchados(); salvar(); pintarNav();
+        return;
+      }
+      if (t.hasAttribute('data-abrir-tr')) {
+        var it = +t.getAttribute('data-abrir-tr');
+        trAbertas[it] = !trAbertas[it];
+        document.querySelector('[data-tr="' + it + '"]').classList.toggle('aberto', !!trAbertas[it]);
+        return;
+      }
+      if (t.hasAttribute('data-copiar-tr')) {
+        var pr = t.getAttribute('data-copiar-tr').split('|');
+        var cx = t.closest('.tr-texto');
+        copiar(cx.querySelector('p').textContent, 'Texto copiado');
         return;
       }
       if (t.hasAttribute('data-raspar')) {
