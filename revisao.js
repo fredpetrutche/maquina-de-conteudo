@@ -424,8 +424,18 @@
     var lista = Object.keys(canais).map(function (k) { return canais[k]; })
       .sort(function (a, b) { return b.pico - a.pico; });
 
-    var ord = vs.map(function (v) { return v.views; });
-    var mediana = ord[Math.floor(ord.length / 2)];
+    /* Média de verdade, sobre as referências que ela mesma escolheu — nada de
+       raspar perfil de novo. Cada uma conta só os vídeos que têm aquele número,
+       porque um vídeo sem contagem não é um vídeo com zero. */
+    function media(campo) {
+      var q = vs.filter(function (v) { return v[campo] != null; });
+      if (!q.length) return null;
+      return q.reduce(function (a, v) { return a + v[campo]; }, 0) / q.length;
+    }
+    var mViews = media('views') || 0;
+    var mComp = media('compartilhamentos');
+    var mComent = media('comentarios');
+    var mDur = media('duracao');
     var minha = p.tetoHistorico || 0;
     /* foto e nome de cada canal, puxados uma vez pela API interna do Instagram */
     var refs = d.perfisRef || {};
@@ -474,13 +484,39 @@
         '<span class="bar-pe">' + pe + '</span></li>';
     }).join('');
 
-    var razao = (p.medianaJanela && mediana) ? Math.round(mediana / p.medianaJanela) : 0;
+    var razao = (p.medianaJanela && mViews) ? Math.round(mViews / p.medianaJanela) : 0;
+
+    /* segundos viram "1m42" quando passam do minuto: 102s ninguém lê de cabeça */
+    function tempo(s) {
+      s = Math.round(s);
+      return s < 60 ? s + 's' : Math.floor(s / 60) + 'm' + String(s % 60).padStart(2, '0');
+    }
+    /* A taxa sai sobre os MESMOS vídeos que têm o número. Vídeo velho não tem
+       contador de compartilhamento; se ele entrasse no denominador das views e
+       ficasse fora do numerador, a taxa sairia menor do que é. */
+    function taxa(campo) {
+      var q = vs.filter(function (v) { return v[campo] != null && v.views; });
+      if (!q.length) return '';
+      var soma = q.reduce(function (s, v) { return s + v[campo]; }, 0);
+      var base = q.reduce(function (s, v) { return s + v.views; }, 0);
+      return (soma / base * 100).toFixed(2).replace('.', ',') + '% de quem viu' +
+        (q.length < vs.length ? ' · em ' + q.length + ' dos ' + vs.length : '');
+    }
 
     return '<div class="grupo">' +
       '<div class="kpi">' +
       '<div><dt>Vídeos de referência</dt><dd>' + vs.length + '<s>de ' + lista.length + ' perfis</s></dd></div>' +
-      '<div><dt>Mediana de views</dt><dd class="destacado">' + curto(mediana) +
+      '<div><dt>Média de views</dt><dd class="destacado">' + curto(mViews) +
         (razao ? '<s>' + razao + '× a sua média</s>' : '') + '</dd></div>' +
+      (mComp != null
+        ? '<div><dt>Média de compartilhamento</dt><dd>' + curto(mComp) +
+          '<s>' + taxa('compartilhamentos') + '</s></dd></div>' : '') +
+      (mComent != null
+        ? '<div><dt>Média de comentário</dt><dd>' + curto(mComent) +
+          '<s>' + taxa('comentarios') + '</s></dd></div>' : '') +
+      (mDur != null
+        ? '<div><dt>Média de duração</dt><dd>' + tempo(mDur) +
+          '<s>é este o tamanho que você vai gravar</s></dd></div>' : '') +
       '<div><dt>Mais visto</dt><dd>' + curto(teto) + '<s>views — o alvo do topo</s></dd></div>' +
       '<div><dt>O seu recorde</dt><dd>' + curto(minha) +
         '<s>' + (minha ? (minha / teto * 100).toFixed(0) + '% do mais visto' : 'views') + '</s></dd></div>' +
