@@ -30,6 +30,20 @@
 
 .bar-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.85rem}
 .bar-l b{display:block;font-size:14px;font-weight:400;letter-spacing:-.015em;margin-bottom:.35rem}
+
+/* cabeçalho da referência: a foto identifica antes de a pessoa ler o @ */
+.ref-cab{display:flex;gap:.55rem;align-items:flex-start;margin-bottom:.4rem}
+.ref-av{width:1.9rem;height:1.9rem;flex:none;border-radius:99px;overflow:hidden;
+  background:var(--preench-2);color:var(--rotulo-2);display:grid;place-items:center;
+  font-size:11px;font-weight:600}
+.ref-av img{width:100%;height:100%;object-fit:cover;display:block}
+.ref-cx{flex:1;min-width:0}
+.ref-nm{font-size:14px;font-weight:600;letter-spacing:-.014em;color:var(--tinta);
+  text-decoration:none}
+.ref-nm:hover{text-decoration:underline}
+.ref-tit{display:block;font-size:13.5px;color:var(--rotulo);letter-spacing:-.012em;
+  line-height:1.4;margin-top:.1rem}
+.ref-vf{color:var(--tinta);font-size:12px;margin-left:.2rem}
 .bar-t{display:block;height:8px;background:var(--preench);border-radius:0 4px 4px 0;position:relative}
 .bar-t i{display:block;height:100%;background:var(--tinta);border-radius:0 4px 4px 0}
 .bar-t.morno i{background:var(--rotulo-3)}
@@ -538,6 +552,8 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     var ord = vs.map(function (v) { return v.views; });
     var mediana = ord[Math.floor(ord.length / 2)];
     var minha = p.tetoHistorico || 0;
+    /* foto e nome de cada canal, puxados uma vez pela API interna do Instagram */
+    var refs = d.perfisRef || {};
 
     var itens = vs.map(function (v) {
       var pct = Math.max(v.views / teto * 100, 1.2);
@@ -555,7 +571,23 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       var marca = v.idioma === 'en'
         ? '<span class="selo s3" style="margin-left:.4rem">roteiro pronto</span>'
         : '<span class="selo s1" style="margin-left:.4rem">fora da leva</span>';
-      return '<li class="bar-l"><b>@' + esc(v.canal) + marca + '<br>' + esc(v.titulo || '') + '</b>' +
+
+      var quem = refs[v.canal] || {};
+      var arroba = '@' + esc(v.canal) +
+        (quem.verificado ? '<span class="ref-vf" title="Perfil verificado">&#10003;</span>' : '');
+
+      return '<li class="bar-l"><div class="ref-cab">' +
+        '<span class="ref-av">' + (quem.foto
+          ? '<img src="' + esc(quem.foto) + '" alt="" loading="lazy">'
+          : esc(iniciais(quem.nome || v.canal))) + '</span>' +
+        '<span class="ref-cx">' +
+        (v.canalUrl
+          ? '<a class="ref-nm" href="' + esc(v.canalUrl) + '" target="_blank" ' +
+            'rel="noopener">' + arroba + '</a>'
+          : '<span class="ref-nm">' + arroba + '</span>') +
+        marca +
+        '<span class="ref-tit">' + esc(v.titulo || '') + '</span>' +
+        '</span></div>' +
         '<span class="bar-t"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
         '<span class="bar-pe">' + pe + '</span></li>';
     }).join('');
@@ -566,7 +598,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       '<div class="kpi">' +
       '<div><dt>Vídeos de referência</dt><dd>' + vs.length + '<s>de ' + lista.length + ' perfis</s></dd></div>' +
       '<div><dt>Mediana de views</dt><dd class="destacado">' + curto(mediana) +
-        (razao ? '<s>' + razao + '× a sua mediana</s>' : '') + '</dd></div>' +
+        (razao ? '<s>' + razao + '× a sua média</s>' : '') + '</dd></div>' +
       '<div><dt>Mais visto</dt><dd>' + curto(teto) + '<s>views — o alvo do topo</s></dd></div>' +
       '<div><dt>O seu recorde</dt><dd>' + curto(minha) +
         '<s>' + (minha ? (minha / teto * 100).toFixed(0) + '% do mais visto' : 'views') + '</s></dd></div>' +
@@ -587,9 +619,19 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
       '<h3 style="font-size:18px">Os ' + lista.length + ' perfis</h3></div>' +
       '<div class="ilha" style="background:transparent">' + lista.map(function (c) {
-        return '<div class="linha"><div style="flex:1;min-width:0">' +
+        var q = refs[c.nome] || {};
+        return '<div class="linha">' +
+          '<span class="ref-av" style="flex:none">' + (q.foto
+            ? '<img src="' + esc(q.foto) + '" alt="" loading="lazy">'
+            : esc(iniciais(q.nome || c.nome))) + '</span>' +
+          '<div style="flex:1;min-width:0">' +
           '<a href="' + esc(c.url || '#') + '" target="_blank" rel="noopener" ' +
           'style="color:var(--tinta);text-decoration:none;font-size:15px">@' + esc(c.nome) + '</a>' +
+          (q.verificado ? '<span class="ref-vf" title="Perfil verificado">&#10003;</span>' : '') +
+          (q.nome && q.nome !== c.nome
+            ? '<span style="display:block;font-size:12px;color:var(--rotulo-2);' +
+              'overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' +
+              esc(q.nome) + '</span>' : '') +
           '</div><span class="medidor">' + c.n + (c.n > 1 ? ' vídeos' : ' vídeo') +
           '<span style="color:var(--rotulo-3)">&middot;</span>' + curto(c.pico) + '</span></div>';
       }).join('') + '</div></div></div>';
