@@ -330,6 +330,7 @@
     if (history.replaceState) history.replaceState(null, '', '#' + id);
     if (!quieto) window.scrollTo(0, 0);
     clearInterval(filaPoll);
+    if (ident.id) buscarVoz();
     if (id === 'fase1' && ident.id) { enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
   }
   function fecharMenu() {
@@ -899,6 +900,69 @@
       }).join('') + '</ul></div>';
   }
 
+
+  /* ---------- a voz: como a pessoa fala ----------
+     Extraída das transcrições dos vídeos do perfil dela. Serve
+     para conferir se um roteiro copiado soa como ela antes de
+     gravar — e para alimentar o agente roteirista depois. */
+  var vozAberta = false;
+
+  function buscarVoz() {
+    if (!ident.id) return;
+    rpc('minha_voz', { p_ficha: ident.id }).then(function (r) {
+      var v = (r && r[0]) || {};
+      pintarVoz(v.voz);
+    }).catch(function () {});
+  }
+
+  function pintarVoz(texto) {
+    var el = $('minhaVoz'); if (!el) return;
+    if (!texto) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.innerHTML = '<div class="voz' + (vozAberta ? ' aberta' : '') + '">' +
+      '<span class="k">O seu jeito de falar</span>' +
+      '<h3>A sua voz</h3>' +
+      '<p>Isto foi tirado das transcrições dos seus próprios vídeos. Use para conferir se um roteiro copiado soa como você <b>antes</b> de gravar.</p>' +
+      '<button class="bt mini" data-act="voz">' + (vozAberta ? 'Fechar' : 'Ler a minha voz') + '</button>' +
+      '<div class="voz-corpo">' + marcar(texto) + '</div></div>';
+  }
+
+  /* markdown mínimo — só o que a voz usa */
+  function marcar(md) {
+    var linhas = String(md).split('\n'), fora = [], tabela = null;
+    function fechaTabela() {
+      if (!tabela) return;
+      var cab = tabela[0], corpo = tabela.slice(2);
+      fora.push('<table><thead><tr>' + cab.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') +
+        '</tr></thead><tbody>' + corpo.map(function (l) {
+          return '<tr>' + l.map(function (c) { return '<td>' + inline(c) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table>');
+      tabela = null;
+    }
+    function inline(t) {
+      return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.+?)\*/g, '<i>$1</i>')
+        .replace(/`(.+?)`/g, '<code>$1</code>');
+    }
+    linhas.forEach(function (l) {
+      var t = l.trim();
+      if (/^\|/.test(t)) {
+        var cels = t.replace(/^\||\|$/g, '').split('|').map(function (c) { return c.trim(); });
+        (tabela = tabela || []).push(cels); return;
+      }
+      fechaTabela();
+      if (!t) return;
+      if (/^#{1,2}\s/.test(t)) fora.push('<h2>' + inline(t.replace(/^#+\s*/, '')) + '</h2>');
+      else if (/^#{3,}\s/.test(t)) fora.push('<h2>' + inline(t.replace(/^#+\s*/, '')) + '</h2>');
+      else if (/^>\s?/.test(t)) fora.push('<blockquote>' + inline(t.replace(/^>\s?/, '')) + '</blockquote>');
+      else if (/^[-*]\s/.test(t)) fora.push('<ul><li>' + inline(t.replace(/^[-*]\s/, '')) + '</li></ul>');
+      else if (/^---+$/.test(t)) fora.push('<hr>');
+      else fora.push('<p>' + inline(t) + '</p>');
+    });
+    fechaTabela();
+    return fora.join('').replace(/<\/ul><ul>/g, '');
+  }
+
   /* ---------- porta ---------- */
   function abrirPorta(modo) {
     $('porta').classList.add('on');
@@ -1138,6 +1202,7 @@
       else if (a === 'porta-modo-nova') trocarPorta('nova');
       else if (a === 'porta-fechar') fecharFolhas();
       else if (a === 'marco-fechar') fecharFolhas();
+      else if (a === 'voz') { vozAberta = !vozAberta; buscarVoz(); }
       else if (a === 'copiar-codigo') copiar(ident.id || '', 'Código copiado');
       else if (a === 'copiar') copiar(texto(), 'Ficha copiada');
       else if (a === 'baixar') baixar();

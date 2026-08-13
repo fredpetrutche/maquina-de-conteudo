@@ -930,3 +930,22 @@ body.leitura [data-raspar]{display:none !important}
 .tr-texto p{font-size:15px;line-height:1.5;color:var(--rotulo);margin:0;white-space:pre-wrap}
 .tr-texto.orig p{color:var(--rotulo-2);font-size:14px}
 .tr-copiar{border:0;background:none;color:var(--tinta);font-size:12px;font-weight:600;cursor:pointer;padding:0;flex:none}
+
+/* ---------- a voz da pessoa ---------- */
+.voz{background:var(--ilha);border-radius:var(--r-cartao);padding:1.3rem 1.4rem;margin-bottom:2.5rem}
+.voz .k{font-size:13px;font-weight:600;color:var(--verde);display:block;margin-bottom:.3rem}
+.voz h3{font-size:20px;letter-spacing:-.024em;margin-bottom:.4rem}
+.voz>p{font-size:15px;color:var(--rotulo-2);letter-spacing:-.015em;margin-bottom:1rem}
+.voz-corpo{display:none;background:var(--preench);border-radius:12px;padding:1rem 1.15rem;margin-top:.5rem}
+.voz.aberta .voz-corpo{display:block}
+.voz-corpo h1,.voz-corpo h2{font-size:17px;margin:1rem 0 .4rem}
+.voz-corpo h1:first-child,.voz-corpo h2:first-child{margin-top:0}
+.voz-corpo p{font-size:15px;line-height:1.55;color:var(--rotulo-2);margin:0 0 .7rem}
+.voz-corpo blockquote{margin:.5rem 0;padding-left:.9rem;border-left:3px solid var(--verde);color:var(--rotulo);font-style:italic}
+.voz-corpo table{width:100%;border-collapse:collapse;font-size:14px;margin:.6rem 0}
+.voz-corpo th,.voz-corpo td{text-align:left;padding:.45rem .6rem;border-bottom:.5px solid var(--sep)}
+.voz-corpo th{font-size:12px;color:var(--rotulo-2);text-transform:uppercase;letter-spacing:.04em}
+.voz-corpo ul{margin:.4rem 0;padding-left:1.1rem;font-size:15px;color:var(--rotulo-2)}
+.voz-corpo li{margin-bottom:.25rem}
+.voz-corpo hr{border:0;border-top:.5px solid var(--sep);margin:1rem 0}
+.voz-corpo code{font-family:var(--mono);font-size:.9em}
