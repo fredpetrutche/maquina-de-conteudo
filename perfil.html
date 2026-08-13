@@ -89,15 +89,23 @@
 .tr-lista{list-style:none;margin:0;padding:0}
 .tr-lista>li{border-top:.5px solid var(--sep)}
 .tr-lista>li:first-child{border-top:0}
-.tr-it{padding:.75rem 0;cursor:pointer;list-style:none;
-  display:flex;gap:.6rem;align-items:baseline}
+/* display:flex direto no <summary> quebra o clique no Safari — o flex vai
+   num div dentro dele. */
+.tr-it{cursor:pointer;list-style:none;display:block;border-radius:10px;
+  transition:background .15s ease}
 .tr-it::-webkit-details-marker{display:none}
-.tr-it:hover .tr-nm{color:var(--tinta)}
-.tr-seta{width:.8rem;flex:none;color:var(--rotulo-3);font-size:11px;
-  transition:transform .18s ease}
-details[open] .tr-seta{transform:rotate(90deg)}
+.tr-it:hover{background:var(--preench)}
+.tr-it:focus-visible{outline:2px solid var(--tinta);outline-offset:-2px}
+.tr-linha{display:flex;gap:.65rem;align-items:center;padding:.75rem .7rem}
+.tr-seta{width:1.4rem;height:1.4rem;flex:none;border-radius:99px;
+  background:var(--preench-2);color:var(--rotulo-2);font-size:9px;
+  display:grid;place-items:center;transition:transform .18s ease}
+.tr-it:hover .tr-seta{background:var(--tinta);color:#fff}
+details[open] .tr-seta{transform:rotate(90deg);background:var(--tinta);color:#fff}
 .tr-cx{flex:1;min-width:0}
 .tr-nm{font-size:14px;font-weight:600;letter-spacing:-.012em}
+.tr-ler{font-size:12px;font-weight:600;color:var(--tinta);flex:none;white-space:nowrap}
+details[open] .tr-ler{color:var(--rotulo-3)}
 .tr-sub{display:block;font-size:12px;color:var(--rotulo-2);margin-top:.1rem;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr-tag{font-size:11px;font-weight:600;padding:.15rem .45rem;border-radius:99px;
@@ -460,12 +468,15 @@ details[open] .tr-seta{transform:rotate(90deg)}
       }
 
       return '<li><details>' +
-        '<summary class="tr-it"><span class="tr-seta">&#9654;</span>' +
+        '<summary class="tr-it"><div class="tr-linha">' +
+        '<span class="tr-seta">&#9654;</span>' +
         '<span class="tr-cx"><span class="tr-nm">@' + esc(String(t.perfil || '?').replace(/^@+/, '')) + '</span>' +
         (titulo ? '<span class="tr-sub">' + esc(titulo) + '</span>' : '') + '</span>' +
         '<span class="tr-tag' + (en ? ' en' : '') + '">' +
         (en ? 'inglês' : 'português') + ' · ' + Math.round(orig.length / 100) / 10 + ' mil car.' +
-        '</span></summary>' +
+        '</span>' +
+        '<span class="tr-ler">ler &rsaquo;</span>' +
+        '</div></summary>' +
         '<div class="tr-corpo">' + corpo + '</div></details></li>';
     }
 
