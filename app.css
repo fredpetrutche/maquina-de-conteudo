@@ -1033,6 +1033,15 @@ body.leitura [data-raspar]{display:none !important}
   .rt-por,.rt .acoes,.rt-b{margin-left:0}
 }
 
+/* ---------- copiar e a conta do tempo ----------
+   Em cima a informação, embaixo a informação com o botão: quem leu o roteiro
+   inteiro não vai rolar de volta só para copiar. */
+.rt-barra{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.2rem 0 .9rem}
+.rt-barra.pe{margin:1.1rem 0 .2rem;padding-top:.9rem;border-top:.5px solid var(--sep)}
+.rt-dur{font-size:12px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
+.rt-dur b{font-weight:600;color:var(--rotulo)}
+.rt-dur .longo{color:var(--laranja);font-weight:600}
+
 /* ---------- legenda sincronizada, parágrafo a parágrafo ----------
    Casar só as três faixas não bastava: quem vai gravar quer ver a frase do
    original na mesma linha do parágrafo que nasceu dela. */

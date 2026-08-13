@@ -961,6 +961,29 @@
     }).join('\n\n');
   }
 
+  /* A duração fica à vista porque ela é retenção: um roteiro que estica 50%
+     além do original não é o mesmo vídeo, é outro. No original o tempo é
+     medido; no português é estimado a 16 caracteres por segundo. */
+  function barraTempo(r, faixas, comBotao) {
+    var meus = faixas.reduce(function (a, t) {
+      return a + (typeof t.final === 'string' ? t.final.length : (t.txt || '').length) / 16;
+    }, 0);
+    var sobra = r.duracao ? meus / r.duracao - 1 : 0;
+    var i = (state.roteiros || []).indexOf(r);
+    return '<div class="rt-barra' + (comBotao ? ' pe' : '') + '">' +
+      (comBotao && i >= 0
+        ? '<button class="bt mini" data-copiar-rot="' + i + '">Copiar para o teleprompter</button>'
+        : '') +
+      (r.duracao
+        ? '<span class="rt-dur">estimado <b>' + Math.round(meus) + 's</b> · ' +
+          'o original tem ' + r.duracao + 's' +
+          (sobra > 0.2
+            ? ' · <span class="longo">' + Math.round(sobra * 100) + '% mais longo</span>'
+            : '') + '</span>'
+        : '') +
+      '</div>';
+  }
+
   /* O português vem antes do original — é ele que vai ser gravado. As duas
      línguas ficam na MESMA faixa de tempo: assim o gancho de um se compara
      com o gancho do outro, não com o vídeo inteiro. */
@@ -979,10 +1002,10 @@
       : null;
 
     var duasColunas = !!lados || ((r.pares || []).length > 0);
-    var h = duasColunas
+    var h = barraTempo(r, faixas, false) + (duasColunas
       ? '<div class="rt-colrot"><span>Português — é isto que você grava</span>' +
         '<span>Original</span></div>'
-      : '<span class="rt-rot">Roteiro em português — leia exatamente assim</span>';
+      : '<span class="rt-rot">Roteiro em português — leia exatamente assim</span>');
 
     h += faixas.map(function (t, i) {
       var cls = faixas.length > 1 ? (['g', 'r', 'c'][i] || 'c') : 'c';
@@ -1017,15 +1040,27 @@
         miolo = pt;
       }
 
+      /* Os dois tempos SEMPRE à vista, não só quando estoura: é a comparação
+         que responde "o meu está mais longo que o dele?". Com o alinhamento
+         por parágrafo o lado inglês da faixa é a soma das frases dela. */
+      var meuS = (typeof t.final === 'string' ? t.final.length : (t.txt || '').length) / 16;
+      var chEn = linhas.length
+        ? linhas.reduce(function (a, l) { return a + (l.en || '').length; }, 0)
+        : (lados ? lados[i].length : 0);
+      var origS = (chEn && cps) ? chEn / cps : 0;
+
       return '<div class="rt-faixa ' + cls + '">' +
         '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot || '') + '</span>' +
         (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
-        (t.estoura ? '<span class="rt-real">seu: ' + seg(t.s) + 's</span>' : '') +
-        (en && cps && !linhas.length ? '<span class="rt-seg">original: ' +
-          seg(lados[i].length / cps) + 's</span>' : '') +
+        '<span class="rt-' + (t.estoura ? 'real' : 'seg') + '">seu ' + seg(meuS) + 's</span>' +
+        (origS ? '<span class="rt-seg">original ' + seg(origS) + 's</span>' : '') +
         '</div>' + miolo +
         '</div>';
     }).join('');
+
+    /* de novo embaixo, com o botão: quem leu o roteiro inteiro não vai rolar
+       de volta só para copiar */
+    h += barraTempo(r, faixas, true);
 
     if (faixas.length > 1) {
       h += '<p class="rt-legenda">No original o tempo é medido — a duração do vídeo é ' +
