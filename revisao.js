@@ -430,11 +430,18 @@
       var pct = Math.max(v.views / teto * 100, 1.2);
       var tx = (v.compartilhamentos && v.views)
         ? (v.compartilhamentos / v.views * 100).toFixed(2).replace('.', ',') : '';
+      /* comentário entra ao lado do compartilhamento porque é a OUTRA forma de
+         um vídeo pegar: tem legenda que pede comentário em vez de convidar a
+         mandar para alguém, e sem esse número o vídeo parece morto. */
+      var tc = (v.comentarios && v.views)
+        ? (v.comentarios / v.views * 100).toFixed(2).replace('.', ',') : '';
       var pe = [
         '<span class="v">' + num(v.views) + ' views</span>',
         v.compartilhamentos != null
           ? '<b class="pf-cmp">' + num(v.compartilhamentos) + ' compart.' +
             (tx ? ' (' + tx + '%)' : '') + '</b>' : '',
+        v.comentarios != null
+          ? num(v.comentarios) + ' coment.' + (tc ? ' (' + tc + '%)' : '') : '',
         v.duracao ? Math.round(v.duracao) + 's' : ''
       ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>') +
       (v.url ? '<a class="rt-assistir mini" href="' + esc(v.url) + '" target="_blank" ' +
