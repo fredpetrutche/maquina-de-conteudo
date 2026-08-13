@@ -339,16 +339,13 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 .pf-hip li::before{content:"?";position:absolute;left:.1rem;top:.3rem;font-size:12px;
   font-weight:700;color:var(--rotulo-3)}
 
-/* o porte da comunidade: régua herdada da regra do nicho */
-.pf-porte{border-radius:12px;padding:.85rem 1rem;margin-top:.7rem;background:var(--preench)}
-.pf-porte .k{display:block;font-size:12px;font-weight:600;text-transform:uppercase;
-  letter-spacing:.04em;margin-bottom:.3rem;color:var(--rotulo-2)}
-.pf-porte p{font-size:13.5px;line-height:1.55;margin:0;color:var(--rotulo-2)}
-.pf-porte b{color:var(--rotulo)}
-.pf-porte.larga{background:var(--verde-fraco)}
-.pf-porte.larga .k{color:var(--verde)}
-.pf-porte.meio{background:rgba(255,149,0,.10)}
-.pf-porte.meio .k{color:var(--laranja)}
-.pf-porte.aperta{background:rgba(255,59,48,.10)}
-.pf-porte.aperta .k{color:var(--vermelho)}
-.pf-porte.aperta b,.pf-porte.meio b{color:var(--rotulo)}
+
+/* a etiqueta de alcance, colada em cada bandeira sugerida */
+.pf-porte-tag{display:inline-block;margin-left:.4rem;font-size:11px;font-weight:600;
+  padding:.05rem .4rem;border-radius:99px;vertical-align:.05rem}
+.pf-porte-tag.larga{background:var(--verde-fraco);color:var(--verde)}
+.pf-porte-tag.meio{background:rgba(255,149,0,.14);color:var(--laranja)}
+.pf-porte-tag.aperta{background:rgba(255,59,48,.12);color:var(--vermelho)}
+.pf-hip-p{display:block;font-size:12.5px;color:var(--rotulo-2);line-height:1.45;margin-top:.15rem}
+.pf-hip-pe{font-size:12.5px;color:var(--rotulo-2);margin:.7rem 0 0}
+.pf-hip-pe b{color:var(--tinta)}

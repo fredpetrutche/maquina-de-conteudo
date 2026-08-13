@@ -77,20 +77,22 @@ Regras que não podem ser quebradas:
 
    - "comunidade": que grupo é esse. Tire do que ele já publicou: para quem ele fala,
      quem ele defende, contra o que ele se coloca.
-   - "comunidadeBandeira": a palavra que ESSA GENTE usa para falar de si. Cuidado: você
-     enxerga como ELE chama o grupo; se o grupo não se descreve assim, não é bandeira.
-     Na dúvida, prefira a palavra que aparece na boca dele falando com eles, não sobre eles.
+   - "comunidadeBandeiras": 2 ou 3 OPÇÕES de palavra que essa gente usa para falar de si.
+     NÃO escolha por ele — a escolha é dele, e cada palavra abre uma porta de tamanho
+     diferente. Para cada opção devolva "porte" ("grande", "média" ou "pequena") e
+     "porque", em uma frase, com o que se ganha e o que se perde escolhendo aquela.
+     A régua vem da regra do nicho: o filtro tem que ser algo que a plataforma consiga
+     aplicar num scroll de 3 segundos, e recorte fino demais mata a distribuição. Porta
+     larga alcança mais e diz menos; porta estreita diz muito e alcança pouco.
+     Cuidado com um erro comum: você enxerga como ELE chama o grupo. Se o grupo não se
+     descreve com aquela palavra, não é bandeira — prefira a que aparece na boca dele
+     falando COM eles, não SOBRE eles.
    - "comunidadeCausa": o que essa gente comenta entre si mas ninguém diz em público.
      ISTO QUASE NUNCA ESTÁ NO TEXTO — o que você lê é o que ele publicou, não o que a
      audiência dele fala entre si. Então: deixe "comunidadeCausa" VAZIO e devolva 2 ou 3
      hipóteses em "comunidadeHipoteses", cada uma plausível a partir do que ele confronta
      nos vídeos. Só preencha "comunidadeCausa" se algum vídeo disser isso com todas as
      letras. Inventar aqui é pior do que deixar em branco.
-   - "comunidadeTamanho": o porte dessa comunidade — "grande", "média" ou "pequena" — e
-     por quê, em uma frase. A régua vem da regra do nicho: o filtro tem que ser algo que
-     a plataforma consiga aplicar num scroll de 3 segundos, e recorte fino demais mata a
-     distribuição. Comunidade pequena demais tem o mesmo efeito. Se for pequena ou média,
-     isso é ponto de atenção — diga por quê.
 
 5. ASSINATURA: proponha DUAS opções, na fórmula
    "Meu nome é [NOME] e eu [ENTREGA] [PROMESSA] todos os dias."
@@ -120,10 +122,9 @@ Responda SÓ com este JSON, sem cercas de código e sem comentário:
   "macroNicho": "",
   "subNicho": "",
   "comunidade": "",
-  "comunidadeBandeira": "",
+  "comunidadeBandeiras": [{"bandeira": "", "porte": "", "porque": ""}],
   "comunidadeCausa": "",
   "comunidadeHipoteses": ["", ""],
-  "comunidadeTamanho": {"porte": "", "porque": ""},
   "temas": [
     {"tema": "", "recortes": [{"recorte": "", "prova": "", "views": 0}]}
   ],
@@ -161,6 +162,12 @@ function conferir(s) {
   if (!s.comunidadeCausa && !(s.comunidadeHipoteses || []).length) {
     erros.push('sem causa e sem hipótese de causa');
   }
+  /* uma bandeira só seria a máquina escolhendo pela pessoa — e a escolha muda o
+     tamanho da porta, então é dela */
+  if ((s.comunidadeBandeiras || []).length < 2) erros.push('menos de duas bandeiras');
+  (s.comunidadeBandeiras || []).forEach(function (b, i) {
+    if (!b.porte) erros.push('bandeira ' + (i + 1) + ' sem porte');
+  });
   (s.assinaturas || []).forEach((a, i) => {
     const frase = `Meu nome é ${a.sigNome} e eu ${a.sigEntrega} ${a.sigPromessa} todos os dias.`;
     if (frase.length > 130) erros.push(`assinatura ${i + 1} longa demais (${frase.length})`);

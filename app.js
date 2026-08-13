@@ -598,6 +598,24 @@
     el.querySelector('i').style.width = Math.min(100, (n / alvo) * 100) + '%';
   }
 
+  /* As bandeiras que a análise sugeriu, para tocar em vez de digitar. Cada uma
+     leva o alcance junto, porque a palavra é que decide o tamanho da porta. */
+  function pintarBandeiras() {
+    var el = $('chipsBandeira'); if (!el) return;
+    var bs = (state.comunidadeBandeiras || []).filter(function (b) { return b && b.bandeira; });
+    if (!bs.length) { el.innerHTML = ''; return; }
+    el.innerHTML = '<span class="sec-nota" style="display:block;margin:.1rem 0 .5rem">' +
+      'Eu não escolho por você: cada palavra abre uma porta de tamanho diferente. ' +
+      'Toque em uma para usar, ou escreva a sua.</span>' +
+      bs.map(function (b) {
+        var cls = /pequen/i.test(b.porte) ? 'aperta' : /m[ée]di/i.test(b.porte) ? 'meio' : 'larga';
+        return '<button class="chip-band" data-bandeira="' + esc(b.bandeira) + '">' +
+          '<b>' + esc(b.bandeira) + '</b>' +
+          '<span class="pf-porte-tag ' + cls + '">alcance ' + esc(b.porte || '?') + '</span>' +
+          (b.porque ? '<s>' + esc(b.porque) + '</s>' : '') + '</button>';
+      }).join('');
+  }
+
   function pintarAssinatura() {
     var n = state.sigNome.trim(), e = state.sigEntrega.trim(), p = state.sigPromessa.trim();
     // enquanto faltar preencher, o "+" mostra que ali são dois campos
@@ -1695,13 +1713,14 @@
     if (s.macroNicho) state.macroNicho = s.macroNicho;
     if (s.subNicho) state.subNicho = s.subNicho;
     if (s.comunidade) state.comunidade = s.comunidade;
-    if (s.comunidadeBandeira) state.comunidadeBandeira = s.comunidadeBandeira;
+    /* a bandeira NÃO é preenchida sozinha: cada palavra abre uma porta de
+       tamanho diferente, e essa escolha é da pessoa */
+    state.comunidadeBandeiras = s.comunidadeBandeiras || [];
     /* a causa quase nunca sai dos vídeos dele — o que se lê é o que ele
        publicou, não o que a audiência fala entre si. Quando vier vazia, as
        hipóteses ficam guardadas para a tela dizer que são hipóteses. */
     if (s.comunidadeCausa) state.comunidadeCausa = s.comunidadeCausa;
     state.comunidadeHipoteses = s.comunidadeHipoteses || [];
-    state.comunidadeTamanho = s.comunidadeTamanho || null;
 
     if (Array.isArray(s.temas) && s.temas.length) {
       state.temas = s.temas.slice(0, ALVO_TEMAS).map(function (t) {
@@ -1923,7 +1942,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-editar],[data-rolar],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-editar],[data-rolar],[data-bandeira],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -1932,6 +1951,13 @@
       if (t.hasAttribute('data-editar')) return ir(t.getAttribute('data-editar'));
 
       /* na revisão o lateral não troca de tela: rola até a seção */
+      if (t.hasAttribute('data-bandeira')) {
+        state.comunidadeBandeira = t.getAttribute('data-bandeira');
+        $('comunidadeBandeira').value = state.comunidadeBandeira;
+        salvar(); pintarNav(); checarMarco();
+        avisar('Bandeira escolhida — dá para trocar quando quiser');
+        return;
+      }
       if (t.hasAttribute('data-rolar')) {
         var secao = document.getElementById(t.getAttribute('data-rolar'));
         if (secao) secao.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2161,7 +2187,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarOferta(state.sugestao ? 'pronta' : '', state.sugestao); pintarPlataforma(); pintarAchados(); pintarFase2(); pintarNav(); atualizarPerguntas();
+    pintarTemas(); pintarAssinatura(); pintarBandeiras(); pintarMeuPerfil(); pintarOferta(state.sugestao ? 'pronta' : '', state.sugestao); pintarPlataforma(); pintarAchados(); pintarFase2(); pintarNav(); atualizarPerguntas();
   }
 
   function abrirLeitura(fichaId) {

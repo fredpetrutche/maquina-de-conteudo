@@ -259,6 +259,42 @@
     return fora.join('').replace(/<\/ul><ul>/g, '');
   }
 
+  function porteClasse(p) {
+    return /pequen/i.test(p) ? 'aperta' : /m[ée]di/i.test(p) ? 'meio' : 'larga';
+  }
+
+  /* Uma caixa para o que a máquina NÃO pôde afirmar. Hipótese tem que parecer
+     hipótese, senão vira resposta por descuido de quem lê rápido. */
+  function caixaHipotese(explica, itens) {
+    return '<div class="pf-hip"><span class="k">Não foi possível determinar</span>' +
+      '<p>' + explica + '</p><ul>' +
+      itens.map(function (x) {
+        return '<li>' + esc(x.texto) +
+          (x.porte ? '<span class="pf-porte-tag ' + porteClasse(x.porte) + '">' +
+            'alcance ' + esc(x.porte) + '</span>' : '') +
+          (x.porque ? '<span class="pf-hip-p">' + esc(x.porque) + '</span>' : '') +
+          '</li>';
+      }).join('') + '</ul>' +
+      '<p class="pf-hip-pe">Clique em <b>Editar esta fase</b> para escolher ou escrever a sua.</p>' +
+      '</div>';
+  }
+
+  /* A palavra muda o tamanho da porta: "cristão bíblico" alcança todo mundo e
+     diz pouco; "reformado" diz muito e fala com menos gente. Quem escolhe é a
+     pessoa — a máquina só mostra o que cada escolha custa. */
+  function bandeiras(d) {
+    if (d.comunidadeBandeira) return '';
+    var bs = (d.comunidadeBandeiras || []).filter(function (b) { return b && b.bandeira; });
+    if (!bs.length) return '';
+    return caixaHipotese(
+      'Cada palavra abre uma porta de tamanho diferente, e a escolha é sua: a régua ' +
+      'do método diz que <b>recorte fino demais mata a distribuição</b> — porta larga ' +
+      'alcança mais e diz menos, porta estreita diz muito e alcança pouco.',
+      bs.map(function (b) {
+        return { texto: b.bandeira, porte: b.porte, porque: b.porque };
+      }));
+  }
+
   function blocoFase0(d) {
     var p = d.perfil || {};
     /* Cada campo carrega a pergunta que ele responde. Quem lê precisa saber o que
@@ -269,7 +305,7 @@
         '<span class="pf-rot">' + esc(rot) + '</span>' +
         '<span class="pf-perg">' + esc(perg) + '</span>' +
         '<span class="pf-val' + (opc.falta ? ' pf-falta' : '') + '">' +
-        esc(val || 'ainda não preenchido') + '</span>' +
+        esc(val || opc.vazio || 'ainda não preenchido') + '</span>' +
         (opc.selo ? '<span class="selo s1" style="margin-top:.4rem">' + esc(opc.selo) + '</span>' : '') +
         (opc.nota ? '<span class="pf-como">' + opc.nota + '</span>' : '') +
         '</div>';
@@ -297,39 +333,23 @@
             d.comunidade, { falta: !d.comunidade }) +
       campo('Que palavra essa gente usa para falar de si?',
             'Se ninguém se descreve assim, não é bandeira.',
-            d.comunidadeBandeira, { falta: !d.comunidadeBandeira }) +
+            d.comunidadeBandeira,
+            { falta: !d.comunidadeBandeira, vazio: 'não foi possível determinar' }) +
+      bandeiras(d) +
+
       campo('O que essa gente comenta entre si, mas ninguém diz em público?',
             'A verdade que todo mundo daquele grupo sente e ninguém fala em voz alta.',
-            d.comunidadeCausa, { falta: !d.comunidadeCausa }) +
+            d.comunidadeCausa,
+            { falta: !d.comunidadeCausa, vazio: 'não foi possível determinar' }) +
 
       /* Esta última quase nunca sai dos vídeos: o que se lê é o que ELE
          publicou, não o que a audiência fala entre si. Então a máquina devolve
          hipóteses, e elas aparecem marcadas como hipótese — não como resposta. */
       (!d.comunidadeCausa && (d.comunidadeHipoteses || []).length
-        ? '<div class="pf-hip"><span class="k">Não está dito nos seus vídeos</span>' +
-          '<p>Isto é o que a sua audiência fala entre si, e o que eu li foi o que ' +
-          '<b>você</b> publicou. Estas são hipóteses tiradas do que você confronta — ' +
-          'nenhuma delas é resposta até você confirmar.</p><ul>' +
-          d.comunidadeHipoteses.map(function (x) {
-            return '<li>' + esc(x) + '</li>';
-          }).join('') + '</ul></div>'
-        : '') +
-
-      /* A régua vem da regra do nicho: o filtro tem que ser algo que a
-         plataforma aplique num scroll de 3 segundos, e recorte fino demais mata
-         a distribuição. Comunidade pequena demais faz o mesmo. */
-      (d.comunidadeTamanho && d.comunidadeTamanho.porte
-        ? '<div class="pf-porte ' +
-          (/pequen/i.test(d.comunidadeTamanho.porte) ? 'aperta' :
-           /m[ée]di/i.test(d.comunidadeTamanho.porte) ? 'meio' : 'larga') + '">' +
-          '<span class="k">Tamanho da comunidade &middot; ' +
-          esc(d.comunidadeTamanho.porte) + '</span>' +
-          '<p>' + esc(d.comunidadeTamanho.porque || '') +
-          (/pequen|m[ée]di/i.test(d.comunidadeTamanho.porte)
-            ? ' <b>Isto é ponto de atenção:</b> o filtro precisa ser algo que a ' +
-              'plataforma aplique num scroll de 3 segundos — recorte fino demais mata a ' +
-              'distribuição, e comunidade pequena demais faz o mesmo.'
-            : '') + '</p></div>'
+        ? caixaHipotese(
+            'Isto é o que a sua audiência fala entre si, e o que eu li foi o que ' +
+            '<b>você</b> publicou. Nenhuma destas é resposta — é você quem preenche.',
+            d.comunidadeHipoteses.map(function (x) { return { texto: x }; }))
         : '') +
       '</div>';
 
