@@ -334,6 +334,54 @@
     estadoSinc(ident.nome ? 'on' : '');
   }
 
+  /* ---------- lembrar onde a pessoa estava ----------
+     A tela é montada por JavaScript depois que a ficha chega, então quando o
+     navegador tenta devolver a rolagem sozinho o corpo ainda está vazio e ele
+     desiste. Guardamos por conta própria.
+
+     E guardamos junto quais painéis estavam abertos: devolver o ponto sem
+     reabrir o painel deixa a pessoa num lugar cujo conteúdo fechou — pior do
+     que voltar ao topo. Em sessionStorage, não localStorage: é "onde eu
+     estava agora", não uma preferência que sobrevive à semana. */
+  var CHAVE_LUGAR = 'maquina-conteudo.lugar';
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  function lugarLido() {
+    try { return JSON.parse(sessionStorage.getItem(CHAVE_LUGAR)) || {}; }
+    catch (e) { return {}; }
+  }
+  function abertos(mapa) {
+    return Object.keys(mapa).filter(function (k) { return mapa[k]; });
+  }
+  function guardarLugar() {
+    try {
+      sessionStorage.setItem(CHAVE_LUGAR, JSON.stringify({
+        etapa: atual, y: Math.round(window.scrollY),
+        rot: abertos(rtAbertos), dir: abertos(rtDirecao),
+        tr: abertos(trAbertas), voz: vozAberta
+      }));
+    } catch (e) { /* aba anônima, cota cheia — a tela funciona sem isso */ }
+  }
+
+  var relogioLugar = null;
+  window.addEventListener('scroll', function () {
+    if (relogioLugar) return;
+    relogioLugar = setTimeout(function () { relogioLugar = null; guardarLugar(); }, 250);
+  }, { passive: true });
+
+  /* Só devolve o lugar quando a tela aberta é a mesma de onde a pessoa saiu.
+     Reabrir os painéis da Fase 2 estando na Fase 0 não ajuda ninguém. */
+  function restaurarLugar() {
+    var m = lugarLido();
+    if (!m.etapa || m.etapa !== atual) return;
+    (m.rot || []).forEach(function (i) { rtAbertos[i] = true; });
+    (m.dir || []).forEach(function (i) { rtDirecao[i] = true; });
+    (m.tr || []).forEach(function (i) { trAbertas[i] = true; });
+    vozAberta = !!m.voz;
+    pintarFase2();
+    if (m.y) setTimeout(function () { window.scrollTo(0, m.y); }, 120);
+  }
+
   /* ---------- navegação ---------- */
   function ir(id, quieto) {
     var st = STEPS.filter(function (s) { return s.id === id; })[0];
@@ -345,6 +393,7 @@
     fecharMenu();
     if (history.replaceState) history.replaceState(null, '', '#' + id);
     if (!quieto) window.scrollTo(0, 0);
+    guardarLugar();
     clearInterval(filaPoll);
     if (ident.id) buscarVoz();
     if (id === 'fase1' && ident.id) { olharBenchmarks(); enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
@@ -1784,6 +1833,7 @@
         var it = +t.getAttribute('data-abrir-tr');
         trAbertas[it] = !trAbertas[it];
         document.querySelector('[data-tr="' + it + '"]').classList.toggle('aberto', !!trAbertas[it]);
+        guardarLugar();
         return;
       }
       if (t.hasAttribute('data-copiar-tr')) {
@@ -1795,13 +1845,13 @@
       if (t.hasAttribute('data-abrir-rot')) {
         var ro = +t.getAttribute('data-abrir-rot');
         rtAbertos[ro] = !rtAbertos[ro];
-        pintarFase2();
+        pintarFase2(); guardarLugar();
         return;
       }
       if (t.hasAttribute('data-abrir-dir')) {
         var rd = +t.getAttribute('data-abrir-dir');
         rtDirecao[rd] = !rtDirecao[rd];
-        pintarFase2();
+        pintarFase2(); guardarLugar();
         return;
       }
       if (t.hasAttribute('data-copiar-rot')) {
@@ -1879,7 +1929,7 @@
       else if (a === 'modo-primeiro') trocarPorta('primeiro');
       else if (a === 'porta-fechar') fecharFolhas();
       else if (a === 'marco-fechar') fecharFolhas();
-      else if (a === 'voz') { vozAberta = !vozAberta; buscarVoz(); }
+      else if (a === 'voz') { vozAberta = !vozAberta; buscarVoz(); guardarLugar(); }
       else if (a === 'analisar') pedirAnalise();
       else if (a === 'copiar') copiar(texto(), 'Ficha copiada');
       else if (a === 'baixar') baixar();
@@ -2008,7 +2058,13 @@
     /* Aplicativo abre na tela de entrar. Quem já entrou uma vez tem sessão e
        passa direto; quem não tem conta fecha a folha e cai no briefing, que
        é a página de quem ainda está decidindo. */
-    if (Sessao.tem(KEY_SESSAO) && retomarSessao(alvo ? h : null)) return;
+    /* devolver o lugar só faz sentido quando a URL já diz em que etapa a
+       pessoa estava — recarregou. Abrindo pelo link, sem etapa nenhuma, ela
+       começa do começo, que foi o combinado. */
+    if (Sessao.tem(KEY_SESSAO) && retomarSessao(alvo ? h : null)) {
+      if (alvo) restaurarLugar();
+      return;
+    }
     ir(alvo ? h : 'briefing', true);
     abrirPorta('entrar');
   }
