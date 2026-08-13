@@ -1494,10 +1494,11 @@
         salvarIdent();
       }
       montar(); pintarPe();
-      /* se há roteiro esperando, é ali que a pessoa tem trabalho agora —
-         cair na Fase 0 seria mandá-la reler o que já respondeu */
-      ir(temRoteiros() ? 'fase2' : concluida('fase0') ? 'fase1' : 'fase0');
-    }).catch(function () { montar(); ir('fase0'); });
+      /* Sempre no começo. Largar a pessoa no meio do fluxo — ainda que seja
+         onde ela tem trabalho — tira dela a noção de onde está e do que veio
+         antes. Quem quiser pular vai pelo lateral, que mostra tudo aberto. */
+      ir('briefing');
+    }).catch(function () { montar(); ir('briefing'); });
   }
 
   function entrar(bt) {
