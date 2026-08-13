@@ -167,19 +167,19 @@
     var cels =
       cel('Vídeos nos últimos ' + (p.diasJanela || '?') + ' dias', num(p.videosNaJanela),
           p.janela ? p.janela.replace(' a ', ' até ') : '') +
-      cel('Mediana de views', num(p.medianaJanela), 'metade dos vídeos fica abaixo') +
+      cel('Média de views', num(p.medianaJanela), 'metade dos vídeos fica abaixo') +
       cel('Mais visto no período', num(p.tetoJanela) + ' views',
-          mult ? mult + '× a mediana' : '', true) +
+          mult ? mult + '× a sua média' : '', true) +
       cel('Mais visto de todos', num(p.tetoHistorico) + ' views', 'desde 2022');
 
     if (p.medianaCompart != null) {
-      cels += cel('Mediana de compartilhamentos', num(p.medianaCompart),
+      cels += cel('Média de compartilhamentos', num(p.medianaCompart),
                   p.taxaCompartMediana ? p.taxaCompartMediana + '% de quem viu' : '');
     }
 
     return '<div class="grupo">' +
       '<div class="kpi">' + cels + '</div>' +
-      '<p class="pf-nota">A distância entre a mediana e o pico é a informação mais útil daqui: ' +
+      '<p class="pf-nota">A distância entre a sua média e o pico é a informação mais útil daqui: ' +
       'ela mostra que <b>o alcance existe</b>. O que falta é repetir o acerto.<br><br>' +
       '<b>Compartilhamento é a métrica que decide.</b> View diz que a pessoa assistiu; ' +
       'compartilhamento diz que ela se reconheceu a ponto de mandar pra alguém — e é ' +
@@ -218,7 +218,7 @@
     return '<div class="grupo">' +
       '<span class="rotulo-bloco">O que mais viralizou</span>' +
       '<div class="cartao"><ul class="bar-lista">' + itens + '</ul>' +
-      (med ? '<p class="pf-nota">Linha de corte: a mediana, <b>' + num(med) + ' views</b>. ' +
+      (med ? '<p class="pf-nota">Linha de corte: a sua média, <b>' + num(med) + ' views</b>. ' +
         'Barras em cinza ficaram abaixo dela.</p>' : '') +
       '</div></div>';
   }
