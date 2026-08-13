@@ -1025,6 +1025,44 @@
         (aberto ? '<div class="rt-b">' + corpoRoteiro(r, tr.texto || '') + '</div>' : '') +
         '</div>';
     }).join('');
+
+    pintarRegrasVoz();
+  }
+
+  /* ---------- o laço: a correção vira voz ----------
+     Cada trecho que a pessoa reescreve deixa um par (o que a máquina
+     escreveu → o que ela fala). O trabalhador lê o par, separa o que é
+     jeito de falar do que é erro de informação, e só o primeiro vira
+     regra. Aqui a gente mostra o que ele aprendeu — quem corrige tem
+     que ver que a correção foi para algum lugar. */
+  function pintarRegrasVoz() {
+    var el = $('fase2Voz'); if (!el) return;
+    var v = state.regrasVoz || {};
+    var regras = v.regras || [];
+    if (!regras.length) { el.innerHTML = ''; return; }
+
+    var c = v.contagem || {};
+    el.innerHTML = '<div class="voz aberta" style="margin:1.4rem 0 0">' +
+      '<span class="k">O laço fechando</span>' +
+      '<h3>O que eu aprendi do seu jeito de falar</h3>' +
+      '<p>Saiu das suas próprias correções: cada trecho que você reescreveu virou uma ' +
+      'regra que entra no próximo roteiro. ' + (c.correcoes || regras.length) +
+      ' correção(ões) lidas até aqui.</p>' +
+      '<div class="voz-corpo"><ul class="rt-conf" style="margin:0">' +
+      regras.map(function (r) {
+        return '<li>' + esc(r.regra) +
+          (r.vezes > 1 ? ' <b style="color:var(--rotulo-3)">· ' + r.vezes + '×</b>' : '') +
+          '</li>';
+      }).join('') + '</ul>' +
+      /* o erro de informação NÃO vira regra de voz — se virasse, o modelo
+         aprenderia que pode inventar porque alguém conserta depois */
+      ((v.fatos || []).length
+        ? '<p class="rt-legenda" style="margin-top:.9rem"><b>Também errei ' +
+          v.fatos.length + ' informação(ões)</b> que você consertou — versículo, nome, ' +
+          'número. Isso eu não guardo como jeito de falar, guardo como erro meu. ' +
+          'É por isso que conferir a citação antes de gravar continua valendo.</p>'
+        : '') +
+      '</div></div>';
   }
 
   /* ---------- o que já funcionou com a própria pessoa ----------
