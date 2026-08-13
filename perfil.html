@@ -176,6 +176,26 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     color:var(--rotulo-3);margin-bottom:.15rem}
 }
 
+/* ---------- legenda sincronizada, parágrafo a parágrafo ----------
+   Casar só as três faixas não bastava: quem revisa quer ver a frase em
+   inglês na mesma linha do parágrafo que nasceu dela. */
+.lg-linha{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;
+  padding:.55rem 0;position:relative;align-items:start}
+.lg-linha+.lg-linha::before{content:"";position:absolute;top:0;left:0;right:0;
+  height:.5px;background:var(--sep)}
+.lg-pt{font-size:14px;line-height:1.6;letter-spacing:-.011em;white-space:pre-wrap}
+.lg-en{font-size:13.5px;line-height:1.6;letter-spacing:-.011em;color:var(--rotulo-2);
+  white-space:pre-wrap}
+.lg-vazio{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.lg-linha.novo .lg-vazio{color:var(--verde)}
+.lg-linha.fora .lg-pt .lg-vazio{color:var(--rotulo-3)}
+.lg-linha.fora .lg-en{text-decoration:line-through;text-decoration-color:var(--rotulo-4)}
+@media(max-width:52rem){
+  .lg-linha{grid-template-columns:1fr;gap:.3rem}
+  .lg-en::before{content:"original";display:block;font-size:10px;font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--rotulo-3)}
+}
+
 /* ---------- briefing de direção ----------
    Outro leitor, outra necessidade: quem grava não precisa do teleprompter,
    precisa saber onde pôr a câmera. Por isso é painel próprio. */
@@ -902,18 +922,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       var corrigido = typeof t.final === 'string' && t.final !== t.txt;
       var chave = r.n + ':' + i;
 
-      var pt = '<div class="rt-pt" data-cx="' + chave + '">' +
-        '<p class="tr-txt" data-txt="' + chave + '">' +
-        esc(corrigido ? t.final : t.txt) + '</p>' +
-        (corrigido
-          ? '<button class="rt-antes" data-antes="' + chave + '">ver o que a máquina ' +
-            'tinha escrito</button><p class="tr-txt orig rt-oculto" data-orig="' + chave +
-            '">' + esc(t.txt) + '</p>'
-          : '') +
-        '</div>';
-
-      return '<div class="rt-faixa ' + cls + '">' +
-        '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
+      var cabeca = '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
         (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
         /* os dois tempos sempre à vista, não só quando estoura: é a comparação
            que responde "o meu está mais longo que o dele?" */
@@ -923,12 +932,44 @@ details[open] .tr-ler{color:var(--rotulo-3)}
           seg(lados[i].length / cpsEn) + 's</span>' : '') +
         (corrigido ? '<span class="rt-marca">corrigido</span>' : '') +
         '<button class="rt-editar" data-ed="' + chave + '">editar</button>' +
-        '</div>' +
-        (lados
+        '</div>';
+
+      /* Com alinhamento, a faixa vira tabela de legenda: cada parágrafo ao
+         lado da frase inglesa que deu origem a ele. Depois de corrigida ela
+         volta ao texto corrido — o pareamento por frase não vale mais. */
+      var linhas = corrigido
+        ? []
+        : (r.pares || []).filter(function (l) { return l.faixa === t.rot; });
+
+      var miolo;
+      if (linhas.length) {
+        miolo = '<div class="rt-pt" data-cx="' + chave + '">' +
+          linhas.map(function (l) {
+            var so = !l.en ? ' novo' : (!l.pt ? ' fora' : '');
+            return '<div class="lg-linha' + so + '">' +
+              '<div class="lg-pt">' + (l.pt ? esc(l.pt)
+                : '<span class="lg-vazio">cortei este trecho</span>') + '</div>' +
+              '<div class="lg-en">' + (l.en ? esc(l.en)
+                : '<span class="lg-vazio">acrescentei — não estava no original</span>') +
+              '</div></div>';
+          }).join('') + '</div>';
+      } else {
+        var pt = '<div class="rt-pt" data-cx="' + chave + '">' +
+          '<p class="tr-txt" data-txt="' + chave + '">' +
+          esc(corrigido ? t.final : t.txt) + '</p>' +
+          (corrigido
+            ? '<button class="rt-antes" data-antes="' + chave + '">ver o que a máquina ' +
+              'tinha escrito</button><p class="tr-txt orig rt-oculto" data-orig="' + chave +
+              '">' + esc(t.txt) + '</p>'
+            : '') +
+          '</div>';
+        miolo = lados
           ? '<div class="rt-par">' + pt + '<div class="rt-en"><p class="tr-txt orig">' +
             esc(en) + '</p></div></div>'
-          : pt) +
-        '</div>';
+          : pt;
+      }
+
+      return '<div class="rt-faixa ' + cls + '">' + cabeca + miolo + '</div>';
     }).join('');
 
     h += barra.replace('{onde}', ' pe');
