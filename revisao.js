@@ -404,7 +404,25 @@
     return h + '</div>';
   }
 
-  function blocoFase1(d, p) {
+  /* O texto falado do vídeo, do jeito que saiu. Em outra língua vêm as duas
+     versões, porque na hora de gravar se troca uma palavra e é preciso ver o
+     que a frase dizia antes. */
+  function corpoTranscricao(t) {
+    var en = String(t.idioma || '').toLowerCase().indexOf('en') === 0;
+    var h = '';
+    if (en) {
+      h += '<span class="tr-rot">Original em ' + esc(t.idioma || 'outra língua') + '</span>' +
+        '<p class="tr-txt orig">' + esc(t.texto) + '</p>';
+      h += t.texto_pt
+        ? '<span class="tr-rot">Tradução</span><p class="tr-txt">' + esc(t.texto_pt) + '</p>'
+        : '<p class="tr-falta">Tradução ainda não foi feita — só o original está aqui.</p>';
+    } else {
+      h += '<p class="tr-txt">' + esc(t.texto) + '</p>';
+    }
+    return h;
+  }
+
+  function blocoFase1(d, p, transcricoes) {
     var vs = (d.videos || []).filter(function (v) { return v && v.views; });
     if (!vs.length) {
       return '<div class="grupo">' +
@@ -439,6 +457,10 @@
     var minha = p.tetoHistorico || 0;
     /* foto e nome de cada canal, puxados uma vez pela API interna do Instagram */
     var refs = d.perfisRef || {};
+    /* A transcrição fica ao lado do vídeo de que ela é, não numa seção à parte:
+       quem quer ler o texto está olhando aquele vídeo naquele momento. */
+    var trPorUrl = {};
+    (transcricoes || []).forEach(function (t) { if (t.url && t.texto) trPorUrl[t.url] = t; });
 
     var itens = vs.map(function (v) {
       var pct = Math.max(v.views / teto * 100, 1.2);
@@ -459,7 +481,10 @@
         v.duracao ? Math.round(v.duracao) + 's' : ''
       ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>') +
       (v.url ? '<a class="rt-assistir mini" href="' + esc(v.url) + '" target="_blank" ' +
-        'rel="noopener">' + IC_PLAY + 'assistir</a>' : '');
+        'rel="noopener">' + IC_PLAY + 'assistir</a>' : '') +
+      (trPorUrl[v.url]
+        ? '<button class="rt-assistir mini" data-abre="tr:' + esc(v.url) + '" ' +
+          'data-fecha="fechar">transcrição</button>' : '');
       var marca = v.idioma === 'en'
         ? '<span class="selo s3" style="margin-left:.4rem">roteiro pronto</span>'
         : '<span class="selo s1" style="margin-left:.4rem">fora da leva</span>';
@@ -481,7 +506,12 @@
         '<span class="ref-tit">' + esc(v.titulo || '') + '</span>' +
         '</span></div>' +
         '<span class="bar-t"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
-        '<span class="bar-pe">' + pe + '</span></li>';
+        '<span class="bar-pe">' + pe + '</span>' +
+        (trPorUrl[v.url]
+          ? '<details class="rt-painel" data-ch="tr:' + esc(v.url) + '"><summary></summary>' +
+            '<div class="tr-corpo">' + corpoTranscricao(trPorUrl[v.url]) + '</div></details>'
+          : '') +
+        '</li>';
     }).join('');
 
     var razao = (p.medianaJanela && mViews) ? Math.round(mViews / p.medianaJanela) : 0;
@@ -557,85 +587,6 @@
 
   /* As transcrições são o insumo do roteiro — quem revisa precisa poder LER,
      não só saber que existem. Por isso o texto abre na própria página. */
-  function blocoTranscricoes(lista) {
-    if (!lista || !lista.length) {
-      return '<div class="grupo"><div class="cartao">' +
-        '<p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
-        'Nenhuma transcrição ainda.</p></div></div>';
-    }
-
-    function ehIngles(t) { return String(t.idioma || '').toLowerCase().indexOf('en') === 0; }
-
-    function item(t, i) {
-      const en = ehIngles(t);
-      const titulo = (t.titulo || '').split('\n')[0].trim();
-      const orig = t.texto || '';
-      const pt = t.texto_pt || '';
-
-      let corpo = '';
-      /* o link vem antes do texto: quem abre a transcrição quase sempre quer
-         ouvir a entonação do original antes de ler */
-      if (t.url) {
-        corpo += '<a class="rt-assistir" href="' + esc(t.url) + '" target="_blank" ' +
-          'rel="noopener">' + IC_PLAY + 'Assistir o vídeo original</a>';
-      }
-      if (en) {
-        corpo += '<span class="tr-rot">Original em inglês</span>' +
-          '<p class="tr-txt orig">' + esc(orig) + '</p>';
-        corpo += pt
-          ? '<span class="tr-rot">Tradução</span><p class="tr-txt">' + esc(pt) + '</p>'
-          : '<p class="tr-falta">Tradução ainda não foi feita — só o original está aqui.</p>';
-      } else {
-        corpo += '<p class="tr-txt">' + esc(orig) + '</p>';
-      }
-      /* A linha inteira é o botão, com o número à esquerda — o mesmo desenho do
-         app. O "ler ›" na ponta direita saiu: ele repetia com texto o que a
-         linha inteira já fazia, e ainda puxava o olho para o canto errado. */
-      return '<li><details data-ch="tr:' + esc(t.url || titulo) + '">' +
-        '<summary class="tr-it"><div class="tr-linha">' +
-        '<span class="tr-num' + (en ? ' en' : '') + '">' + (i + 1) + '</span>' +
-        '<span class="tr-cx"><span class="tr-nm">@' + esc(String(t.perfil || '?').replace(/^@+/, '')) + '</span>' +
-        (titulo ? '<span class="tr-sub">' + esc(titulo) + '</span>' : '') + '</span>' +
-        '<span class="tr-tag' + (en ? ' en' : '') + '">' +
-        (en ? 'inglês' : 'português') + ' · ' + Math.round(orig.length / 100) / 10 + ' mil car.' +
-        '</span>' +
-        '</div></summary>' +
-        '<div class="tr-corpo">' + corpo + '</div></details></li>';
-    }
-
-    const ingles = lista.filter(ehIngles);
-    const portugues = lista.filter(function (t) { return !ehIngles(t); });
-    const semTraducao = ingles.filter(function (t) { return !t.texto_pt; }).length;
-
-    let h = '<div class="grupo">';
-
-    if (ingles.length) {
-      h += '<div class="cartao"><div class="cartao-h">' +
-        '<h3 style="font-size:18px">Em inglês — as ' + ingles.length + ' que viram roteiro</h3>' +
-        '<p>Copiar um vídeo em outra língua produz conteúdo novo em português. ' +
-        'Guardamos as duas versões porque, ao revisar, você vai querer trocar palavras — ' +
-        'e para isso precisa ver o que a frase dizia no original.</p></div>' +
-        '<ul class="tr-lista">' + ingles.map(item).join('') + '</ul>' +
-        (semTraducao
-          ? '<p class="pf-nota"><b>' + semTraducao + ' ainda sem tradução.</b> A importação ' +
-            'trouxe os originais dos arquivos e o trabalhador foi parado, então o campo de ' +
-            'tradução ficou vazio. Os roteiros já prontos não dependem disso — eles foram ' +
-            'escritos a partir destes mesmos originais.</p>'
-          : '') +
-        '</div>';
-    }
-
-    if (portugues.length) {
-      h += '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
-        '<h3 style="font-size:18px">Em português — as ' + portugues.length + ' que ficam de fora</h3>' +
-        '<p>Ficam registradas, mas não viram roteiro. Copiar quem fala a mesma língua ' +
-        'para a mesma audiência não chega como novidade — chega como cópia visível.</p></div>' +
-        '<ul class="tr-lista">' + portugues.map(item).join('') + '</ul></div>';
-    }
-
-    return h + '</div>';
-  }
-
   /* O roteiro diz o que falar; isto diz como filmar. São dois leitores
      diferentes — o especialista e quem grava — por isso painel separado.
      Lê os frames do original: a direção que se copia é a de lá. */
@@ -1350,14 +1301,12 @@
         'Responder "o que é conteúdo bom?" com dado em vez de opinião. Você não procura ' +
         'canal de que gosta — procura o vídeo que já ganhou.',
         concluida('fase1', d) ? 'feito' : 'aberto', false, 'p-fase1') +
-      blocoFase1(d, p) +
+      blocoFase1(d, p, transcricoes) +
 
-      ((transcricoes || []).length
-        ? divisor('', 'As transcrições',
-            'O texto falado de cada referência, do jeito que saiu. É daqui que o roteiro ' +
-            'nasce — e é aqui que você confere se a tradução diz o que o original dizia.',
-            'diag', false, 'p-transc') + blocoTranscricoes(transcricoes)
-        : '') +
+      /* A seção das transcrições saiu: o original de cada referência já aparece
+         dentro do roteiro, linha a linha ao lado do português, que é onde ele
+         serve. As transcrições continuam sendo buscadas — é delas que sai esse
+         pareamento —, só não têm mais uma seção só para elas. */
 
       divisor('2', 'Replicar o validado',
         'Pegar o vídeo que já provou que funciona, transformar em roteiro de teleprompter ' +

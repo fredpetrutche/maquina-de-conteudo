@@ -38,7 +38,6 @@
     { an: 'p-numeros', nm: 'Os seus números', grupo: 'A sua ficha' },
     { an: 'p-fase0', nm: 'Definir o campo', fase: 'fase0' },
     { an: 'p-fase1', nm: 'Minerar benchmarks', fase: 'fase1' },
-    { an: 'p-transc', nm: 'As transcrições' },
     { an: 'p-fase2', nm: 'Replicar o validado', fase: 'fase2' },
     { an: 'p-fase3', nm: 'Retroalimentar a IA', lock: 1, grupo: 'Destrava depois' }
   ];
