@@ -216,6 +216,21 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   background:var(--preench);border-radius:99px;padding:.25rem .7rem;margin-top:.15rem}
 .dr-som b{font-weight:600}
 
+/* ---------- copiar para o teleprompter ----------
+   Em cima e embaixo: em cima para quem já sabe o que quer, embaixo para quem
+   leu o roteiro inteiro e não vai rolar de volta. */
+.rt-barra{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.2rem 0 .8rem}
+.rt-barra.pe{margin:1rem 0 .2rem;padding-top:.8rem;border-top:.5px solid var(--sep)}
+.rt-copiar{display:inline-flex;align-items:center;gap:.4rem;border:0;cursor:pointer;
+  padding:.4rem .8rem;border-radius:99px;background:var(--preench);color:var(--tinta);
+  font:inherit;font-size:13px;font-weight:600}
+.rt-copiar:hover{background:var(--preench-2)}
+.rt-copiar.ok{background:var(--verde-fraco);color:var(--verde)}
+.rt-copiar svg{width:.85rem;height:.85rem}
+.rt-dur{font-size:12px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
+.rt-dur b{font-weight:600;color:var(--rotulo)}
+.rt-dur .longo{color:var(--laranja);font-weight:600}
+
 /* ---------- correção do especialista ---------- */
 .rt-editar{border:0;background:none;cursor:pointer;padding:0 .1rem;
   font-size:11px;font-weight:600;color:var(--tinta);margin-left:auto}
@@ -333,6 +348,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   var IC_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   var IC_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>';
   var IC_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+  var IC_COPIA = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15V5.5A2.5 2.5 0 0 1 7.5 3H15"/></svg>';
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -853,6 +869,26 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       ? [orig.slice(0, cortes[0]), orig.slice(cortes[0], cortes[1]), orig.slice(cortes[1])]
       : null;
 
+    /* A duração fica à vista porque ela é retenção: um roteiro que estica 50%
+       além do original não é o mesmo vídeo, é outro. */
+    var meus = faixas.reduce(function (a, t) {
+      return a + (typeof t.final === 'string' ? t.final.length : (t.txt || '').length) / 16;
+    }, 0);
+    var sobra = r.duracao ? meus / r.duracao - 1 : 0;
+    var barra = '<div class="rt-barra{onde}">' +
+      '<button class="rt-copiar" data-cp="' + r.n + '">' + IC_COPIA +
+      'Copiar para o teleprompter</button>' +
+      (r.duracao
+        ? '<span class="rt-dur">estimado <b>' + Math.round(meus) + 's</b> · ' +
+          'o original tem ' + r.duracao + 's' +
+          (sobra > 0.2
+            ? ' · <span class="longo">' + Math.round(sobra * 100) + '% mais longo</span>'
+            : '') + '</span>'
+        : '') +
+      '</div>';
+
+    h += barra.replace('{onde}', '');
+
     if (lados) {
       h += '<div class="rt-colrot"><span>Português — é isto que você grava</span>' +
         '<span>Original em inglês</span></div>';
@@ -879,8 +915,11 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       return '<div class="rt-faixa ' + cls + '">' +
         '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
         (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
-        (t.estoura ? '<span class="rt-real">seu: ' + seg(t.s) + 's</span>' : '') +
-        (en && cpsEn ? '<span class="rt-seg">original: ' +
+        /* os dois tempos sempre à vista, não só quando estoura: é a comparação
+           que responde "o meu está mais longo que o dele?" */
+        '<span class="rt-' + (t.estoura ? 'real' : 'seg') + '">seu ' +
+        seg((typeof t.final === 'string' ? t.final.length : t.txt.length) / 16) + 's</span>' +
+        (en && cpsEn ? '<span class="rt-seg">original ' +
           seg(lados[i].length / cpsEn) + 's</span>' : '') +
         (corrigido ? '<span class="rt-marca">corrigido</span>' : '') +
         '<button class="rt-editar" data-ed="' + chave + '">editar</button>' +
@@ -891,6 +930,8 @@ details[open] .tr-ler{color:var(--rotulo-3)}
           : pt) +
         '</div>';
     }).join('');
+
+    h += barra.replace('{onde}', ' pe');
 
     if (faixas.length > 1) {
       h += '<p class="rt-legenda">No inglês o tempo é medido — a duração do vídeo é ' +
@@ -1168,6 +1209,25 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     });
   }
 
+  /* A área de transferência moderna só existe em https e com a aba em foco.
+     O caminho antigo continua valendo como rede de segurança. */
+  function copiar(texto) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(texto);
+    }
+    return new Promise(function (ok, erro) {
+      var cx = document.createElement('textarea');
+      cx.value = texto;
+      cx.style.cssText = 'position:fixed;top:-9999px;opacity:0';
+      document.body.appendChild(cx);
+      cx.select();
+      var deu = false;
+      try { deu = document.execCommand('copy'); } catch (e) { deu = false; }
+      document.body.removeChild(cx);
+      deu ? ok() : erro(new Error('sem área de transferência'));
+    });
+  }
+
   function fecharMenu() {
     document.getElementById('lateral').classList.remove('aberto');
     document.getElementById('veu').classList.remove('on');
@@ -1179,6 +1239,35 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     if (e.target.closest('[data-act="menu"]')) {
       var ab = document.getElementById('lateral').classList.toggle('aberto');
       document.getElementById('veu').classList.toggle('on', ab);
+      return;
+    }
+
+    var cp = e.target.closest('[data-cp]');
+    if (cp) {
+      e.preventDefault();
+      /* copia a versão corrigida quando ela existe — é ela que vai ser lida.
+         Sem rótulo de faixa: o que vai para o teleprompter é só a fala. */
+      var rr = ((FICHA.dados || {}).roteiros || []).filter(function (x) {
+        return String(x.n) === cp.getAttribute('data-cp');
+      })[0];
+      if (!rr) return;
+      var texto = (rr.trechos || []).length
+        ? rr.trechos.map(function (t) {
+            return typeof t.final === 'string' ? t.final : t.txt;
+          }).join('\n\n')
+        : (rr.texto || '');
+
+      copiar(texto).then(function () {
+        var antes = cp.innerHTML;
+        cp.classList.add('ok');
+        cp.innerHTML = IC_CHECK + 'Copiado';
+        setTimeout(function () {
+          cp.classList.remove('ok');
+          cp.innerHTML = antes;
+        }, 1800);
+      }).catch(function () {
+        cp.innerHTML = IC_COPIA + 'Não consegui copiar';
+      });
       return;
     }
 
