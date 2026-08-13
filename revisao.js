@@ -519,7 +519,7 @@
 
     function ehIngles(t) { return String(t.idioma || '').toLowerCase().indexOf('en') === 0; }
 
-    function item(t) {
+    function item(t, i) {
       const en = ehIngles(t);
       const titulo = (t.titulo || '').split('\n')[0].trim();
       const orig = t.texto || '';
@@ -541,15 +541,17 @@
       } else {
         corpo += '<p class="tr-txt">' + esc(orig) + '</p>';
       }
+      /* A linha inteira é o botão, com o número à esquerda — o mesmo desenho do
+         app. O "ler ›" na ponta direita saiu: ele repetia com texto o que a
+         linha inteira já fazia, e ainda puxava o olho para o canto errado. */
       return '<li><details data-ch="tr:' + esc(t.url || titulo) + '">' +
         '<summary class="tr-it"><div class="tr-linha">' +
-        '<span class="tr-seta">&#9654;</span>' +
+        '<span class="tr-num' + (en ? ' en' : '') + '">' + (i + 1) + '</span>' +
         '<span class="tr-cx"><span class="tr-nm">@' + esc(String(t.perfil || '?').replace(/^@+/, '')) + '</span>' +
         (titulo ? '<span class="tr-sub">' + esc(titulo) + '</span>' : '') + '</span>' +
         '<span class="tr-tag' + (en ? ' en' : '') + '">' +
         (en ? 'inglês' : 'português') + ' · ' + Math.round(orig.length / 100) / 10 + ' mil car.' +
         '</span>' +
-        '<span class="tr-ler">ler &rsaquo;</span>' +
         '</div></summary>' +
         '<div class="tr-corpo">' + corpo + '</div></details></li>';
     }

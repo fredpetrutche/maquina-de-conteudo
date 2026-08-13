@@ -109,16 +109,9 @@
 .tr-it:hover{background:var(--preench)}
 .tr-it:focus-visible{outline:2px solid var(--tinta);outline-offset:-2px}
 .tr-linha{display:flex;gap:.65rem;align-items:center;padding:.75rem .7rem}
-.tr-seta{width:1.4rem;height:1.4rem;flex:none;border-radius:99px;
-  background:var(--preench-2);color:var(--rotulo-2);font-size:9px;
-  display:grid;place-items:center;transition:transform .18s ease}
-.tr-it:hover .tr-seta{background:var(--tinta);color:#fff}
-details[open] .tr-seta{transform:rotate(90deg);background:var(--tinta);color:#fff}
-.tr-cx{flex:1;min-width:0}
+.tr-it:hover details[open] .tr-cx{flex:1;min-width:0}
 .tr-nm{font-size:14px;font-weight:600;letter-spacing:-.012em}
-.tr-ler{font-size:12px;font-weight:600;color:var(--tinta);flex:none;white-space:nowrap}
-details[open] .tr-ler{color:var(--rotulo-3)}
-.tr-sub{display:block;font-size:12px;color:var(--rotulo-2);margin-top:.1rem;
+details[open] .tr-sub{display:block;font-size:12px;color:var(--rotulo-2);margin-top:.1rem;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tr-tag{font-size:11px;font-weight:600;padding:.15rem .45rem;border-radius:99px;
   flex:none;background:var(--preench);color:var(--rotulo-2);white-space:nowrap}
@@ -354,3 +347,14 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 .pf-hip-p{display:block;font-size:12.5px;color:var(--rotulo-2);line-height:1.45;margin-top:.15rem}
 .pf-hip-pe{font-size:12.5px;color:var(--rotulo-2);margin:.7rem 0 0}
 .pf-hip-pe b{color:var(--tinta)}
+
+/* ---------- a linha da transcrição, no desenho do app ----------
+   Número à esquerda, nome e título no meio, a língua na ponta. A linha inteira
+   abre — não precisa de um "ler ›" repetindo com texto o que ela já faz. */
+.tr-num{width:1.6rem;height:1.6rem;flex:none;border-radius:7px;display:grid;
+  place-items:center;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;
+  background:var(--preench-2);color:var(--rotulo-2)}
+.tr-num.en{background:var(--verde);color:#fff}
+.tr-linha{min-height:3rem}
+.tr-corpo{padding:0 .2rem 1rem 2.25rem}
+@media(max-width:34rem){ .tr-corpo{padding-left:.2rem} }
