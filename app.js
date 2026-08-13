@@ -10,7 +10,9 @@
   var SUPA_URL = 'https://mkajvxyiyqxotiydkylq.supabase.co';
   var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rYWp2eHlpeXF4b3RpeWRreWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgzNzcsImV4cCI6MjEwMjAzNDM3N30.vfHCb8BRcshufnp_7eAt9ch4aVEMpcbVA5u16IS0Kao';
 
-  var ALVO_TEMAS = 10;
+  var ALVO_TEMAS = 10;   // a meta
+  var MIN_TEMAS = 3;     // o piso — mesma regra da tela de perfil (item 1.13),
+                         // para as duas telas nunca discordarem sobre o que está feito
   var ALVO_CANAIS = 10;
   var ALVO_VIDEOS = 10;
   var TEMAS_INICIAIS = 3;
@@ -253,7 +255,7 @@
     if (id === 'fase0') {
       return !!(state.macroNicho.trim() && state.subNicho.trim() &&
         state.comunidade.trim() && state.comunidadeBandeira.trim() && state.comunidadeCausa.trim() &&
-        cheios(state.temas) >= ALVO_TEMAS &&
+        cheios(state.temas) >= MIN_TEMAS &&
         state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim());
     }
     if (id === 'fase1') return !!state.plataforma && canaisOk() >= ALVO_CANAIS;
@@ -411,7 +413,7 @@
       pg1: !!m,
       pg2: !!state.subNicho.trim(),
       pg3: !!(state.comunidade.trim() && state.comunidadeBandeira.trim() && state.comunidadeCausa.trim()),
-      pg4: cheios(state.temas) >= ALVO_TEMAS,
+      pg4: cheios(state.temas) >= MIN_TEMAS,
       pg5: !!(state.sigNome.trim() && state.sigEntrega.trim() && state.sigPromessa.trim())
     };
     Object.keys(feito).forEach(function (id) {

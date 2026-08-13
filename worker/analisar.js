@@ -58,7 +58,10 @@ Regras que não podem ser quebradas:
    serve; "empresárias com mais de 10 funcionários que querem sair do operacional" não —
    o algoritmo não lê isso em milissegundos.
 
-3. TEMAS: exatamente 10, e cada um com os RECORTES que ele já publicou dentro dele.
+3. TEMAS: até 10 — quantos os vídeos sustentarem, e cada um com os RECORTES que ele já
+   publicou dentro dele. Se der 6, entregue 6. Se der 10, entregue 10. Não invente tema
+   para fechar a conta, e não pare antes se houver material. A meta é 10; o teto é o que
+   os vídeos provam.
    Esta distinção é o que mais erra:
      - "Dízimo" é RECORTE. O TEMA é "Dinheiro".
      - "Paulo — vida, cartas, prisão" é RECORTE. O TEMA é "História dos personagens bíblicos".
@@ -123,7 +126,7 @@ function conferir(s) {
   const erros = [];
   if (!s.macroNicho) erros.push('sem macro-nicho');
   if (!s.subNicho) erros.push('sem recorte');
-  if (!Array.isArray(s.temas) || s.temas.length < 5) erros.push('menos de 5 temas');
+  if (!Array.isArray(s.temas) || !s.temas.length) erros.push('nenhum tema');
   if (!Array.isArray(s.assinaturas) || !s.assinaturas.length) erros.push('sem assinatura');
   (s.assinaturas || []).forEach((a, i) => {
     const frase = `Meu nome é ${a.sigNome} e eu ${a.sigEntrega} ${a.sigPromessa} todos os dias.`;
