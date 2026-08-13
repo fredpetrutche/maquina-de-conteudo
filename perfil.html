@@ -176,6 +176,46 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     color:var(--rotulo-3);margin-bottom:.15rem}
 }
 
+/* ---------- briefing de direção ----------
+   Outro leitor, outra necessidade: quem grava não precisa do teleprompter,
+   precisa saber onde pôr a câmera. Por isso é painel próprio. */
+.dr-headline{background:var(--tinta-fraca);border-radius:var(--r-campo);
+  padding:.9rem 1rem;margin:.2rem 0 1rem}
+.dr-headline .k{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--tinta);margin-bottom:.35rem}
+.dr-headline .t{display:block;font-size:19px;font-weight:600;letter-spacing:-.022em;
+  line-height:1.3}
+.dr-headline .c{display:block;font-size:12.5px;color:var(--rotulo-2);margin-top:.4rem;
+  line-height:1.5}
+
+.dr-tiras{display:flex;gap:.4rem;overflow-x:auto;padding:.2rem 0 .5rem;
+  scroll-snap-type:x proximate;-webkit-overflow-scrolling:touch}
+.dr-tira{flex:none;width:6.5rem;scroll-snap-align:start}
+.dr-tira img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;
+  border-radius:10px;background:var(--preench)}
+.dr-tira span{display:block;font-size:11px;color:var(--rotulo-3);margin-top:.2rem;
+  font-variant-numeric:tabular-nums;text-align:center}
+
+.dr-campo{padding:.7rem 0;position:relative}
+.dr-campo+.dr-campo::before{content:"";position:absolute;top:0;left:0;right:0;
+  height:.5px;background:var(--sep)}
+.dr-k{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);margin-bottom:.25rem}
+.dr-v{font-size:14px;line-height:1.6;letter-spacing:-.011em;margin:0;color:var(--rotulo)}
+.dr-lista{list-style:none;margin:.1rem 0 0;padding:0}
+.dr-lista li{font-size:14px;line-height:1.55;padding:.2rem 0;display:flex;gap:.5rem}
+.dr-lista li::before{content:"";flex:none;width:5px;height:5px;border-radius:99px;
+  background:var(--rotulo-3);margin-top:.55rem}
+.dr-lista li.ess::before{background:var(--tinta)}
+.dr-papel{color:var(--rotulo-3);font-size:12px}
+.dr-faixa{display:flex;gap:.6rem;padding:.35rem 0;font-size:14px;line-height:1.55}
+.dr-faixa b{flex:none;width:5.2rem;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);padding-top:.25rem}
+.dr-faixa:first-child b{color:var(--tinta)}
+.dr-som{display:inline-flex;align-items:center;gap:.4rem;font-size:13px;
+  background:var(--preench);border-radius:99px;padding:.25rem .7rem;margin-top:.15rem}
+.dr-som b{font-weight:600}
+
 /* ---------- correção do especialista ---------- */
 .rt-editar{border:0;background:none;cursor:pointer;padding:0 .1rem;
   font-size:11px;font-weight:600;color:var(--tinta);margin-left:auto}
@@ -716,6 +756,74 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     return h + '</div>';
   }
 
+  /* O roteiro diz o que falar; isto diz como filmar. São dois leitores
+     diferentes — o especialista e quem grava — por isso painel separado.
+     Lê os frames do original: a direção que se copia é a de lá. */
+  function corpoDirecao(dr) {
+    var h = '';
+
+    if (dr.headline) {
+      h += '<div class="dr-headline"><span class="k">Headline — como o vídeo abre</span>' +
+        '<span class="t">' + esc(dr.headline.texto || '') + '</span>' +
+        (dr.headline.comoAparece
+          ? '<span class="c">' + esc(dr.headline.comoAparece) + '</span>' : '') +
+        '</div>';
+    }
+
+    if ((dr.frames || []).length) {
+      h += '<div class="dr-tiras">' + dr.frames.map(function (f) {
+        return '<a class="dr-tira" href="' + esc(f.img) + '" target="_blank" ' +
+          'rel="noopener"><img src="' + esc(f.img) + '" alt="" loading="lazy">' +
+          '<span>' + String(f.s).replace('.', ',') + 's</span></a>';
+      }).join('') + '</div>';
+    }
+
+    function campo(k, v) {
+      return v ? '<div class="dr-campo"><span class="dr-k">' + esc(k) + '</span>' +
+        '<p class="dr-v">' + esc(v) + '</p></div>' : '';
+    }
+
+    h += campo('O formato', dr.formato) +
+      campo('Cenário', dr.cenario) +
+      campo('Enquadramento', dr.enquadramento);
+
+    if ((dr.elementos || []).length) {
+      h += '<div class="dr-campo"><span class="dr-k">Elementos em cena</span>' +
+        '<ul class="dr-lista">' + dr.elementos.map(function (e) {
+          var ess = /essencial/i.test(e.papel || '');
+          return '<li' + (ess ? ' class="ess"' : '') + '><span>' + esc(e.o) +
+            (e.papel ? ' <span class="dr-papel">· ' + esc(e.papel) + '</span>' : '') +
+            '</span></li>';
+        }).join('') + '</ul></div>';
+    }
+
+    if ((dr.porFaixa || []).length) {
+      h += '<div class="dr-campo"><span class="dr-k">O que muda a cada faixa</span>' +
+        dr.porFaixa.map(function (f) {
+          return '<div class="dr-faixa"><b>' + esc(f.faixa) + '</b>' +
+            '<span>' + esc(f.direcao) + '</span></div>';
+        }).join('') + '</div>';
+    }
+
+    h += campo('Texto na tela', dr.textoNaTela) +
+      campo('Corte e edição', dr.corte);
+
+    if (dr.som) {
+      h += '<div class="dr-campo"><span class="dr-k">Som</span>' +
+        '<span class="dr-som"><b>' + esc(dr.som.tipo) + '</b>' +
+        (dr.som.faixa ? '<span>' + esc(dr.som.faixa) + '</span>' : '') + '</span></div>';
+    }
+
+    if ((dr.comCelular || []).length) {
+      h += '<div class="dr-campo"><span class="dr-k">O mínimo para gravar com celular</span>' +
+        '<ul class="dr-lista">' + dr.comCelular.map(function (c) {
+          return '<li><span>' + esc(c) + '</span></li>';
+        }).join('') + '</ul></div>';
+    }
+
+    return h;
+  }
+
   /* A quebra de linha de 88 colunas veio do arquivo de origem. Em tela estreita
      ela vira linha órfã, então some — o parágrafo é que importa. */
   function desdobrar(t) {
@@ -856,6 +964,17 @@ details[open] .tr-ler{color:var(--rotulo-3)}
           (orig ? ', e o original em inglês abaixo' : '') + '</span></span>' +
           '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
           '<div class="tr-corpo">' + corpoRoteiro(r, orig) + '</div></details>' : '') +
+
+        /* Painel separado: quem grava não precisa do teleprompter, e o
+           especialista não precisa da lista de equipamento. */
+        (r.direcao ? '<details style="margin-top:.35rem"><summary class="tr-it">' +
+          '<div class="tr-linha" style="padding:.5rem .6rem">' +
+          '<span class="tr-seta">&#9654;</span>' +
+          '<span class="tr-cx"><span class="tr-nm">Briefing de direção</span>' +
+          '<span class="tr-sub">' + (r.direcao.frames || []).length + ' frames · ' +
+          'cenário, enquadramento, texto na tela e som</span></span>' +
+          '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
+          '<div class="tr-corpo">' + corpoDirecao(r.direcao) + '</div></details>' : '') +
         '</div>' +
         '<span class="selo s2" style="flex:none">' + esc(r.status || 'pronto') + '</span>' +
         '</div>';
