@@ -120,6 +120,28 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 .tr-falta{font-size:13px;color:var(--laranja);margin:.3rem 0 0}
 .tr-abrir{font-size:12px;color:var(--tinta);text-decoration:none;
   display:inline-block;margin-top:.6rem}
+/* ---------- roteiro: as três faixas de tempo ----------
+   O gancho é o que decide se o vídeo sai para não-seguidor, então ele leva a
+   cor cheia; a régua vai clareando conforme o segundo pesa menos. */
+.rt-assistir{display:inline-flex;align-items:center;gap:.4rem;margin:.3rem 0 .9rem;
+  padding:.45rem .8rem;border-radius:99px;background:var(--tinta-fraca);
+  color:var(--tinta);font-size:13px;font-weight:600;text-decoration:none}
+.rt-assistir:hover{background:var(--tinta);color:#fff}
+.rt-assistir svg{width:.85rem;height:.85rem}
+
+.rt-faixa{border-left:3px solid var(--sep-opaco);padding:.1rem 0 .1rem .8rem;margin-bottom:.9rem}
+.rt-faixa.g{border-left-color:var(--tinta)}
+.rt-faixa.r{border-left-color:color-mix(in srgb,var(--tinta) 45%,transparent)}
+.rt-cab{display:flex;gap:.45rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.3rem}
+.rt-nm{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--rotulo-3)}
+.rt-faixa.g .rt-nm{color:var(--tinta)}
+.rt-seg{font-size:11px;font-weight:600;color:var(--rotulo-3);
+  font-variant-numeric:tabular-nums}
+.rt-real{font-size:11px;font-weight:600;color:var(--laranja);font-variant-numeric:tabular-nums}
+.rt-legenda{font-size:12.5px;color:var(--rotulo-2);line-height:1.5;margin:.5rem 0 0}
+.rt-legenda b{color:var(--rotulo);font-weight:600}
+
 .rt-conf{list-style:none;margin:.2rem 0 0;padding:0}
 .rt-conf li{position:relative;padding:.3rem 0 .3rem 1.35rem;font-size:13px;
   color:var(--rotulo-2);line-height:1.5}
@@ -128,6 +150,25 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
 .pf-falta{color:var(--laranja)}
 .pf-carga{padding:4rem 0;text-align:center;color:var(--rotulo-2);font-size:15px}
+
+/* Só aparece quando a lateral vira gaveta. Fica embaixo do véu (z-index 45)
+   para escurecer junto com o resto quando o menu abre. */
+.pf-menu{display:none}
+@media(max-width:60rem){
+  .pf-menu{
+    display:grid;place-items:center;position:fixed;z-index:44;
+    top:max(.7rem,env(safe-area-inset-top));left:.7rem;
+    width:2.4rem;height:2.4rem;border-radius:99px;cursor:pointer;
+    border:.5px solid var(--vidro-borda);color:var(--tinta);
+    background:var(--vidro);box-shadow:var(--vidro-sombra);
+    -webkit-backdrop-filter:saturate(180%) blur(24px);
+    backdrop-filter:saturate(180%) blur(24px);
+  }
+  .pf-menu svg{width:1.05rem;height:1.05rem}
+  /* o conteúdo desce para não passar por baixo do botão */
+  .palco{padding-top:2.6rem}
+}
+
 @media(max-width:34rem){
   .pf-topo{gap:.85rem}
   .pf-av{width:3.5rem;height:3.5rem;font-size:20px}
@@ -138,6 +179,16 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 <body>
 
 <div class="app">
+
+  <!-- Abaixo de 60rem o app.css joga a lateral para fora da tela e ela só volta
+       com a classe .aberto. Sem maçaneta, a gaveta some e não tem como abrir.
+       Aqui é só o ícone, no canto superior esquerdo — a página de leitura não
+       precisa perder uma faixa inteira de altura para uma barra de título. -->
+  <button class="pf-menu" data-act="menu" aria-label="Abrir o fluxo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="veu" id="veu"></div>
+
   <aside class="lateral" id="lateral">
     <div class="lat-topo">
       <div class="marca">
@@ -585,14 +636,76 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     return h + '</div>';
   }
 
-  function blocoFase2(d) {
+  var IC_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
+
+  /* O roteiro em português vem antes do original: é ele que vai ser gravado.
+     O original fica logo abaixo, para conferir o que a frase dizia antes. */
+  function corpoRoteiro(r, orig) {
+    var h = '';
+
+    if (r.url) {
+      h += '<a class="rt-assistir" href="' + esc(r.url) + '" target="_blank" rel="noopener">' +
+        IC_PLAY + 'Assistir o vídeo original</a>';
+    }
+
+    var faixas = (r.trechos || []).length
+      ? r.trechos
+      : (r.texto ? [{ rot: 'Teleprompter', seg: '', txt: r.texto }] : []);
+
+    if (faixas.length) {
+      h += '<span class="tr-rot">Roteiro em português — leia exatamente assim</span>';
+      h += faixas.map(function (t, i) {
+        var cls = ['g', 'r', 'c'][i] || 'c';
+        return '<div class="rt-faixa ' + (faixas.length > 1 ? cls : 'c') + '">' +
+          '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
+          (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
+          (t.estoura ? '<span class="rt-real">está levando ~' +
+            String(t.s).replace('.', ',') + 's</span>' : '') +
+          '</div><p class="tr-txt">' + esc(t.txt) + '</p></div>';
+      }).join('');
+
+      if (faixas.length > 1) {
+        h += '<p class="rt-legenda">Os tempos são estimados pela quantidade de texto, ' +
+          'a 16 caracteres por segundo. <b>Onde aparece laranja, o trecho está passando ' +
+          'da faixa</b> — em geral porque a frase de abertura é longa demais para caber ' +
+          'em três segundos.</p>';
+      }
+    }
+
+    if (orig) {
+      h += '<span class="tr-rot">O original, em inglês</span>' +
+        '<p class="tr-txt orig">' + esc(orig) + '</p>';
+    }
+
+    if (r.nota) {
+      h += '<span class="tr-rot">O que eu mudei em relação ao original</span>' +
+        '<p class="tr-txt orig">' + escRico(r.nota) + '</p>';
+    }
+
+    if ((r.conferencia || []).length) {
+      h += '<span class="tr-rot">Conferir antes de gravar</span><ul class="rt-conf">' +
+        r.conferencia.map(function (c) { return '<li>' + escRico(c) + '</li>'; }).join('') +
+        '</ul>';
+    }
+
+    return h;
+  }
+
+  function blocoFase2(d, transcricoes) {
     var rs = d.roteiros || [];
     if (!rs.length) {
       return '<div class="grupo">' +
         '<div class="cartao"><p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
         'Ainda não preenchida.</p></div></div>';
     }
+    /* O original vive na tabela de transcrições, não na ficha. Casa pela url
+       para não guardar o mesmo texto em dois lugares. */
+    var porUrl = {};
+    (transcricoes || []).forEach(function (t) { if (t.url) porUrl[t.url] = t; });
+
     var itens = rs.map(function (r) {
+      var tr = porUrl[r.url];
+      var orig = tr ? tr.texto : '';
       var tx = (r.compartilhamentos && r.views)
         ? (r.compartilhamentos / r.views * 100).toFixed(2).replace('.', ',') : '';
       return '<div class="linha" style="align-items:flex-start">' +
@@ -612,20 +725,10 @@ details[open] .tr-ler{color:var(--rotulo-3)}
           '<div class="tr-linha" style="padding:.5rem .6rem">' +
           '<span class="tr-seta">&#9654;</span>' +
           '<span class="tr-cx"><span class="tr-nm">Ler o roteiro</span>' +
-          '<span class="tr-sub">' + Math.round(r.texto.length / 100) / 10 + ' mil caracteres · ' +
-          'texto de teleprompter</span></span>' +
+          '<span class="tr-sub">português com as marcas de tempo' +
+          (orig ? ', e o original em inglês abaixo' : '') + '</span></span>' +
           '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
-          '<div class="tr-corpo">' +
-          '<span class="tr-rot">Teleprompter — leia exatamente assim</span>' +
-          '<p class="tr-txt">' + esc(r.texto) + '</p>' +
-          (r.nota ? '<span class="tr-rot">O que eu mudei em relação ao original</span>' +
-            '<p class="tr-txt orig">' + escRico(r.nota) + '</p>' : '') +
-          ((r.conferencia || []).length
-            ? '<span class="tr-rot">Conferir antes de gravar</span><ul class="rt-conf">' +
-              r.conferencia.map(function (c) { return '<li>' + escRico(c) + '</li>'; }).join('') +
-              '</ul>'
-            : '') +
-          '</div></details>' : '') +
+          '<div class="tr-corpo">' + corpoRoteiro(r, orig) + '</div></details>' : '') +
         '</div>' +
         '<span class="selo s2" style="flex:none">' + esc(r.status || 'pronto') + '</span>' +
         '</div>';
@@ -638,9 +741,10 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       'para a sua voz. A ordem é por encaixe com o que você já provou que funciona, não por ' +
       'view. Nada aqui está gravável antes de você passar o olho.</p></div>' +
       '<div class="ilha" style="background:transparent">' + itens + '</div>' +
-      '<p class="pf-nota">Cada roteiro traz o texto limpo para ler, o original em inglês ' +
-      'alinhado trecho a trecho, e a lista do que foi mudado na tradução — para você trocar ' +
-      'qualquer palavra sabendo o que estava escrito lá.</p>' +
+      '<p class="pf-nota">Abrindo um roteiro você tem, nesta ordem: o link para assistir o ' +
+      'vídeo original, o texto em português cortado em <b>gancho</b> (os 3 primeiros ' +
+      'segundos), <b>retenção</b> (3 a 10) e <b>corpo</b> (10 em diante), e por último o ' +
+      'original em inglês — para trocar qualquer palavra sabendo o que estava escrito lá.</p>' +
       '</div></div>';
   }
 
@@ -699,12 +803,30 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     quem.style.display = '';
   }
 
+  function fecharMenu() {
+    document.getElementById('lateral').classList.remove('aberto');
+    document.getElementById('veu').classList.remove('on');
+  }
+
   document.addEventListener('click', function (e) {
-    var bt = e.target.closest ? e.target.closest('[data-ir]') : null;
+    if (!e.target.closest) return;
+
+    if (e.target.closest('[data-act="menu"]')) {
+      var ab = document.getElementById('lateral').classList.toggle('aberto');
+      document.getElementById('veu').classList.toggle('on', ab);
+      return;
+    }
+
+    var bt = e.target.closest('[data-ir]');
     if (!bt) return;
     var alvo = document.getElementById(bt.getAttribute('data-ir'));
+    /* Na gaveta, rolar sem fechar deixa a pessoa olhando para o menu em vez
+       da seção que ela pediu. */
+    fecharMenu();
     if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+
+  document.getElementById('veu').addEventListener('click', fecharMenu);
 
   function pintar(f, transcricoes) {
     var d = f.dados || {};
@@ -745,7 +867,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         'Pegar o vídeo que já provou que funciona, transformar em roteiro de teleprompter ' +
         'e gravar palavra por palavra. É a fase que todo mundo quer pular.',
         temRoteiros ? 'agora' : 'aberto', false, 'p-fase2') +
-      blocoFase2(d) +
+      blocoFase2(d, transcricoes) +
 
       divisor('3', 'Retroalimentar a IA',
         'Extrair o padrão dos seus próprios virais e transformar em um agente que escreve ' +
