@@ -885,6 +885,7 @@
      confere se soa como ela e grava. Editar é da tela de quem revisa —
      nesta, mostramos o texto já corrigido e ponto. */
   var rtAbertos = {};
+  var rtDirecao = {};   // o roteiro e a direção abrem separados: leitores diferentes
 
   /* o negrito das notas é escrito em <b>; escapamos tudo e devolvemos
      só essas duas tags, o resto continua neutralizado */
@@ -976,6 +977,88 @@
     return h;
   }
 
+  /* ---------- o briefing de direção ----------
+     Um roteiro não é um vídeo: entre os dois há câmera, cenário, tipografia
+     e corte. Quem vai filmar não vai assistir ao original, então o painel
+     precisa dizer o que fazer sem depender de ver o vídeo. Fica separado do
+     roteiro porque o leitor é outro — o teleprompter é de quem fala, a
+     direção é de quem grava. */
+  function blocoDirecao(d) {
+    if (!d) return '';
+    var h = '';
+
+    /* a tira vem primeiro: é o jeito mais rápido de entender o vídeo */
+    if ((d.frames || []).length) {
+      h += '<div class="dr-tira">' + d.frames.map(function (f) {
+        return '<a class="dr-fr" href="' + esc(f.img) + '" target="_blank" rel="noopener">' +
+          '<img src="' + esc(f.img) + '" alt="" loading="lazy">' +
+          '<span>' + String(f.s).replace('.', ',') + 's</span></a>';
+      }).join('') + '</div>';
+    }
+
+    function campo(rot, txt, sub) {
+      if (!txt) return '';
+      return '<div class="dr-campo"><span class="rt-rot">' + esc(rot) + '</span>' +
+        '<p class="dr-txt">' + esc(txt) + '</p>' +
+        (sub ? '<p class="dr-txt fraco">' + esc(sub) + '</p>' : '') + '</div>';
+    }
+
+    var hl = d.headline || {};
+    if (hl.texto) {
+      h += '<div class="dr-campo"><span class="rt-rot">O texto que abre o vídeo</span>' +
+        '<p class="dr-headline">' + esc(hl.texto) + '</p>' +
+        (hl.comoAparece ? '<p class="dr-txt fraco">' + esc(hl.comoAparece) + '</p>' : '') +
+        '</div>';
+    }
+
+    h += campo('Formato', d.formato);
+    h += campo('Enquadramento', d.enquadramento);
+    h += campo('Cenário', d.cenario);
+
+    /* essencial e decoração em listas separadas: numa lista só, com etiqueta
+       do lado, ninguém percebe o que pode faltar sem estragar o vídeo */
+    var els = d.elementos || [];
+    if (els.length) {
+      ['essencial', 'decoração'].forEach(function (papel) {
+        var quais = els.filter(function (e) {
+          return String(e.papel || '').toLowerCase().indexOf(papel.slice(0, 6)) === 0;
+        });
+        if (!quais.length) return;
+        h += '<div class="dr-campo"><span class="rt-rot">' +
+          (papel === 'essencial' ? 'Sem isto não é o mesmo vídeo' : 'Dá para trocar') +
+          '</span><ul class="dr-el' + (papel === 'essencial' ? ' ess' : '') + '">' +
+          quais.map(function (e) { return '<li>' + esc(e.o) + '</li>'; }).join('') +
+          '</ul></div>';
+      });
+    }
+
+    if ((d.porFaixa || []).length) {
+      h += '<div class="dr-campo"><span class="rt-rot">O que muda em cada faixa</span>' +
+        d.porFaixa.map(function (f, i) {
+          return '<div class="rt-faixa ' + (['g', 'r', 'c'][i] || 'c') + '">' +
+            '<div class="rt-cab"><span class="rt-nm">' + esc(f.faixa) + '</span></div>' +
+            '<p class="dr-txt">' + esc(f.direcao) + '</p></div>';
+        }).join('') + '</div>';
+    }
+
+    h += campo('Texto na tela', d.textoNaTela);
+    h += campo('Corte e ritmo', d.corte);
+
+    /* a música não sai de olhar frame: veio da API do Instagram */
+    var som = d.som || {};
+    if (som.tipo || som.faixa) {
+      h += campo('Som', [som.tipo, som.faixa].filter(Boolean).join(' — '));
+    }
+
+    if ((d.comCelular || []).length) {
+      h += '<div class="dr-campo"><span class="rt-rot">O mínimo para gravar com o celular</span>' +
+        '<ul class="rt-conf">' +
+        d.comCelular.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('') +
+        '</ul></div>';
+    }
+    return h;
+  }
+
   function pintarFase2() {
     var vazio = $('fase2Vazio'), corpo = $('fase2Corpo');
     if (!vazio || !corpo) return;
@@ -1019,10 +1102,16 @@
         (r.url ? '<a class="bt mini" href="' + esc(r.url) + '" target="_blank" ' +
           'rel="noopener">Assistir o original</a>' : '') +
         (r.texto ? '<button class="bt mini" data-abrir-rot="' + i + '">' +
-          (aberto ? 'Fechar' : 'Ler o roteiro') + '</button>' +
-          '<button class="bt simples mini" data-copiar-rot="' + i + '">Copiar o texto</button>' : '') +
+          (aberto ? 'Fechar o roteiro' : 'Ler o roteiro') + '</button>' : '') +
+        (r.direcao ? '<button class="bt mini" data-abrir-dir="' + i + '">' +
+          (rtDirecao[i] ? 'Fechar a direção' : 'Ver a direção') + '</button>' : '') +
+        (r.texto ? '<button class="bt simples mini" data-copiar-rot="' + i + '">Copiar o texto</button>' : '') +
         '</div>' +
         (aberto ? '<div class="rt-b">' + corpoRoteiro(r, tr.texto || '') + '</div>' : '') +
+        (rtDirecao[i] ? '<div class="rt-b dr">' +
+          '<p class="dr-quem">Isto é para quem <b>grava</b> — o roteiro acima é para quem ' +
+          'fala. Quem for filmar não vai assistir ao original, então está tudo descrito.</p>' +
+          blocoDirecao(r.direcao) + '</div>' : '') +
         '</div>';
     }).join('');
 
@@ -1628,7 +1717,7 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-copiar-rot],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
@@ -1681,6 +1770,12 @@
       if (t.hasAttribute('data-abrir-rot')) {
         var ro = +t.getAttribute('data-abrir-rot');
         rtAbertos[ro] = !rtAbertos[ro];
+        pintarFase2();
+        return;
+      }
+      if (t.hasAttribute('data-abrir-dir')) {
+        var rd = +t.getAttribute('data-abrir-dir');
+        rtDirecao[rd] = !rtDirecao[rd];
         pintarFase2();
         return;
       }
