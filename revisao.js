@@ -181,9 +181,13 @@
       '<div class="kpi">' + cels + '</div>' +
       '<p class="pf-nota">A distância entre a sua média e o pico é a informação mais útil daqui: ' +
       'ela mostra que <b>o alcance existe</b>. O que falta é repetir o acerto.<br><br>' +
-      '<b>Compartilhamento é a métrica que decide.</b> View diz que a pessoa assistiu; ' +
-      'compartilhamento diz que ela se reconheceu a ponto de mandar pra alguém — e é ' +
-      'isso que faz um vídeo viajar para fora de quem já te segue.</p>' +
+      '<b>View é o que menos diz.</b> Ela conta que a pessoa assistiu. ' +
+      '<b>Compartilhamento</b> diz que ela se reconheceu a ponto de mandar pra alguém — ' +
+      'é isso que faz o vídeo viajar para fora de quem já te segue. ' +
+      '<b>Comentário</b> diz outra coisa: que ela parou para responder. ' +
+      'Os dois tiram o vídeo do grupo de quem já te conhece, por caminhos diferentes, ' +
+      'e vídeo que lidera num deles costuma não liderar no outro — por isso os dois ' +
+      'números aparecem lado a lado daqui pra frente.</p>' +
       '</div>';
   }
 
@@ -846,12 +850,19 @@
        para não guardar o mesmo texto em dois lugares. */
     var porUrl = {};
     (transcricoes || []).forEach(function (t) { if (t.url) porUrl[t.url] = t; });
+    /* o roteiro guardou views e compartilhamentos, mas não comentários — eles
+       estão no vídeo de origem, casado pela mesma url */
+    var vidPorUrl = {};
+    (d.videos || []).forEach(function (v) { if (v.url) vidPorUrl[v.url] = v; });
 
     var itens = rs.map(function (r) {
       var tr = porUrl[r.url];
       var orig = tr ? tr.texto : '';
       var tx = (r.compartilhamentos && r.views)
         ? (r.compartilhamentos / r.views * 100).toFixed(2).replace('.', ',') : '';
+      var vid = vidPorUrl[r.url] || {};
+      var tc = (vid.comentarios && r.views)
+        ? (vid.comentarios / r.views * 100).toFixed(2).replace('.', ',') : '';
       return '<div class="linha" style="align-items:flex-start">' +
         '<span class="pf-rot" style="width:1.5rem;flex:none;color:var(--rotulo-2);' +
         'font-variant-numeric:tabular-nums;padding-top:.15rem">' + r.n + '</span>' +
@@ -861,7 +872,10 @@
         'de <a href="' + esc(r.url) + '" target="_blank" rel="noopener" ' +
         'style="color:var(--tinta);text-decoration:none">@' + esc(r.canal) + '</a> · ' +
         num(r.views) + ' views · <b class="pf-cmp">' + num(r.compartilhamentos) +
-        ' compart.' + (tx ? ' (' + tx + '%)' : '') + '</b> · ' + r.duracao + 's</span>' +
+        ' compart.' + (tx ? ' (' + tx + '%)' : '') + '</b>' +
+        (vid.comentarios != null
+          ? ' · ' + num(vid.comentarios) + ' coment.' + (tc ? ' (' + tc + '%)' : '') : '') +
+        ' · ' + r.duracao + 's</span>' +
         (r.porque ? '<span class="pf-como" style="margin-top:.4rem">' + escRico(r.porque) + '</span>' : '') +
         (r.aviso ? '<span class="pf-como" style="margin-top:.4rem;border-left-color:var(--laranja)">' +
           '<b style="color:var(--laranja)">Atenção.</b> ' + escRico(r.aviso) + '</span>' : '') +

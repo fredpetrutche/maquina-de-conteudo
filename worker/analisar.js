@@ -102,6 +102,10 @@ Regras que não podem ser quebradas:
 
 6. LEITURA: em 2 ou 3 frases, o que separa os vídeos do topo dos de baixo. Aponte o padrão
    concreto (formato de abertura, tipo de assunto, duração), não elogio genérico.
+   Quando vierem comentários e compartilhamentos, olhe os TRÊS números, não só as views:
+   view conta quem assistiu; compartilhamento conta quem se reconheceu a ponto de mandar
+   para alguém; comentário conta quem parou para responder. O vídeo que lidera num deles
+   costuma não liderar no outro — se for esse o caso, diga qual puxa o quê.
 
 7. RESSALVAS: preencha a ficha SEMPRE, mas diga em voz alta onde a leitura ficou fraca.
    Uma ressalva é um aviso honesto de que aquela parte pode estar errada, com o motivo.
@@ -189,10 +193,18 @@ async function umaVolta() {
     { headers: h },
   );
   const trs = r.ok ? await r.json() : [];
-  let videos = trs.filter((t) => t.texto).map((t) => ({
-    views: (t.metricas || {}).views || 0,
-    texto: `${t.titulo ? t.titulo + ' — ' : ''}${String(t.texto).slice(0, 1200)}`,
-  }));
+  /* Views contam alcance; comentário e compartilhamento contam o que a pessoa
+     FEZ depois de assistir. Sem eles, a leitura de "o que separa os seus
+     melhores" enxerga só o vídeo que muita gente viu, não o que pegou. */
+  let videos = trs.filter((t) => t.texto).map((t) => {
+    const m = t.metricas || {};
+    return {
+      views: m.views || 0,
+      comentarios: m.comentarios ?? null,
+      compartilhamentos: m.compartilhamentos ?? null,
+      texto: `${t.titulo ? t.titulo + ' — ' : ''}${String(t.texto).slice(0, 1200)}`,
+    };
+  });
 
   if (videos.length < 5) {
     videos = ((f.dados || {}).meusVideos || [])
@@ -205,7 +217,13 @@ async function umaVolta() {
   try {
     if (!videos.length) throw new Error('não achei nenhum vídeo no perfil para ler');
     const prompt = `${INSTRUCAO}\n\nNome: ${f.nome || '(não informado)'}\n\nVídeos publicados, do mais visto para o menos:\n${
-      videos.map((v, i) => `${i + 1}. [${v.views} views] ${v.texto}`).join('\n')}`;
+      videos.map((v, i) => {
+        const extra = [
+          v.comentarios != null ? `${v.comentarios} comentários` : '',
+          v.compartilhamentos != null ? `${v.compartilhamentos} compart.` : '',
+        ].filter(Boolean).join(', ');
+        return `${i + 1}. [${v.views} views${extra ? ' · ' + extra : ''}] ${v.texto}`;
+      }).join('\n')}`;
     const s = conferir(pensar(prompt));
     s.ressalvas = Array.isArray(s.ressalvas) ? s.ressalvas : [];
     s.lidos = videos.length;

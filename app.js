@@ -1575,6 +1575,15 @@
       '>' + t + '% compart.' + (duvida ? ' ?' : '') + '</span>';
   }
 
+  /* Comentário é o outro caminho para sair de quem já te segue: o vídeo que
+     lidera em compartilhamento costuma não liderar em comentário, e com um
+     número só o outro vídeo parece morto. */
+  function selComent(m) {
+    if (!m || m.comentarios == null || !m.views) return '';
+    var t = (m.comentarios / m.views * 100).toFixed(2).replace('.', ',');
+    return '<span class="views">' + t + '% coment.</span>';
+  }
+
   function agruparBms() {
     var mapa = {}, ordem = [];
     bms.forEach(function (b) {
@@ -1606,7 +1615,7 @@
           var num = b.estado === 'pendente' ? '<span class="views">na fila</span>'
                   : b.estado === 'erro' ? '<span class="views">não li</span>'
                   : (m.views ? '<span class="views">' + numeroBonito(m.views) + '</span>' : '');
-          var comp = selCompart(m);
+          var comp = selCompart(m) + selComent(m);
           return '<li><span class="ord">' + (k + 1) + '</span>' +
             '<span class="tit">' + esc(b.titulo || b.url) + '</span>' + comp + num +
             '<button class="x" data-rm-bm="' + esc(b.url) + '" aria-label="Remover">' + IC_X + '</button></li>';
