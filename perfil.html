@@ -85,6 +85,34 @@
   margin:.1rem 0 .3rem}
 .pf-div-t p{font-size:14.5px;color:var(--rotulo-2);margin:0;letter-spacing:-.014em;max-width:36rem}
 
+/* transcrições — a pessoa precisa LER, não só saber que existem */
+.tr-lista{list-style:none;margin:0;padding:0}
+.tr-lista>li{border-top:.5px solid var(--sep)}
+.tr-lista>li:first-child{border-top:0}
+.tr-it{padding:.75rem 0;cursor:pointer;list-style:none;
+  display:flex;gap:.6rem;align-items:baseline}
+.tr-it::-webkit-details-marker{display:none}
+.tr-it:hover .tr-nm{color:var(--tinta)}
+.tr-seta{width:.8rem;flex:none;color:var(--rotulo-3);font-size:11px;
+  transition:transform .18s ease}
+details[open] .tr-seta{transform:rotate(90deg)}
+.tr-cx{flex:1;min-width:0}
+.tr-nm{font-size:14px;font-weight:600;letter-spacing:-.012em}
+.tr-sub{display:block;font-size:12px;color:var(--rotulo-2);margin-top:.1rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-tag{font-size:11px;font-weight:600;padding:.15rem .45rem;border-radius:99px;
+  flex:none;background:var(--preench);color:var(--rotulo-2);white-space:nowrap}
+.tr-tag.en{background:var(--verde-fraco);color:var(--verde)}
+.tr-corpo{padding:0 0 1rem 1.4rem}
+.tr-rot{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);margin:.5rem 0 .3rem}
+.tr-txt{font-size:14px;line-height:1.65;letter-spacing:-.011em;margin:0;
+  white-space:pre-wrap;color:var(--rotulo)}
+.tr-txt.orig{color:var(--rotulo-2)}
+.tr-falta{font-size:13px;color:var(--laranja);margin:.3rem 0 0}
+.tr-abrir{font-size:12px;color:var(--tinta);text-decoration:none;
+  display:inline-block;margin-top:.6rem}
+
 .pf-falta{color:var(--laranja)}
 .pf-carga{padding:4rem 0;text-align:center;color:var(--rotulo-2);font-size:15px}
 @media(max-width:34rem){
@@ -399,6 +427,81 @@
       }).join('') + '</div></div></div>';
   }
 
+  /* As transcrições são o insumo do roteiro — quem revisa precisa poder LER,
+     não só saber que existem. Por isso o texto abre na própria página. */
+  function blocoTranscricoes(lista) {
+    if (!lista || !lista.length) {
+      return '<div class="grupo"><div class="cartao">' +
+        '<p style="margin:0;font-size:15px;color:var(--rotulo-2)">' +
+        'Nenhuma transcrição ainda.</p></div></div>';
+    }
+
+    function ehIngles(t) { return String(t.idioma || '').toLowerCase().indexOf('en') === 0; }
+
+    function item(t) {
+      const en = ehIngles(t);
+      const titulo = (t.titulo || '').split('\n')[0].trim();
+      const orig = t.texto || '';
+      const pt = t.texto_pt || '';
+
+      let corpo = '';
+      if (en) {
+        corpo += '<span class="tr-rot">Original em inglês</span>' +
+          '<p class="tr-txt orig">' + esc(orig) + '</p>';
+        corpo += pt
+          ? '<span class="tr-rot">Tradução</span><p class="tr-txt">' + esc(pt) + '</p>'
+          : '<p class="tr-falta">Tradução ainda não foi feita — só o original está aqui.</p>';
+      } else {
+        corpo += '<p class="tr-txt">' + esc(orig) + '</p>';
+      }
+      if (t.url) {
+        corpo += '<a class="tr-abrir" href="' + esc(t.url) + '" target="_blank" rel="noopener">' +
+          'ver o vídeo no Instagram &rsaquo;</a>';
+      }
+
+      return '<li><details>' +
+        '<summary class="tr-it"><span class="tr-seta">&#9654;</span>' +
+        '<span class="tr-cx"><span class="tr-nm">@' + esc(String(t.perfil || '?').replace(/^@+/, '')) + '</span>' +
+        (titulo ? '<span class="tr-sub">' + esc(titulo) + '</span>' : '') + '</span>' +
+        '<span class="tr-tag' + (en ? ' en' : '') + '">' +
+        (en ? 'inglês' : 'português') + ' · ' + Math.round(orig.length / 100) / 10 + ' mil car.' +
+        '</span></summary>' +
+        '<div class="tr-corpo">' + corpo + '</div></details></li>';
+    }
+
+    const ingles = lista.filter(ehIngles);
+    const portugues = lista.filter(function (t) { return !ehIngles(t); });
+    const semTraducao = ingles.filter(function (t) { return !t.texto_pt; }).length;
+
+    let h = '<div class="grupo">';
+
+    if (ingles.length) {
+      h += '<div class="cartao"><div class="cartao-h">' +
+        '<h3 style="font-size:18px">Em inglês — as ' + ingles.length + ' que viram roteiro</h3>' +
+        '<p>Copiar um vídeo em outra língua produz conteúdo novo em português. ' +
+        'Guardamos as duas versões porque, ao revisar, você vai querer trocar palavras — ' +
+        'e para isso precisa ver o que a frase dizia no original.</p></div>' +
+        '<ul class="tr-lista">' + ingles.map(item).join('') + '</ul>' +
+        (semTraducao
+          ? '<p class="pf-nota"><b>' + semTraducao + ' ainda sem tradução.</b> A importação ' +
+            'trouxe os originais dos arquivos e o trabalhador foi parado, então o campo de ' +
+            'tradução ficou vazio. Os roteiros já prontos não dependem disso — eles foram ' +
+            'escritos a partir destes mesmos originais.</p>'
+          : '') +
+        '</div>';
+    }
+
+    if (portugues.length) {
+      h += '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+        '<h3 style="font-size:18px">Em português — as ' + portugues.length + ' que ficam de fora</h3>' +
+        '<p>Ficam registradas, mas não viram roteiro. Copiar quem fala a mesma língua ' +
+        'para a mesma audiência não chega como novidade — chega como cópia visível.</p></div>' +
+        '<ul class="tr-lista">' + portugues.map(item).join('') + '</ul></div>';
+    }
+
+    return h + '</div>';
+  }
+
   function blocoFase2(d) {
     var rs = d.roteiros || [];
     if (!rs.length) {
@@ -454,7 +557,7 @@
 
   /* ---------- montagem ---------- */
 
-  function pintar(f) {
+  function pintar(f, transcricoes) {
     var d = f.dados || {};
     var p = d.perfil || {};
     document.title = f.nome + ' — Máquina de Conteúdo';
@@ -481,6 +584,13 @@
         f.progresso >= 3 ? 'feito' : 'aberto') +
       blocoFase1(d, p) +
 
+      ((transcricoes || []).length
+        ? divisor('', 'As transcrições',
+            'O texto falado de cada referência, do jeito que saiu. É daqui que o roteiro ' +
+            'nasce — e é aqui que você confere se a tradução diz o que o original dizia.',
+            'diag') + blocoTranscricoes(transcricoes)
+        : '') +
+
       divisor('2', 'Replicar o validado',
         'Pegar o vídeo que já provou que funciona, transformar em roteiro de teleprompter ' +
         'e gravar palavra por palavra. É a fase que todo mundo quer pular.',
@@ -504,17 +614,32 @@
     return;
   }
 
-  fetch(SUPA_URL + '/rest/v1/rpc/retomar_ficha', {
-    method: 'POST',
-    headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_id: codigo })
-  })
-    .then(function (r) { return r.json(); })
-    .then(function (rows) {
+  function chamar(fn, corpo) {
+    return fetch(SUPA_URL + '/rest/v1/rpc/' + fn, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_ANON,
+        'Authorization': 'Bearer ' + SUPA_ANON,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(corpo)
+    }).then(function (r) { return r.json(); });
+  }
+
+  /* As transcrições vivem em outra tabela, então são outra chamada. Se ela
+     falhar, a página abre mesmo assim — a ficha é o que importa; a lista de
+     transcrições some sozinha quando vem vazia. */
+  Promise.all([
+    chamar('retomar_ficha', { p_id: codigo }),
+    chamar('minhas_transcricoes', { p_ficha: codigo }).catch(function () { return []; })
+  ])
+    .then(function (res) {
+      var rows = res[0];
+      var trans = Array.isArray(res[1]) ? res[1] : [];
       if (!Array.isArray(rows) || !rows.length) {
         return aviso('Não encontrei essa ficha', 'Confira o código no endereço.');
       }
-      pintar(rows[0]);
+      pintar(rows[0], trans);
     })
     .catch(function () {
       aviso('Não consegui conectar', 'Tente de novo daqui a pouco.');
