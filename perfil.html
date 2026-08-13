@@ -532,12 +532,12 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
     return '<div class="grupo">' +
       '<div class="kpi">' +
-      '<div><dt>Vídeos</dt><dd>' + vs.length + '<s>' + lista.length + ' perfis</s></dd></div>' +
-      '<div><dt>Mediana</dt><dd class="destacado">' + curto(mediana) +
-        (razao ? '<s>' + razao + '× a sua</s>' : '') + '</dd></div>' +
-      '<div><dt>Maior</dt><dd>' + curto(teto) + '<s>o alvo do topo</s></dd></div>' +
+      '<div><dt>Vídeos de referência</dt><dd>' + vs.length + '<s>de ' + lista.length + ' perfis</s></dd></div>' +
+      '<div><dt>Mediana de views</dt><dd class="destacado">' + curto(mediana) +
+        (razao ? '<s>' + razao + '× a sua mediana</s>' : '') + '</dd></div>' +
+      '<div><dt>Mais visto</dt><dd>' + curto(teto) + '<s>views — o alvo do topo</s></dd></div>' +
       '<div><dt>O seu recorde</dt><dd>' + curto(minha) +
-        '<s>' + (minha ? (minha / teto * 100).toFixed(0) + '% do maior' : '') + '</s></dd></div>' +
+        '<s>' + (minha ? (minha / teto * 100).toFixed(0) + '% do mais visto' : 'views') + '</s></dd></div>' +
       '</div>' +
 
       '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +

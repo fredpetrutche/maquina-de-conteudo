@@ -1365,7 +1365,7 @@
       });
       L.push('');
     });
-    L.push('---', 'Canais: ' + canaisOk() + '/' + ALVO_CANAIS + ' · Vídeos: ' + totalVideos());
+    L.push('---', 'Perfis: ' + canaisOk() + '/' + ALVO_CANAIS + ' · Vídeos de referência: ' + bms.length);
     return L.join('\n');
   }
 
