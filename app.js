@@ -18,10 +18,7 @@
   var TEMAS_INICIAIS = 3;
 
   var STEPS = [
-    /* A revisão é a casa: a pessoa entra para ler a ficha pronta, e o fluxo
-       com perguntas só aparece quando ela vai mexer em alguma coisa. */
-    { id: 'revisao', ph: 'A sua ficha', nm: 'A sua ficha', revisao: 1, grupo: 'Comece aqui' },
-    { id: 'briefing', ph: 'Etapa 0', nm: 'Briefing' },
+    { id: 'briefing', ph: 'Etapa 0', nm: 'Briefing', grupo: 'Comece aqui' },
     { id: 'fase0', ph: 'Fase 0', nm: 'Definir o campo', grupo: 'Suas informações' },
     { id: 'fase1', ph: 'Fase 1', nm: 'Minerar benchmarks' },
     /* A Fase 2 não é preenchida, é entregue: destrava sozinha quando os
@@ -32,6 +29,21 @@
     { id: 'fase5', ph: 'Fase 5', nm: 'Industrializar', lock: 1 },
     { id: 'fase6', ph: 'Fase 6', nm: 'Monetizar', lock: 1 }
   ];
+
+  /* Duas listas para o mesmo lateral. Revisando, tudo está na mesma página e o
+     clique rola até a seção; editando, cada etapa é uma tela e o clique troca.
+     A lista muda porque as duas coisas não têm as mesmas partes: a revisão
+     começa nos números e tem as transcrições; o fluxo começa no briefing. */
+  var SECOES = [
+    { an: 'p-numeros', nm: 'Os seus números', grupo: 'A sua ficha' },
+    { an: 'p-fase0', nm: 'Definir o campo', fase: 'fase0' },
+    { an: 'p-fase1', nm: 'Minerar benchmarks', fase: 'fase1' },
+    { an: 'p-transc', nm: 'As transcrições' },
+    { an: 'p-fase2', nm: 'Replicar o validado', fase: 'fase2' },
+    { an: 'p-fase3', nm: 'Retroalimentar a IA', lock: 1, grupo: 'Destrava depois' }
+  ];
+
+  var modo = 'revisao';   // 'revisao' enquanto lê a ficha; 'fluxo' ao editar
 
   var IC_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   var IC_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>';
@@ -271,13 +283,9 @@
 
   /* Trancada é o estado, não uma propriedade fixa: a Fase 2 abre sozinha
      quando os roteiros chegam. As outras continuam presas no `lock`. */
-  /* Sem ficha na mão não há o que revisar — aí a lateral esconde a revisão e a
-     pessoa começa pelo briefing, como antes. */
+  /* Sem ficha não há o que revisar: quem chega assim começa pelo briefing. */
   function temFicha() { return !!(ident.id && (state.macroNicho || (state.videos || []).length)); }
-  function travada(s) {
-    if (s.revisao) return !temFicha();
-    return s.entrega ? !temRoteiros() : !!s.lock;
-  }
+  function travada(s) { return s.entrega ? !temRoteiros() : !!s.lock; }
 
   var MARCOS = {
     fase0: { t: 'Campo definido', p: 'Você já sabe onde joga, por quem fala e como se apresenta. Agora vamos atrás das referências.', b: 'Ir para a Fase 1', ir: 'fase1' },
@@ -302,10 +310,47 @@
 
   /* ---------- lateral ---------- */
   function pintarNav() {
+    $('nav').innerHTML = modo === 'revisao' ? navRevisao() : navFluxo();
+
+    /* A barra mede o que a PESSOA preenche. A Fase 2 é entrega: contá-la daria
+       progresso por trabalho que não é dela. */
+    var abertas = STEPS.filter(function (s) { return !travada(s) && !s.entrega; });
+    var feitas = abertas.filter(function (s) { return concluida(s.id); }).length;
+    $('progBarra').style.width = Math.round((feitas / abertas.length) * 100) + '%';
+    $('progVal').textContent = feitas + ' de ' + abertas.length;
+
+    var volta = $('btVoltarFicha');
+    if (volta) volta.style.display = (modo === 'fluxo' && temFicha()) ? '' : 'none';
+
+    if (modo === 'revisao') {
+      $('barraNm').textContent = 'A sua ficha';
+      $('barraPh').textContent = 'Revisão';
+      return;
+    }
+    var st = STEPS.filter(function (s) { return s.id === atual; })[0];
+    if (st) { $('barraNm').textContent = st.nm; $('barraPh').textContent = st.ph; }
+  }
+
+  /* Revisando, tudo está na mesma página: o lateral rola até a seção. */
+  function navRevisao() {
+    var html = '';
+    SECOES.forEach(function (s, i) {
+      if (s.grupo) html += '<span class="nav-rot">' + esc(s.grupo) + '</span>';
+      var ok = s.fase ? concluida(s.fase) : false;
+      var preso = !!s.lock;
+      html += '<button class="etapa' + (ok ? ' feito' : '') + '" data-rolar="' + s.an + '"' +
+        (preso ? ' disabled' : '') + '>' +
+        '<span class="et-ic">' +
+        (preso ? IC_LOCK : ok ? IC_CHECK : '<span>' + (i + 1) + '</span>') +
+        '</span><span class="et-nm">' + esc(s.nm) + '</span></button>';
+    });
+    return html;
+  }
+
+  /* Editando, cada etapa é uma tela. */
+  function navFluxo() {
     var html = '';
     STEPS.forEach(function (s, i) {
-      /* com roteiros na mão a Fase 2 sai de "destrava depois" e vira seção
-         da pessoa; o rótulo antigo desce uma linha, para a Fase 3 */
       var rot = s.grupo;
       if (s.id === 'fase2' && temRoteiros()) rot = 'Os seus roteiros';
       if (s.id === 'fase3' && temRoteiros()) rot = 'Destrava depois';
@@ -315,20 +360,11 @@
       var ok = concluida(s.id);
       html += '<button class="etapa' + (ok ? ' feito' : '') + '" data-go="' + s.id + '"' +
         (preso ? ' disabled' : '') + ' aria-current="' + (s.id === atual) + '">' +
-        '<span class="et-ic">' + (preso ? IC_LOCK : ok ? IC_CHECK : '<span>' + i + '</span>') + '</span>' +
-        '<span class="et-nm">' + esc(s.nm) + '</span></button>';
+        '<span class="et-ic">' +
+        (preso ? IC_LOCK : ok ? IC_CHECK : '<span>' + i + '</span>') +
+        '</span><span class="et-nm">' + esc(s.nm) + '</span></button>';
     });
-    $('nav').innerHTML = html;
-
-    /* a barra mede o que a PESSOA preenche. A Fase 2 é entrega: contá-la
-       daria progresso por trabalho que não é dela. */
-    var abertas = STEPS.filter(function (s) { return !travada(s) && !s.entrega && !s.revisao; });
-    var feitas = abertas.filter(function (s) { return concluida(s.id); }).length;
-    $('progBarra').style.width = Math.round((feitas / abertas.length) * 100) + '%';
-    $('progVal').textContent = feitas + ' de ' + abertas.length;
-
-    var st = STEPS.filter(function (s) { return s.id === atual; })[0];
-    if (st) { $('barraNm').textContent = st.nm; $('barraPh').textContent = st.ph; }
+    return html;
   }
 
   function pintarPe() {
@@ -430,6 +466,7 @@
       return;
     }
     atual = id;
+    modo = (id === 'revisao') ? 'revisao' : 'fluxo';
     var v = document.querySelectorAll('.vista');
     for (var i = 0; i < v.length; i++) v[i].classList.toggle('on', v[i].id === 'v-' + id);
     pintarNav();
@@ -1878,13 +1915,21 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-editar],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-editar],[data-rolar],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
 
       /* o botão que a revisão desenha em cada divisória */
       if (t.hasAttribute('data-editar')) return ir(t.getAttribute('data-editar'));
+
+      /* na revisão o lateral não troca de tela: rola até a seção */
+      if (t.hasAttribute('data-rolar')) {
+        var secao = document.getElementById(t.getAttribute('data-rolar'));
+        if (secao) secao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        fecharMenu();
+        return;
+      }
 
       // exemplo tocado preenche o campo
       if (t.hasAttribute('data-preenche')) {
@@ -2020,6 +2065,7 @@
       else if (a === 'porta-fechar') fecharFolhas();
       else if (a === 'marco-fechar') fecharFolhas();
       else if (a === 'voz') { vozAberta = !vozAberta; buscarVoz(); guardarLugar(); }
+      else if (a === 'voltar-ficha') ir('revisao');
       else if (a === 'analisar') pedirAnalise();
       else if (a === 'copiar') copiar(texto(), 'Ficha copiada');
       else if (a === 'baixar') baixar();

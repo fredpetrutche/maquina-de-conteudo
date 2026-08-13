@@ -1244,7 +1244,7 @@
         ? divisor('', 'As transcrições',
             'O texto falado de cada referência, do jeito que saiu. É daqui que o roteiro ' +
             'nasce — e é aqui que você confere se a tradução diz o que o original dizia.',
-            'diag') + blocoTranscricoes(transcricoes)
+            'diag', false, 'p-transc') + blocoTranscricoes(transcricoes)
         : '') +
 
       divisor('2', 'Replicar o validado',
