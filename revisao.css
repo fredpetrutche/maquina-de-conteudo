@@ -1,0 +1,298 @@
+/* ============================================================
+   revisao.css — a tela de revisão
+   ------------------------------------------------------------
+   Saiu de dentro da perfil.html para as duas telas que montam a
+   revisão dividirem o mesmo desenho. Tudo vem dos tokens do app.css.
+   ============================================================ */
+/* Só o que a tela de perfil acrescenta. Tudo sai dos tokens do app.css. */
+.pf-topo{display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.75rem}
+.pf-av{width:4.5rem;height:4.5rem;flex:none;border-radius:99px;background:var(--tinta);
+  color:#fff;display:grid;place-items:center;font-size:26px;font-weight:600;overflow:hidden}
+.pf-av img{width:100%;height:100%;object-fit:cover;display:block}
+.pf-id{min-width:0;flex:1}
+.pf-id h1{font-size:30px;font-weight:700;letter-spacing:-.035em;line-height:1.1;margin:.1rem 0 .25rem}
+.pf-vf{color:var(--tinta);font-size:18px;vertical-align:.06em;margin-left:.25rem}
+.pf-arroba{font-size:14px;color:var(--rotulo-2);letter-spacing:-.01em}
+.pf-arroba a{color:var(--tinta);text-decoration:none}
+.pf-selos{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.6rem}
+
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr));gap:.5px;
+  background:var(--sep);border-radius:var(--r-ilha);overflow:hidden}
+.kpi>div{background:var(--ilha);padding:.85rem 1rem}
+.kpi dt{font-size:12px;color:var(--rotulo-2);margin:0 0 .3rem;letter-spacing:-.006em}
+.kpi dd{margin:0;font-size:26px;font-weight:600;letter-spacing:-.03em;line-height:1.1;
+  font-variant-numeric:tabular-nums}
+.kpi dd.destacado{color:var(--tinta)}
+.kpi dd s{display:block;text-decoration:none;font-size:12px;font-weight:400;
+  color:var(--rotulo-2);letter-spacing:-.006em;margin-top:.25rem}
+
+.bar-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.85rem}
+.bar-l b{display:block;font-size:14px;font-weight:400;letter-spacing:-.015em;margin-bottom:.35rem}
+
+/* cabeçalho da referência: a foto identifica antes de a pessoa ler o @ */
+.ref-cab{display:flex;gap:.55rem;align-items:flex-start;margin-bottom:.4rem}
+.ref-av{width:1.9rem;height:1.9rem;flex:none;border-radius:99px;overflow:hidden;
+  background:var(--preench-2);color:var(--rotulo-2);display:grid;place-items:center;
+  font-size:11px;font-weight:600}
+.ref-av img{width:100%;height:100%;object-fit:cover;display:block}
+.ref-cx{flex:1;min-width:0}
+.ref-nm{font-size:14px;font-weight:600;letter-spacing:-.014em;color:var(--tinta);
+  text-decoration:none}
+.ref-nm:hover{text-decoration:underline}
+.ref-tit{display:block;font-size:13.5px;color:var(--rotulo);letter-spacing:-.012em;
+  line-height:1.4;margin-top:.1rem}
+.ref-vf{color:var(--tinta);font-size:12px;margin-left:.2rem}
+.bar-t{display:block;height:8px;background:var(--preench);border-radius:0 4px 4px 0;position:relative}
+.bar-t i{display:block;height:100%;background:var(--tinta);border-radius:0 4px 4px 0}
+.bar-t.morno i{background:var(--rotulo-3)}
+.bar-pe{display:flex;gap:.6rem;align-items:baseline;margin-top:.3rem;font-size:12px;
+  color:var(--rotulo-2);flex-wrap:wrap}
+.bar-pe .v{font-size:13px;color:var(--rotulo);font-variant-numeric:tabular-nums;font-weight:600}
+.bar-pe .pf-cmp{color:var(--tinta);font-weight:600;font-variant-numeric:tabular-nums}
+.bar-pe a{color:var(--tinta);text-decoration:none}
+
+.pf-nota{margin-top:.9rem;padding-top:.75rem;border-top:.5px solid var(--sep);
+  font-size:13px;color:var(--rotulo-2);letter-spacing:-.01em;line-height:1.5}
+.pf-nota b{color:var(--rotulo);font-weight:600}
+
+.pf-temas{list-style:none;margin:0;padding:0}
+.pf-temas li{display:flex;gap:.75rem;align-items:baseline;padding:.7rem 0;position:relative}
+.pf-temas li+li::before{content:"";position:absolute;top:0;left:1.75rem;right:0;height:.5px;background:var(--sep)}
+.pf-temas .n{width:1.25rem;flex:none;font-size:13px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
+.pf-tema-cx{flex:1;min-width:0}
+.pf-temas .t{display:block;font-size:16px;font-weight:600;letter-spacing:-.018em}
+.pf-rec{display:block;font-size:12.5px;color:var(--rotulo-2);margin-top:.2rem;line-height:1.5}
+.pf-rec b{color:var(--rotulo);font-weight:600;font-variant-numeric:tabular-nums}
+.pf-pt{color:var(--rotulo-3);margin:0 .4rem}
+
+/* campos da ficha: rótulo, a pergunta que ele responde, o valor */
+.pf-campo{padding:.85rem 0;position:relative;display:flex;flex-direction:column}
+.pf-campo+.pf-campo::before{content:"";position:absolute;top:0;left:0;right:0;height:.5px;background:var(--sep)}
+.pf-rot{font-size:13px;font-weight:600;letter-spacing:-.008em}
+.pf-perg{font-size:12.5px;color:var(--rotulo-2);margin-top:.1rem;line-height:1.45}
+.pf-val{font-size:16px;letter-spacing:-.018em;margin-top:.45rem}
+.pf-campo .selo{align-self:flex-start}
+.pf-como{font-size:12.5px;color:var(--rotulo-2);line-height:1.55;margin-top:.5rem;
+  padding-left:.7rem;border-left:2px solid var(--sep-opaco)}
+.pf-como b{color:var(--rotulo);font-weight:600}
+
+.pf-assin{font-size:19px;line-height:1.45;letter-spacing:-.02em;margin:0;
+  padding:1rem 1.1rem;background:var(--tinta-fraca);border-radius:var(--r-campo)}
+
+/* divisória de etapa — a virada de fase precisa ser impossível de não ver */
+.pf-divisor{display:flex;gap:1rem;align-items:flex-start;
+  margin:3rem 0 1.4rem;padding-top:2rem;border-top:3px solid var(--sep-opaco)}
+.pf-divisor.primeiro{margin-top:.5rem;padding-top:0;border-top:0}
+.pf-div-n{width:3rem;height:3rem;flex:none;border-radius:15px;display:grid;place-items:center;
+  font-size:19px;font-weight:700;letter-spacing:-.03em;background:var(--tinta);color:#fff}
+.pf-div-n.feito{background:var(--verde)}
+.pf-div-n.agora{background:var(--tinta)}
+.pf-div-n.aberto{background:var(--preench-2);color:var(--rotulo-3)}
+.pf-div-n.diag{background:var(--preench-2);color:var(--rotulo-2);font-size:22px}
+.pf-div-t{flex:1;min-width:0;padding-top:.05rem}
+.pf-div-t .et{display:block;font-size:12px;font-weight:600;color:var(--tinta);
+  letter-spacing:-.004em;text-transform:uppercase}
+.pf-div-t .et.cinza{color:var(--rotulo-3)}
+.pf-div-t h2{font-size:27px;font-weight:700;letter-spacing:-.033em;line-height:1.12;
+  margin:.1rem 0 .3rem}
+.pf-div-t p{font-size:14.5px;color:var(--rotulo-2);margin:0;letter-spacing:-.014em;max-width:36rem}
+
+/* transcrições — a pessoa precisa LER, não só saber que existem */
+.tr-lista{list-style:none;margin:0;padding:0}
+.tr-lista>li{border-top:.5px solid var(--sep)}
+.tr-lista>li:first-child{border-top:0}
+/* display:flex direto no <summary> quebra o clique no Safari — o flex vai
+   num div dentro dele. */
+.tr-it{cursor:pointer;list-style:none;display:block;border-radius:10px;
+  transition:background .15s ease}
+.tr-it::-webkit-details-marker{display:none}
+.tr-it:hover{background:var(--preench)}
+.tr-it:focus-visible{outline:2px solid var(--tinta);outline-offset:-2px}
+.tr-linha{display:flex;gap:.65rem;align-items:center;padding:.75rem .7rem}
+.tr-seta{width:1.4rem;height:1.4rem;flex:none;border-radius:99px;
+  background:var(--preench-2);color:var(--rotulo-2);font-size:9px;
+  display:grid;place-items:center;transition:transform .18s ease}
+.tr-it:hover .tr-seta{background:var(--tinta);color:#fff}
+details[open] .tr-seta{transform:rotate(90deg);background:var(--tinta);color:#fff}
+.tr-cx{flex:1;min-width:0}
+.tr-nm{font-size:14px;font-weight:600;letter-spacing:-.012em}
+.tr-ler{font-size:12px;font-weight:600;color:var(--tinta);flex:none;white-space:nowrap}
+details[open] .tr-ler{color:var(--rotulo-3)}
+.tr-sub{display:block;font-size:12px;color:var(--rotulo-2);margin-top:.1rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tr-tag{font-size:11px;font-weight:600;padding:.15rem .45rem;border-radius:99px;
+  flex:none;background:var(--preench);color:var(--rotulo-2);white-space:nowrap}
+.tr-tag.en{background:var(--verde-fraco);color:var(--verde)}
+.tr-corpo{padding:0 0 1rem 1.4rem}
+.tr-rot{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);margin:.5rem 0 .3rem}
+.tr-txt{font-size:14px;line-height:1.65;letter-spacing:-.011em;margin:0;
+  white-space:pre-wrap;color:var(--rotulo)}
+.tr-txt.orig{color:var(--rotulo-2)}
+.tr-falta{font-size:13px;color:var(--laranja);margin:.3rem 0 0}
+.tr-abrir{font-size:12px;color:var(--tinta);text-decoration:none;
+  display:inline-block;margin-top:.6rem}
+/* ---------- roteiro: as três faixas de tempo ----------
+   O gancho é o que decide se o vídeo sai para não-seguidor, então ele leva a
+   cor cheia; a régua vai clareando conforme o segundo pesa menos. */
+.rt-assistir{display:inline-flex;align-items:center;gap:.4rem;margin:.3rem 0 .9rem;
+  padding:.45rem .8rem;border-radius:99px;background:var(--tinta-fraca);
+  color:var(--tinta);font-size:13px;font-weight:600;text-decoration:none}
+.rt-assistir:hover{background:var(--tinta);color:#fff}
+.rt-assistir svg{width:.85rem;height:.85rem}
+/* na lista de benchmarks são 17 numa coluna só — o mesmo botão, em miniatura */
+.rt-assistir.mini{margin:0 0 0 .1rem;padding:.1rem .5rem .1rem .35rem;font-size:12px;gap:.15rem}
+.rt-assistir.mini svg{width:.7rem;height:.7rem}
+
+.rt-faixa{border-left:3px solid var(--sep-opaco);padding:.1rem 0 .1rem .8rem;margin-bottom:1.1rem}
+.rt-faixa.g{border-left-color:var(--tinta)}
+.rt-faixa.r{border-left-color:color-mix(in srgb,var(--tinta) 45%,transparent)}
+.rt-cab{display:flex;gap:.45rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.35rem}
+.rt-nm{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--rotulo-3)}
+.rt-faixa.g .rt-nm{color:var(--tinta)}
+.rt-seg{font-size:11px;font-weight:600;color:var(--rotulo-3);
+  font-variant-numeric:tabular-nums}
+.rt-real{font-size:11px;font-weight:600;color:var(--laranja);font-variant-numeric:tabular-nums}
+.rt-legenda{font-size:12.5px;color:var(--rotulo-2);line-height:1.5;margin:.7rem 0 0}
+.rt-legenda b{color:var(--rotulo);font-weight:600}
+
+/* ---------- as duas línguas lado a lado ----------
+   Como Bíblia bilíngue: mesma faixa de tempo nas duas colunas, para conferir
+   o gancho contra o gancho e não contra o vídeo inteiro. */
+.rt-par{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;align-items:start}
+.rt-colrot{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin:.6rem 0 .5rem}
+.rt-colrot span{font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3)}
+.rt-colrot span:first-child{color:var(--tinta)}
+@media(max-width:52rem){
+  .rt-par{grid-template-columns:1fr;gap:.6rem}
+  .rt-colrot{display:none}
+  /* empilhado, cada lado precisa se apresentar sozinho */
+  .rt-en::before{content:"Original em inglês";display:block;font-size:10px;
+    font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--rotulo-3);margin-bottom:.15rem}
+}
+
+/* ---------- legenda sincronizada, parágrafo a parágrafo ----------
+   Casar só as três faixas não bastava: quem revisa quer ver a frase em
+   inglês na mesma linha do parágrafo que nasceu dela. */
+.lg-linha{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;
+  padding:.55rem 0;position:relative;align-items:start}
+.lg-linha+.lg-linha::before{content:"";position:absolute;top:0;left:0;right:0;
+  height:.5px;background:var(--sep)}
+.lg-pt{font-size:14px;line-height:1.6;letter-spacing:-.011em;white-space:pre-wrap}
+.lg-en{font-size:13.5px;line-height:1.6;letter-spacing:-.011em;color:var(--rotulo-2);
+  white-space:pre-wrap}
+.lg-vazio{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.lg-linha.novo .lg-vazio{color:var(--verde)}
+.lg-linha.fora .lg-pt .lg-vazio{color:var(--rotulo-3)}
+.lg-linha.fora .lg-en{text-decoration:line-through;text-decoration-color:var(--rotulo-4)}
+@media(max-width:52rem){
+  .lg-linha{grid-template-columns:1fr;gap:.3rem}
+  .lg-en::before{content:"original";display:block;font-size:10px;font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--rotulo-3)}
+}
+
+/* ---------- briefing de direção ----------
+   Outro leitor, outra necessidade: quem grava não precisa do teleprompter,
+   precisa saber onde pôr a câmera. Por isso é painel próprio. */
+.dr-headline{background:var(--tinta-fraca);border-radius:var(--r-campo);
+  padding:.9rem 1rem;margin:.2rem 0 1rem}
+.dr-headline .k{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--tinta);margin-bottom:.35rem}
+.dr-headline .t{display:block;font-size:19px;font-weight:600;letter-spacing:-.022em;
+  line-height:1.3}
+.dr-headline .c{display:block;font-size:12.5px;color:var(--rotulo-2);margin-top:.4rem;
+  line-height:1.5}
+
+.dr-tiras{display:flex;gap:.4rem;overflow-x:auto;padding:.2rem 0 .5rem;
+  scroll-snap-type:x proximate;-webkit-overflow-scrolling:touch}
+.dr-tira{flex:none;width:6.5rem;scroll-snap-align:start}
+.dr-tira img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;
+  border-radius:10px;background:var(--preench)}
+.dr-tira span{display:block;font-size:11px;color:var(--rotulo-3);margin-top:.2rem;
+  font-variant-numeric:tabular-nums;text-align:center}
+
+.dr-campo{padding:.7rem 0;position:relative}
+.dr-campo+.dr-campo::before{content:"";position:absolute;top:0;left:0;right:0;
+  height:.5px;background:var(--sep)}
+.dr-k{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);margin-bottom:.25rem}
+.dr-v{font-size:14px;line-height:1.6;letter-spacing:-.011em;margin:0;color:var(--rotulo)}
+.dr-lista{list-style:none;margin:.1rem 0 0;padding:0}
+.dr-lista li{font-size:14px;line-height:1.55;padding:.2rem 0;display:flex;gap:.5rem}
+.dr-lista li::before{content:"";flex:none;width:5px;height:5px;border-radius:99px;
+  background:var(--rotulo-3);margin-top:.55rem}
+.dr-lista li.ess::before{background:var(--tinta)}
+.dr-papel{color:var(--rotulo-3);font-size:12px}
+.dr-faixa{display:flex;gap:.6rem;padding:.35rem 0;font-size:14px;line-height:1.55}
+.dr-faixa b{flex:none;width:5.2rem;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3);padding-top:.25rem}
+.dr-faixa:first-child b{color:var(--tinta)}
+.dr-som{display:inline-flex;align-items:center;gap:.4rem;font-size:13px;
+  background:var(--preench);border-radius:99px;padding:.25rem .7rem;margin-top:.15rem}
+.dr-som b{font-weight:600}
+
+/* ---------- copiar para o teleprompter ----------
+   Em cima e embaixo: em cima para quem já sabe o que quer, embaixo para quem
+   leu o roteiro inteiro e não vai rolar de volta. */
+.rt-barra{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin:.2rem 0 .8rem}
+.rt-barra.pe{margin:1rem 0 .2rem;padding-top:.8rem;border-top:.5px solid var(--sep)}
+.rt-copiar{display:inline-flex;align-items:center;gap:.4rem;border:0;cursor:pointer;
+  padding:.4rem .8rem;border-radius:99px;background:var(--preench);color:var(--tinta);
+  font:inherit;font-size:13px;font-weight:600}
+.rt-copiar:hover{background:var(--preench-2)}
+.rt-copiar.ok{background:var(--verde-fraco);color:var(--verde)}
+.rt-copiar svg{width:.85rem;height:.85rem}
+.rt-dur{font-size:12px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
+.rt-dur b{font-weight:600;color:var(--rotulo)}
+.rt-dur .longo{color:var(--laranja);font-weight:600}
+
+/* ---------- correção do especialista ---------- */
+.rt-editar{border:0;background:none;cursor:pointer;padding:0 .1rem;
+  font-size:11px;font-weight:600;color:var(--tinta);margin-left:auto}
+.rt-editar:hover{text-decoration:underline}
+.rt-area{width:100%;box-sizing:border-box;font:inherit;font-size:14px;line-height:1.65;
+  color:var(--rotulo);background:var(--ilha-2);border:1.5px solid var(--tinta);
+  border-radius:var(--r-campo);padding:.6rem .7rem;resize:vertical;min-height:5rem}
+.rt-acoes{display:flex;gap:.5rem;align-items:center;margin-top:.5rem}
+.rt-erro{font-size:12px;color:var(--vermelho)}
+.rt-marca{font-size:11px;font-weight:600;color:var(--verde);
+  letter-spacing:.03em;text-transform:uppercase}
+.rt-antes{border:0;background:none;cursor:pointer;padding:0;font-size:11.5px;
+  color:var(--rotulo-2);text-decoration:underline;margin-top:.35rem}
+.rt-oculto{display:none}
+
+.rt-conf{list-style:none;margin:.2rem 0 0;padding:0}
+.rt-conf li{position:relative;padding:.3rem 0 .3rem 1.35rem;font-size:13px;
+  color:var(--rotulo-2);line-height:1.5}
+.rt-conf li::before{content:"";position:absolute;left:.15rem;top:.65rem;
+  width:.7rem;height:.7rem;border:1.5px solid var(--sep-opaco);border-radius:3px}
+
+.pf-falta{color:var(--laranja)}
+.pf-carga{padding:4rem 0;text-align:center;color:var(--rotulo-2);font-size:15px}
+
+/* Só aparece quando a lateral vira gaveta. Fica embaixo do véu (z-index 45)
+   para escurecer junto com o resto quando o menu abre. */
+.pf-menu{display:none}
+@media(max-width:60rem){
+  .pf-menu{
+    display:grid;place-items:center;position:fixed;z-index:44;
+    top:max(.7rem,env(safe-area-inset-top));left:.7rem;
+    width:2.4rem;height:2.4rem;border-radius:99px;cursor:pointer;
+    border:.5px solid var(--vidro-borda);color:var(--tinta);
+    background:var(--vidro);box-shadow:var(--vidro-sombra);
+    -webkit-backdrop-filter:saturate(180%) blur(24px);
+    backdrop-filter:saturate(180%) blur(24px);
+  }
+  .pf-menu svg{width:1.05rem;height:1.05rem}
+  /* o conteúdo desce para não passar por baixo do botão */
+  .palco{padding-top:2.6rem}
+}
+
+@media(max-width:34rem){
+  .pf-topo{gap:.85rem}
+  .pf-av{width:3.5rem;height:3.5rem;font-size:20px}
+  .pf-id h1{font-size:25px}
+}
