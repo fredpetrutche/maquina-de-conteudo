@@ -45,7 +45,8 @@
   }
 
   var state = novoEstado();
-  var ident = { id: null, nome: '', telefone: '' };
+  var ident = { id: null, instagram: '', telefone: '', nome: '' };
+  var meusVideos = null;
 
   /* ---------- celular ----------
      Guardamos sempre em E.164 sem o "+" (5511987654321), que é o
@@ -68,6 +69,15 @@
     return d.length >= 10 ? '55' + d : '';
   }
   function telValido(e164) { return /^55[1-9][0-9][0-9]{8,9}$/.test(e164); }
+
+  /* aceita @perfil, perfil ou link; guarda sem o @ */
+  function limparInsta(v) {
+    var p = String(v || '').trim().toLowerCase();
+    var m = p.match(/instagram\.com\/([^/?#]+)/);
+    if (m) p = m[1];
+    p = p.replace(/^@/, '').replace(/[/?#].*$/, '');
+    return /^[a-z0-9._]{1,30}$/.test(p) ? p : '';
+  }
   function telBonito(e164) {
     var d = semDDI(soDigitos(e164));
     if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
@@ -136,12 +146,12 @@
 
   var syncTimer = null;
   function sincronizar() {
-    if (!ident.nome || !ident.telefone) return;
+    if (!ident.instagram || !ident.telefone) return;
     estadoSinc('mov');
     clearTimeout(syncTimer);
     syncTimer = setTimeout(function () {
       rpc('salvar_ficha', {
-        p_id: ident.id, p_nome: ident.nome, p_telefone: ident.telefone,
+        p_id: ident.id, p_instagram: ident.instagram, p_telefone: ident.telefone, p_nome: ident.nome,
         p_dados: state, p_etapa: atual, p_progresso: progresso()
       }).then(function (id) {
         if (id && !ident.id) { ident.id = id; salvarIdent(); pintarPe(); }
@@ -163,9 +173,11 @@
   function carregarIdent() {
     try {
       var d = JSON.parse(localStorage.getItem(KEY_ID) || 'null');
-      if (d && (d.telefone || d.email)) {
-        ident = { id: d.id || null, nome: d.nome || '', telefone: d.telefone || '' };
+      if (d && (d.instagram || d.telefone)) {
+        ident = { id: d.id || null, instagram: d.instagram || '',
+                  telefone: d.telefone || '', nome: d.nome || '' };
       }
+      try { meusVideos = JSON.parse(localStorage.getItem(KEY + '.meus') || 'null'); } catch (e) {}
     } catch (e) {}
   }
   function salvarIdent() {
@@ -289,11 +301,11 @@
 
   function pintarPe() {
     var q = $('quem');
-    if (ident.nome) {
+    if (ident.instagram) {
       q.style.display = '';
-      $('quemAv').textContent = ident.nome.trim().charAt(0).toUpperCase();
-      $('quemNm').textContent = ident.nome;
-      $('quemEm').textContent = telBonito(ident.telefone);
+      $('quemAv').textContent = ident.instagram.charAt(0).toUpperCase();
+      $('quemNm').textContent = ident.nome || '@' + ident.instagram;
+      $('quemEm').textContent = ident.nome ? '@' + ident.instagram : telBonito(ident.telefone);
     } else q.style.display = 'none';
 
     var c = $('codigoCx');
@@ -783,13 +795,74 @@
     }).catch(function () {});
   }
 
+
+  /* ---------- o que já funcionou com a própria pessoa ----------
+     Com o @ em mãos, mostramos os vídeos dela ordenados por
+     visualizações. Ela vê de cara o que já deu certo — e isso
+     ajuda a responder o assunto e os temas logo abaixo. */
+  function buscarMeuPerfil() {
+    if (!ident.instagram || meusVideos) return;
+    pintarMeuPerfil('buscando');
+    fetch(SUPA_URL + '/functions/v1/raspar-perfil', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perfil: ident.instagram })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.runId) throw new Error(d.erro || 'sem resposta');
+      esperarMeu(d.runId, 0);
+    }).catch(function () { pintarMeuPerfil('erro'); });
+  }
+
+  function esperarMeu(runId, n) {
+    if (n > 40) return pintarMeuPerfil('erro');
+    setTimeout(function () {
+      fetch(SUPA_URL + '/functions/v1/raspar-perfil', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runId: runId })
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (!d.pronto) return esperarMeu(runId, n + 1);
+        if (d.erro) return pintarMeuPerfil('erro');
+        meusVideos = (d.videos || []).slice(0, 5);
+        if (d.nome && !ident.nome) { ident.nome = d.nome; salvarIdent(); pintarPe(); salvar(); }
+        try { localStorage.setItem(KEY + '.meus', JSON.stringify(meusVideos)); } catch (e) {}
+        pintarMeuPerfil();
+      }).catch(function () { pintarMeuPerfil('erro'); });
+    }, n === 0 ? 4000 : 3000);
+  }
+
+  function pintarMeuPerfil(estado) {
+    var el = $('meuPerfil'); if (!el) return;
+    if (estado === 'buscando') {
+      el.style.display = '';
+      el.innerHTML = '<div class="meu"><span class="k">Um instante</span>' +
+        '<h3>Vendo o que já funcionou com você</h3>' +
+        '<p><span class="lendo"><span class="giro"></span>Lendo o seu perfil @' +
+        esc(ident.instagram) + '…</span></p></div>';
+      return;
+    }
+    if (estado === 'erro' || !meusVideos || !meusVideos.length) { el.style.display = 'none'; return; }
+    el.style.display = '';
+    el.innerHTML = '<div class="meu"><span class="k">Antes de começar</span>' +
+      '<h3>O que já funcionou com você</h3>' +
+      '<p>Estes são os seus vídeos mais vistos. Repare no que eles têm em comum — é uma pista forte para as respostas aqui embaixo.</p>' +
+      '<ul class="meu-lista">' + meusVideos.map(function (v, i) {
+        return '<li><span class="p">' + (i + 1) + '</span>' +
+          '<span class="t">' + esc(v.legenda || v.url) + '</span>' +
+          '<span class="v">' + numeroBonito(v.views) + '</span></li>';
+      }).join('') + '</ul></div>';
+  }
+
   /* ---------- porta ---------- */
   function abrirPorta(modo) {
     $('porta').classList.add('on');
     trocarPorta(modo);
-    if (modo !== 'retomar' && ident.telefone) $('gTel').value = telBonito(ident.telefone);
+    if (modo !== 'retomar') {
+      if (ident.instagram) $('gInsta').value = ident.instagram;
+      if (ident.telefone) $('gTel').value = telBonito(ident.telefone);
+    }
     setTimeout(function () {
-      var f = $(modo === 'retomar' ? 'gCodigo' : 'gNome'); if (f) f.focus();
+      var f = $(modo === 'retomar' ? 'gCodigo' : 'gInsta'); if (f) f.focus();
     }, 80);
   }
   function trocarPorta(modo) {
@@ -801,11 +874,12 @@
     var e = $('portaErr'); e.textContent = m || ''; e.classList.toggle('on', !!m);
   }
   function entrar() {
-    var n = $('gNome').value.trim(), tel = telE164($('gTel').value);
-    if (n.length < 2) return erroPorta('Escreva o seu nome.');
+    var ig = limparInsta($('gInsta').value), tel = telE164($('gTel').value);
+    if (!ig) return erroPorta('Confira o @ do Instagram.');
     if (!telValido(tel)) return erroPorta('Confira o celular: precisa do DDD e do número completo.');
-    ident.nome = n; ident.telefone = tel;
+    ident.instagram = ig; ident.telefone = tel;
     salvarIdent();
+    buscarMeuPerfil();
     $('porta').classList.remove('on');
     pintarPe();
     state.briefingOk = true;
@@ -821,7 +895,7 @@
       $('btRetomar').disabled = false;
       if (!rows || !rows.length) return erroPorta('Não encontrei nenhuma ficha com esse código.');
       var f = rows[0];
-      ident = { id: f.id, nome: f.nome, telefone: f.telefone || '' };
+      ident = { id: f.id, instagram: f.instagram || '', telefone: f.telefone || '', nome: f.nome || '' };
       salvarIdent();
       if (f.dados && typeof f.dados === 'object') {
         state = novoEstado(); aplicar(f.dados);
@@ -840,7 +914,8 @@
   /* ---------- exportar ---------- */
   function texto() {
     var L = ['# MÁQUINA DE CONTEÚDO — Ficha de entrada', ''];
-    if (ident.nome) L.push('**' + ident.nome + '** · ' + telBonito(ident.telefone), '');
+    if (ident.instagram) L.push('**@' + ident.instagram + '**' +
+      (ident.nome ? ' · ' + ident.nome : '') + ' · ' + telBonito(ident.telefone), '');
     L.push('## Fase 0 — Definir o campo', '');
     L.push('- **Macro-nicho:** ' + (state.macroNicho.trim() || '(vazio)'));
     L.push('- **Subnicho:** ' + (state.subNicho.trim() || '(vazio)'), '');
@@ -993,7 +1068,7 @@
 
       var a = t.getAttribute('data-act');
       if (a === 'briefing-ok') {
-        if (!ident.nome || !ident.telefone) return abrirPorta('nova');
+        if (!ident.instagram || !ident.telefone) return abrirPorta('nova');
         state.briefingOk = true; salvar(); pintarNav(); ir('fase0');
       }
       else if (a === 'porta-entrar') entrar();
@@ -1011,8 +1086,10 @@
       }
       else if (a === 'limpar') {
         if (confirm('Isto apaga tudo o que você preencheu neste aparelho. Continuar?')) {
-          localStorage.removeItem(KEY); localStorage.removeItem(KEY_ID); localStorage.removeItem(KEY + '.marcos');
-          state = novoEstado(); ident = { id: null, nome: '', telefone: '' };
+          localStorage.removeItem(KEY); localStorage.removeItem(KEY_ID);
+          localStorage.removeItem(KEY + '.marcos'); localStorage.removeItem(KEY + '.meus');
+          meusVideos = null;
+          state = novoEstado(); ident = { id: null, instagram: '', telefone: '', nome: '' };
           jaFestejou = {};
           montar(); pintarPe(); ir('briefing'); avisar('Tudo apagado');
         }
@@ -1085,7 +1162,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
+    pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
   }
 
   function boot() {

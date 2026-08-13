@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608122008">
+<link rel="stylesheet" href="app.css?v=202608122206">
 </head>
 <body>
 
@@ -392,6 +392,8 @@
           <p class="abre">Cinco perguntas. Elas decidem tudo o que vem depois — inclusive os roteiros que a gente vai escrever com você.</p>
         </div>
 
+        <div id="meuPerfil" style="display:none"></div>
+
         <!-- 1 · GRANDE ASSUNTO -->
         <div class="pergunta" id="pg1">
           <span class="p-passo"><i>1</i>Grande assunto</span>
@@ -717,8 +719,9 @@ https://www.youtube.com/shorts/..."></textarea>
       <div class="grupo">
         <div class="ilha">
           <div class="linha">
-            <span class="rot">Nome</span>
-            <input type="text" id="gNome" autocomplete="name" placeholder="Nome e sobrenome">
+            <span class="rot">Instagram</span>
+            <span class="ddi">@</span>
+            <input type="text" id="gInsta" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="seuperfil">
           </div>
           <div class="linha">
             <span class="rot">Celular</span>
@@ -726,7 +729,7 @@ https://www.youtube.com/shorts/..."></textarea>
             <input type="tel" id="gTel" autocomplete="tel-national" inputmode="numeric" maxlength="16" placeholder="(11) 98765-4321">
           </div>
         </div>
-        <span class="sec-nota">É por aqui que a gente vai falar com você no WhatsApp.</span>
+        <span class="sec-nota">O seu @ identifica você aqui — e com ele a gente já descobre quais dos seus vídeos performaram melhor. O celular é por onde a gente fala com você no WhatsApp.</span>
       </div>
       <button class="bt forte cheio" data-act="porta-entrar">Começar a Fase 0</button>
       <button class="bt simples cheio" data-act="porta-fechar" style="margin-top:.5rem">Agora não</button>
@@ -765,6 +768,6 @@ https://www.youtube.com/shorts/..."></textarea>
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="app.js?v=202608122008"></script>
+<script src="app.js?v=202608122206"></script>
 </body>
 </html>

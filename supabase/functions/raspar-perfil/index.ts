@@ -65,6 +65,7 @@ function extrair(item: Record<string, unknown>) {
     comentarios: numero(item.commentsCount),
     quando: String(item.timestamp ?? ''),
     perfil: String(item.ownerUsername ?? ''),
+    perfilNome: String(item.ownerFullName ?? ''),
   };
 }
 
@@ -111,7 +112,12 @@ Deno.serve(async (req) => {
         .sort((a, b) => b.views - a.views)
         .slice(0, TETO_POR_PERFIL);
 
-      return responder({ pronto: true, videos, lidos: Array.isArray(itens) ? itens.length : 0 });
+      // o nome do perfil vem de brinde: a pessoa não precisa digitar
+      const nome = videos.find((v) => v.perfilNome)?.perfilNome ?? '';
+      return responder({
+        pronto: true, videos, nome,
+        lidos: Array.isArray(itens) ? itens.length : 0,
+      });
     }
 
     /* ---------- 1ª chamada: começar a raspagem ---------- */

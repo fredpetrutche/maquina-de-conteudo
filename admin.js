@@ -117,9 +117,11 @@
       var cls = f.progresso >= 3 ? 's3' : f.progresso >= 2 ? 's2' : f.progresso >= 1 ? 's1' : '';
       var traco = '<span style="color:var(--rotulo-3)">—</span>';
       return '<tr data-i="' + i + '">' +
-        '<td><span class="nm">' + esc(f.nome) + '</span>' +
-        '<a class="em zap" href="' + zap(f.telefone) + '" target="_blank" rel="noopener">' +
-        esc(telBonito(f.telefone)) + '</a></td>' +
+        '<td><a class="nm" href="https://www.instagram.com/' + esc(f.instagram) +
+        '" target="_blank" rel="noopener">@' + esc(f.instagram) + '</a>' +
+        '<span class="em">' + (f.nome ? esc(f.nome) + ' · ' : '') +
+        '<a class="zap" href="' + zap(f.telefone) + '" target="_blank" rel="noopener">' +
+        esc(telBonito(f.telefone)) + '</a></span></td>' +
         '<td><span class="fita"><i style="width:' + pct + '%"></i></span><span class="t-num">' + f.progresso + '/3</span></td>' +
         '<td><span class="selo ' + cls + '">' + esc(ETAPA[f.etapa] || f.etapa) + '</span></td>' +
         '<td>' + (f.comunidade ? esc(f.comunidade) : traco) + '</td>' +
@@ -132,7 +134,9 @@
   /* ---------- detalhe ---------- */
   function detalhe(i) {
     var f = fichas[i], d = f.dados || {};
-    $('dNome').textContent = f.nome;
+    $('dNome').innerHTML = '<a class="zap" href="https://www.instagram.com/' + esc(f.instagram) +
+      '" target="_blank" rel="noopener">@' + esc(f.instagram) + '</a>' +
+      (f.nome ? ' <span style="color:var(--rotulo-2);font-weight:400">· ' + esc(f.nome) + '</span>' : '');
     $('dEmail').innerHTML = '<a class="zap" href="' + zap(f.telefone) + '" target="_blank" rel="noopener">' +
       esc(telBonito(f.telefone)) + ' &rsaquo; abrir no WhatsApp</a>';
 
@@ -183,7 +187,7 @@
 
   /* ---------- CSV ---------- */
   function csv() {
-    var cab = ['nome', 'telefone', 'etapa', 'progresso', 'comunidade', 'bandeira', 'macro_nicho',
+    var cab = ['instagram', 'nome', 'telefone', 'etapa', 'progresso', 'comunidade', 'bandeira', 'macro_nicho',
       'sub_nicho', 'temas', 'canais', 'videos', 'atualizado_em'];
     function q(v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }
     var ls = fichas.map(function (f) {
@@ -193,7 +197,7 @@
       var cs = {}; lista.forEach(function (v) { cs[v.canalUrl || v.canal] = 1; });
       var canais = Object.keys(cs);
       var vids = lista.length;
-      return [f.nome, "'" + (f.telefone || ''), f.etapa, f.progresso, d.comunidade || '', d.comunidadeBandeira || '',
+      return ['@' + (f.instagram || ''), f.nome || '', "'" + (f.telefone || ''), f.etapa, f.progresso, d.comunidade || '', d.comunidadeBandeira || '',
         d.macroNicho || '', d.subNicho || '', temas.join(' | '), canais.length, vids,
         f.atualizado_em].map(q).join(',');
     });
