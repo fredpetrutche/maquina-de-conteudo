@@ -296,3 +296,31 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   .pf-av{width:3.5rem;height:3.5rem;font-size:20px}
   .pf-id h1{font-size:25px}
 }
+
+/* ---------- os comandos do roteiro, numa linha só ----------
+   Antes eram duas fileiras empilhadas, cada uma com "abrir ›". O painel
+   continua sendo um <details> — é o `toggle` dele que a página guarda para
+   lembrar o que estava aberto —, mas o summary sai da tela e quem manda é o
+   botão da linha. */
+.rt-cmd{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.7rem 0 0}
+.rt-painel{margin-top:.6rem}
+.rt-painel>summary{display:none}
+.rt-painel>summary::-webkit-details-marker{display:none}
+
+/* ---------- o card da voz ----------
+   Vem em markdown, escrito por quem leu as transcrições dela. */
+.pf-voz h1,.pf-voz h2{font-size:16px;margin:1.1rem 0 .4rem;letter-spacing:-.018em}
+.pf-voz h1:first-child,.pf-voz h2:first-child{margin-top:0}
+.pf-voz p{font-size:14px;line-height:1.6;color:var(--rotulo-2);margin:0 0 .7rem}
+.pf-voz blockquote{margin:.5rem 0;padding-left:.9rem;border-left:3px solid var(--verde);
+  color:var(--rotulo);font-style:italic}
+.pf-voz table{width:100%;border-collapse:collapse;font-size:13px;margin:.6rem 0}
+.pf-voz th,.pf-voz td{text-align:left;padding:.4rem .55rem;border-bottom:.5px solid var(--sep)}
+.pf-voz th{font-size:11px;color:var(--rotulo-2);text-transform:uppercase;letter-spacing:.04em}
+.pf-voz ul{margin:.4rem 0;padding-left:1.1rem;font-size:14px;color:var(--rotulo-2)}
+.pf-voz li{margin-bottom:.25rem}
+.pf-voz hr{border:0;border-top:.5px solid var(--sep);margin:1.1rem 0}
+.pf-voz code{font-family:var(--mono);font-size:.9em}
+
+/* o editar por seção só aparece quando o app está montando a revisão */
+.pf-editar{margin-top:.6rem}

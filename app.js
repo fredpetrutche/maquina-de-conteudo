@@ -18,7 +18,10 @@
   var TEMAS_INICIAIS = 3;
 
   var STEPS = [
-    { id: 'briefing', ph: 'Etapa 0', nm: 'Briefing', grupo: 'Comece aqui' },
+    /* A revisão é a casa: a pessoa entra para ler a ficha pronta, e o fluxo
+       com perguntas só aparece quando ela vai mexer em alguma coisa. */
+    { id: 'revisao', ph: 'A sua ficha', nm: 'A sua ficha', revisao: 1, grupo: 'Comece aqui' },
+    { id: 'briefing', ph: 'Etapa 0', nm: 'Briefing' },
     { id: 'fase0', ph: 'Fase 0', nm: 'Definir o campo', grupo: 'Suas informações' },
     { id: 'fase1', ph: 'Fase 1', nm: 'Minerar benchmarks' },
     /* A Fase 2 não é preenchida, é entregue: destrava sozinha quando os
@@ -268,7 +271,13 @@
 
   /* Trancada é o estado, não uma propriedade fixa: a Fase 2 abre sozinha
      quando os roteiros chegam. As outras continuam presas no `lock`. */
-  function travada(s) { return s.entrega ? !temRoteiros() : !!s.lock; }
+  /* Sem ficha na mão não há o que revisar — aí a lateral esconde a revisão e a
+     pessoa começa pelo briefing, como antes. */
+  function temFicha() { return !!(ident.id && (state.macroNicho || (state.videos || []).length)); }
+  function travada(s) {
+    if (s.revisao) return !temFicha();
+    return s.entrega ? !temRoteiros() : !!s.lock;
+  }
 
   var MARCOS = {
     fase0: { t: 'Campo definido', p: 'Você já sabe onde joga, por quem fala e como se apresenta. Agora vamos atrás das referências.', b: 'Ir para a Fase 1', ir: 'fase1' },
@@ -313,7 +322,7 @@
 
     /* a barra mede o que a PESSOA preenche. A Fase 2 é entrega: contá-la
        daria progresso por trabalho que não é dela. */
-    var abertas = STEPS.filter(function (s) { return !travada(s) && !s.entrega; });
+    var abertas = STEPS.filter(function (s) { return !travada(s) && !s.entrega && !s.revisao; });
     var feitas = abertas.filter(function (s) { return concluida(s.id); }).length;
     $('progBarra').style.width = Math.round((feitas / abertas.length) * 100) + '%';
     $('progVal').textContent = feitas + ' de ' + abertas.length;
@@ -332,6 +341,28 @@
     } else q.style.display = 'none';
 
     estadoSinc(ident.nome ? 'on' : '');
+  }
+
+  /* ---------- a revisão ----------
+     Desenhada pelo revisao.js, o mesmo arquivo que a perfil.html usa. Duas
+     cópias do mesmo desenho divergem — aqui é um só, de propósito.
+
+     A lateral fica com o app: lá ela navega entre telas; na perfil.html ela
+     rola até a âncora, porque tudo já está aberto na mesma página. */
+  var vozTexto = '';
+
+  function pintarRevisao() {
+    var alvo = $('revisaoTela');
+    if (!alvo || !window.Revisao || !ident.id) return;
+    Revisao.montar(alvo, {
+      id: ident.id, nome: ident.nome || ('@' + ident.instagram),
+      instagram: ident.instagram, telefone: ident.telefone, dados: state
+    }, transcricoes, {
+      lateral: false, editar: true, voz: vozTexto,
+      /* a correção de um trecho grava direto no banco; sem trazer de volta,
+         o próximo autosave daqui devolveria o texto antigo por cima */
+      aoGravar: function (dados) { if (dados) aplicar(dados); }
+    });
   }
 
   /* ---------- lembrar onde a pessoa estava ----------
@@ -386,6 +417,18 @@
   function ir(id, quieto) {
     var st = STEPS.filter(function (s) { return s.id === id; })[0];
     if (!st || travada(st)) return;
+
+    /* A Fase 2 é só leitura, e a revisão já a desenha. Manter as duas telas
+       seria voltar a ter dois códigos para os mesmos roteiros — então o
+       lateral leva para a seção de lá. */
+    if (id === 'fase2' && temFicha()) {
+      ir('revisao');
+      setTimeout(function () {
+        var el = document.getElementById('p-fase2');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+      return;
+    }
     atual = id;
     var v = document.querySelectorAll('.vista');
     for (var i = 0; i < v.length; i++) v[i].classList.toggle('on', v[i].id === 'v-' + id);
@@ -397,6 +440,10 @@
     clearInterval(filaPoll);
     if (ident.id) buscarVoz();
     if (id === 'fase1' && ident.id) { olharBenchmarks(); enfileirar(); olharFila(); filaPoll = setInterval(olharFila, 12000); }
+    if (id === 'revisao') {
+      pintarRevisao();
+      if (ident.id && !transcricoes.length) olharFila().then(pintarRevisao);
+    }
     if (id === 'fase2') {
       pintarFase2();
       /* o texto original de cada roteiro mora nas transcrições. Se a pessoa
@@ -1334,7 +1381,9 @@
     if (!ident.id) return;
     rpc('minha_voz', { p_ficha: ident.id }).then(function (r) {
       var v = (r && r[0]) || {};
+      vozTexto = v.voz || '';
       pintarVoz(v.voz);
+      if (atual === 'revisao') pintarRevisao();   // chegou depois da tela montar
     }).catch(function () {});
   }
 
@@ -1695,10 +1744,10 @@
         salvarIdent();
       }
       montar(); pintarPe();
-      /* Sempre no começo. Largar a pessoa no meio do fluxo — ainda que seja
-         onde ela tem trabalho — tira dela a noção de onde está e do que veio
-         antes. Quem quiser pular vai pelo lateral, que mostra tudo aberto. */
-      ir('briefing');
+      /* Entra para revisar. A ficha se apresenta pronta e a pessoa desce lendo;
+         o fluxo com perguntas só aparece quando ela clica em editar. Quem ainda
+         não tem o que revisar começa pelo briefing. */
+      ir(temFicha() ? 'revisao' : 'briefing');
     }).catch(function () { montar(); ir('briefing'); });
   }
 
@@ -1829,10 +1878,13 @@
   /* ---------- eventos ---------- */
   function ligar() {
     document.addEventListener('click', function (ev) {
-      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
+      var t = ev.target.closest ? ev.target.closest('[data-go],[data-act],[data-add-tema],[data-rm-tema],[data-rm-video],[data-rm-bm],#btLerIg,[data-preenche],[data-add-tema-txt],[data-plat],[data-abrir-tr],[data-copiar-tr],[data-abrir-rot],[data-abrir-dir],[data-copiar-rot],[data-editar],[data-raspar],[data-marcar],[data-aceitar],[data-descartar],#btLer,#btAddIg') : null;
       if (!t) return;
 
       if (t.hasAttribute('data-go')) return ir(t.getAttribute('data-go'));
+
+      /* o botão que a revisão desenha em cada divisória */
+      if (t.hasAttribute('data-editar')) return ir(t.getAttribute('data-editar'));
 
       // exemplo tocado preenche o campo
       if (t.hasAttribute('data-preenche')) {

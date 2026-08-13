@@ -19,6 +19,7 @@
   var tela = null;
   var codigo = null;
   var OPC = {};
+  var VOZ = '';
 
   /* As mesmas etapas do app (app.js, STEPS). Aqui elas não navegam entre telas —
      rolam até a seção correspondente desta página, porque tudo já está aberto. */
@@ -110,7 +111,15 @@
       (estado === 'diag' ? 'Ponto de partida' : 'Fase ' + etapa) +
       (estado === 'feito' ? ' &middot; concluída' : estado === 'agora' ? ' &middot; é aqui que você está' :
        estado === 'aberto' ? ' &middot; em aberto' : '') + '</span>' +
-      '<h2>' + esc(nome) + '</h2><p>' + esc(oque) + '</p></div></div>';
+      '<h2>' + esc(nome) + '</h2><p>' + esc(oque) + '</p>' +
+      /* Em revisão a pessoa lê. O botão de editar só existe quando quem chamou
+         sabe levar para o fluxo — na perfil.html sozinha ele não aparece. E é
+         por seção: quem está olhando os temas cai na Fase 0, não no começo. */
+      (OPC.editar && (id === 'p-fase0' || id === 'p-fase1')
+        ? '<button class="bt simples mini pf-editar" data-editar="' + id.slice(2) +
+          '">Editar esta fase</button>'
+        : '') +
+      '</div></div>';
   }
 
   /* ---------- blocos ---------- */
@@ -214,6 +223,42 @@
       '</div></div>';
   }
 
+  /* markdown mínimo — só o que a voz usa */
+  function marcar(md) {
+    var linhas = String(md).split('\n'), fora = [], tabela = null;
+    function fechaTabela() {
+      if (!tabela) return;
+      var cab = tabela[0], corpo = tabela.slice(2);
+      fora.push('<table><thead><tr>' + cab.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') +
+        '</tr></thead><tbody>' + corpo.map(function (l) {
+          return '<tr>' + l.map(function (c) { return '<td>' + inline(c) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table>');
+      tabela = null;
+    }
+    function inline(t) {
+      return esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/\*(.+?)\*/g, '<i>$1</i>')
+        .replace(/`(.+?)`/g, '<code>$1</code>');
+    }
+    linhas.forEach(function (l) {
+      var t = l.trim();
+      if (/^\|/.test(t)) {
+        var cels = t.replace(/^\||\|$/g, '').split('|').map(function (c) { return c.trim(); });
+        (tabela = tabela || []).push(cels); return;
+      }
+      fechaTabela();
+      if (!t) return;
+      if (/^#{1,2}\s/.test(t)) fora.push('<h2>' + inline(t.replace(/^#+\s*/, '')) + '</h2>');
+      else if (/^#{3,}\s/.test(t)) fora.push('<h2>' + inline(t.replace(/^#+\s*/, '')) + '</h2>');
+      else if (/^>\s?/.test(t)) fora.push('<blockquote>' + inline(t.replace(/^>\s?/, '')) + '</blockquote>');
+      else if (/^[-*]\s/.test(t)) fora.push('<ul><li>' + inline(t.replace(/^[-*]\s/, '')) + '</li></ul>');
+      else if (/^---+$/.test(t)) fora.push('<hr>');
+      else fora.push('<p>' + inline(t) + '</p>');
+    });
+    fechaTabela();
+    return fora.join('').replace(/<\/ul><ul>/g, '');
+  }
+
   function blocoFase0(d) {
     var p = d.perfil || {};
     /* Cada campo carrega a pergunta que ele responde. Quem lê precisa saber o que
@@ -240,6 +285,22 @@
       campo('Recorte do nicho', 'Qual é o recorte dentro do macro-nicho? Pare na segunda camada.',
             d.subNicho) +
 
+      '</div>';
+
+    /* Por quem ela fala. Views não fazem viralizar, compartilhamento faz — e
+       ninguém compartilha informação: as pessoas compartilham quem elas são. */
+    h += '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+      '<h3 style="font-size:18px">Por quem você fala</h3>' +
+      '<p>Quando alguém manda o seu vídeo para um amigo com um <i>"olha, é a gente"</i>, ' +
+      'é porque você falou pela tribo dela.</p></div>' +
+      campo('Que grupo é esse?', 'De quem você fala — não para quem você vende.',
+            d.comunidade, { falta: !d.comunidade }) +
+      campo('Que palavra essa gente usa para falar de si?',
+            'Se ninguém se descreve assim, não é bandeira.',
+            d.comunidadeBandeira, { falta: !d.comunidadeBandeira }) +
+      campo('O que essa gente comenta entre si, mas ninguém diz em público?',
+            'A verdade que todo mundo daquele grupo sente e ninguém fala em voz alta.',
+            d.comunidadeCausa, { falta: !d.comunidadeCausa }) +
       '</div>';
 
     var temas = (d.temas || []).filter(function (t) { return t && t.trim(); });
@@ -269,6 +330,19 @@
         '<p class="pf-assin">Meu nome é ' + esc(d.sigNome || '…') + ' e eu ' +
         esc(d.sigEntrega || '…') + ' ' + esc(d.sigPromessa || '') +
         ' todos os dias. Se inscreve para não perder a próxima.</p></div>';
+    }
+
+    /* O jeito de falar dela, tirado das transcrições dos próprios vídeos. Fecha
+       a Fase 0 em vez de abrir: preenchendo ela seria pista, revisando ela é
+       resultado. É contra ela que se confere se um roteiro soa como a pessoa. */
+    if (VOZ) {
+      h += '<details class="cartao" data-ch="voz" style="margin-top:1rem">' +
+        '<summary class="tr-it"><div class="tr-linha" style="padding:.5rem .6rem">' +
+        '<span class="tr-seta">&#9654;</span>' +
+        '<span class="tr-cx"><span class="tr-nm">O seu jeito de falar</span>' +
+        '<span class="tr-sub">tirado das transcrições dos seus próprios vídeos</span></span>' +
+        '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
+        '<div class="tr-corpo pf-voz">' + marcar(VOZ) + '</div></details>';
     }
     return h + '</div>';
   }
@@ -671,6 +745,34 @@
     return h;
   }
 
+  /* O que a máquina aprendeu corrigindo. Fica na Fase 2, não junto do card da
+     voz, porque nasce de corrigir roteiro — cada coisa no lugar de onde vem. */
+  function blocoRegrasVoz(d) {
+    var v = d.regrasVoz || {};
+    var regras = v.regras || [];
+    if (!regras.length) return '';
+    var c = v.contagem || {};
+    return '<div class="cartao" style="margin-top:1rem"><div class="cartao-h">' +
+      '<h3 style="font-size:18px">O que eu aprendi do seu jeito de falar</h3>' +
+      '<p>Saiu das suas próprias correções: cada trecho reescrito vira uma regra que ' +
+      'entra no próximo roteiro. ' + (c.correcoes || regras.length) +
+      ' correção(ões) lidas até aqui.</p></div>' +
+      '<ul class="rt-conf" style="margin:0">' + regras.map(function (r) {
+        return '<li>' + esc(r.regra) +
+          (r.vezes > 1 ? ' <b style="color:var(--rotulo-3)">· ' + r.vezes + '×</b>' : '') +
+          '</li>';
+      }).join('') + '</ul>' +
+      /* erro de informação NÃO vira regra de voz — se virasse, o modelo
+         aprenderia que pode inventar porque alguém conserta depois */
+      ((v.fatos || []).length
+        ? '<p class="rt-legenda" style="margin-top:.9rem"><b>Também errei ' +
+          v.fatos.length + ' informação(ões)</b> que você consertou — versículo, nome, ' +
+          'número. Isso eu não guardo como jeito de falar, guardo como erro meu. É por ' +
+          'isso que conferir a citação antes de gravar continua valendo.</p>'
+        : '') +
+      '</div>';
+  }
+
   function blocoFase2(d, transcricoes) {
     var rs = d.roteiros || [];
     if (!rs.length) {
@@ -701,34 +803,31 @@
         (r.porque ? '<span class="pf-como" style="margin-top:.4rem">' + escRico(r.porque) + '</span>' : '') +
         (r.aviso ? '<span class="pf-como" style="margin-top:.4rem;border-left-color:var(--laranja)">' +
           '<b style="color:var(--laranja)">Atenção.</b> ' + escRico(r.aviso) + '</span>' : '') +
-        /* fora do "Ler o roteiro": assistir vem antes de ler, e ninguém devia
-           precisar abrir o texto para achar o vídeo */
-        (r.url ? '<a class="rt-assistir" href="' + esc(r.url) + '" target="_blank" ' +
-          'rel="noopener" style="margin:.6rem 0 0">' + IC_PLAY +
-          'Assistir o vídeo original</a>' : '') +
-        (r.texto ? '<details data-ch="rt:' + r.n + '" style="margin-top:.5rem">' +
-          '<summary class="tr-it">' +
-          '<div class="tr-linha" style="padding:.5rem .6rem">' +
-          '<span class="tr-seta">&#9654;</span>' +
-          '<span class="tr-cx"><span class="tr-nm">Ler o roteiro</span>' +
-          '<span class="tr-sub">português com as marcas de tempo' +
-          (orig ? ', e o original em inglês abaixo' : '') + '</span></span>' +
-          '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
-          '<div class="tr-corpo">' + corpoRoteiro(r, orig) + '</div></details>' : '') +
+        /* Uma linha só de comandos. Assistir vem antes de ler — ninguém devia
+           precisar abrir o texto para achar o vídeo. Os painéis continuam
+           <details> por baixo, com o <summary> escondido: é o `toggle` deles
+           que faz a página lembrar o que estava aberto. */
+        '<div class="rt-cmd">' +
+        (r.url ? '<a class="bt mini" href="' + esc(r.url) + '" target="_blank" ' +
+          'rel="noopener">' + IC_PLAY + 'Assistir o original</a>' : '') +
+        (r.texto ? '<button class="bt mini" data-abre="rt:' + r.n + '" ' +
+          'data-fecha="Fechar o roteiro">Ler o roteiro</button>' : '') +
+        (r.direcao ? '<button class="bt mini" data-abre="dr:' + r.n + '" ' +
+          'data-fecha="Fechar a direção">Ver a direção</button>' : '') +
+        (r.texto ? '<button class="bt simples mini" data-cp="' + r.n + '">' +
+          'Copiar o texto</button>' : '') +
+        '</div>' +
+
+        (r.texto ? '<details class="rt-painel" data-ch="rt:' + r.n + '">' +
+          '<summary></summary><div class="tr-corpo">' +
+          corpoRoteiro(r, orig) + '</div></details>' : '') +
 
         /* Painel separado: quem grava não precisa do teleprompter, e o
            especialista não precisa da lista de equipamento. */
-        (r.direcao ? '<details data-ch="dr:' + r.n + '" style="margin-top:.35rem">' +
-          '<summary class="tr-it">' +
-          '<div class="tr-linha" style="padding:.5rem .6rem">' +
-          '<span class="tr-seta">&#9654;</span>' +
-          '<span class="tr-cx"><span class="tr-nm">Briefing de direção</span>' +
-          '<span class="tr-sub">' + (r.direcao.frames || []).length + ' frames · ' +
-          'cenário, enquadramento, texto na tela e som</span></span>' +
-          '<span class="tr-ler">abrir &rsaquo;</span></div></summary>' +
-          '<div class="tr-corpo">' + corpoDirecao(r.direcao) + '</div></details>' : '') +
+        (r.direcao ? '<details class="rt-painel" data-ch="dr:' + r.n + '">' +
+          '<summary></summary><div class="tr-corpo">' +
+          corpoDirecao(r.direcao) + '</div></details>' : '') +
         '</div>' +
-        '<span class="selo s2" style="flex:none">' + esc(r.status || 'pronto') + '</span>' +
         '</div>';
     }).join('');
 
@@ -739,6 +838,7 @@
       'para a sua voz. A ordem é por encaixe com o que você já provou que funciona, não por ' +
       'view. Nada aqui está gravável antes de você passar o olho.</p></div>' +
       '<div class="ilha" style="background:transparent">' + itens + '</div>' +
+      blocoRegrasVoz(d) +
       '<p class="pf-nota">Abrindo um roteiro você tem, nesta ordem: o link para assistir o ' +
       'vídeo original, o texto em português cortado em <b>gancho</b> (os 3 primeiros ' +
       'segundos), <b>retenção</b> (3 a 10) e <b>corpo</b> (10 em diante), e por último o ' +
@@ -819,6 +919,9 @@
     return (r && r.trechos && r.trechos[+p[1]]) ? { r: r, t: r.trechos[+p[1]] } : null;
   }
 
+  /* CUIDADO: o app guarda a mesma ficha em memória e salva `dados` inteiro no
+     autosave. Sem avisar que gravamos, o primeiro campo digitado depois de uma
+     correção devolveria a versão velha por cima dela. */
   function salvarTrecho(chave, valor) {
     /* relê antes de escrever: o salvar_ficha grava `dados` inteiro, então
        partir de uma cópia velha apagaria o que outra tela salvou no meio. */
@@ -848,6 +951,10 @@
           throw new Error((res && (res.message || res.hint)) || 'o banco recusou');
         }
         if (FICHA) FICHA.dados = d;
+        /* quem chamou guarda a mesma ficha em memória e salva `dados` inteiro
+           no autosave — sem este aviso, o primeiro campo digitado depois de
+           uma correção devolveria a versão velha por cima dela */
+        if (typeof OPC.aoGravar === 'function') OPC.aoGravar(d);
         return valor;
       });
     });
@@ -948,9 +1055,21 @@
   document.addEventListener('click', function (e) {
     if (!e.target.closest) return;
 
-    if (e.target.closest('[data-act="menu"]')) {
+    /* Quando a lateral não é nossa, o app já cuida do menu — os dois handlers
+       juntos abriam e fechavam na mesma batida, e o menu não abria nunca. */
+    if (e.target.closest('[data-act="menu"]') && OPC.lateral !== false) {
       var ab = document.getElementById('lateral').classList.toggle('aberto');
       document.getElementById('veu').classList.toggle('on', ab);
+      return;
+    }
+
+    /* Botão e painel são separados de propósito: a linha de comandos fica em
+       cima, e o <details> que ela abre vem logo abaixo, com o summary oculto. */
+    var ab = e.target.closest('[data-abre]');
+    if (ab) {
+      e.preventDefault();
+      var painel = document.querySelector('[data-ch="' + ab.getAttribute('data-abre') + '"]');
+      if (painel) { painel.open = !painel.open; sincronizarComandos(); }
       return;
     }
 
@@ -1060,12 +1179,28 @@
     });
   }, true);
 
+  /* O rótulo do botão tem que dizer o que o clique faz agora, não o que fazia
+     quando a página montou — inclusive depois de devolver os painéis abertos. */
+  function sincronizarComandos() {
+    var bs = document.querySelectorAll('[data-abre]');
+    for (var i = 0; i < bs.length; i++) {
+      var b = bs[i];
+      var painel = document.querySelector('[data-ch="' + b.getAttribute('data-abre') + '"]');
+      var aberto = !!(painel && painel.open);
+      var agora = b.getAttribute('data-fecha');
+      var antes = b.getAttribute('data-abrir') || b.textContent;
+      if (!b.getAttribute('data-abrir')) b.setAttribute('data-abrir', antes);
+      b.textContent = aberto ? agora : b.getAttribute('data-abrir');
+    }
+  }
+
   function devolverLugar() {
     var m = lembrado();
     (m.abertos || []).forEach(function (c) {
       var d = document.querySelector('[data-ch="' + c.replace(/"/g, '\\"') + '"]');
       if (d) d.open = true;
     });
+    sincronizarComandos();
     if (m.y) {
       /* dois quadros: o primeiro deixa o layout assentar depois de abrir os
          painéis, o segundo corrige o que as imagens empurraram */
@@ -1151,6 +1286,7 @@
       tela = alvo;
       codigo = ficha && ficha.id;
       OPC = opcoes || {};
+      VOZ = OPC.voz || '';
       pintar(ficha, transcricoes || []);
     },
 
@@ -1165,12 +1301,16 @@
         aviso('Sem código de ficha', 'O endereço precisa terminar com o código de 36 caracteres.');
         return Promise.resolve(null);
       }
+      /* A voz mora em coluna própria, não no `dados` — por isso a terceira
+         chamada. Se ela falhar, a ficha abre do mesmo jeito e o card some. */
       return Promise.all([
         chamar('retomar_ficha', { p_id: codigo }),
-        chamar('minhas_transcricoes', { p_ficha: codigo }).catch(function () { return []; })
+        chamar('minhas_transcricoes', { p_ficha: codigo }).catch(function () { return []; }),
+        chamar('minha_voz', { p_ficha: codigo }).catch(function () { return []; })
       ]).then(function (res) {
         var rows = res[0];
         var trans = Array.isArray(res[1]) ? res[1] : [];
+        VOZ = ((res[2] || [])[0] || {}).voz || '';
         if (!Array.isArray(rows) || !rows.length) {
           aviso('Não encontrei essa ficha', 'Confira o código no endereço.');
           return null;
