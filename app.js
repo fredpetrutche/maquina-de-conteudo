@@ -348,7 +348,8 @@
         '<span class="ord">' + (i + 1) + '</span>' +
         '<input type="text" data-tema="' + i + '" value="' + esc(t) + '" placeholder="' + esc(exTema(i)) + '" aria-label="Tema ' + (i + 1) + '">' +
         (state.temas.length > 1 ? '<button class="remover" data-rm-tema="' + i + '" aria-label="Remover tema">' + IC_X + '</button>' : '') +
-        '</div>';
+        '</div>' +
+        recortesDe(t);
     });
     if (state.temas.length < ALVO_TEMAS) {
       h += '<div class="linha add" data-add-tema><span class="mais-ic">' + IC_MAIS + '</span>Adicionar tema</div>';
@@ -357,6 +358,16 @@
     medidor('medTemas', cheios(state.temas), ALVO_TEMAS);
     if ($('chipsTemas')) atualizarPerguntas();
   }
+  /* os recortes que a análise achou, como prova do tema */
+  function recortesDe(tema) {
+    var r = (state.recortes || {})[String(tema || '').trim()];
+    if (!r || !r.length) return '';
+    return '<ul class="recortes">' + r.slice(0, 4).map(function (x) {
+      return '<li><span>' + esc(x.recorte || '') + '</span>' +
+        (x.views ? '<span class="rv">' + numeroBonito(x.views) + '</span>' : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+
   function exTema(i) {
     var e = ['empreendedorismo', 'lucro', 'delegação', 'produtividade', 'trabalhar menos',
       'liderança', 'vendas', 'marketing', 'contratação', 'gestão do tempo'];
@@ -960,6 +971,103 @@
     return fora.join('').replace(/<\/ul><ul>/g, '');
   }
 
+
+  /* ---------- oferta de preencher pelo perfil ----------
+     Nunca automático. Preencher sozinho assume que a pessoa quer
+     continuar o que já faz — e muita gente procura um método
+     justamente para mudar de rota. Então é escolha dela. */
+  var analisePoll = null;
+
+  function pintarOferta(estado, dados) {
+    var el = $('oferta'); if (!el) return;
+    if (soLeitura && !(dados && dados.ressalvas)) { el.innerHTML = ''; return; }
+
+    if (estado === 'rodando') {
+      el.innerHTML = '<div class="oferta"><span class="k">Lendo o seu perfil</span>' +
+        '<h3>Montando a sua ficha</h3>' +
+        '<p><span class="lendo"><span class="giro"></span>Isto leva um ou dois minutos. Pode deixar aberto.</span></p></div>';
+      return;
+    }
+
+    if (estado === 'pronta' && dados) {
+      var r = dados.ressalvas || [];
+      el.innerHTML = '<div class="oferta"><span class="k">Preenchi a partir do seu perfil</span>' +
+        '<h3>Confira e corrija o que eu errei</h3>' +
+        '<p>Li ' + (dados.lidos || 0) + ' vídeo(s) seus. Tudo aqui embaixo é <b>proposta</b> — mude o que não for verdade.</p>' +
+        (dados.leitura ? '<div class="leitura-cx"><span class="k">O que separa os seus melhores dos outros</span><p>' +
+          esc(dados.leitura) + '</p></div>' : '') +
+        (r.length ? '<div class="ressalvas"><span class="k">Onde a minha leitura é fraca</span><ul>' +
+          r.map(function (x) {
+            return '<li><b>' + esc(x.sobre || '') + '</b>' + esc(x.aviso || '') + '</li>';
+          }).join('') + '</ul></div>' : '') +
+        '</div>';
+      return;
+    }
+
+    if (estado === 'erro') {
+      el.innerHTML = '<div class="oferta"><span class="k">Não deu certo</span>' +
+        '<h3>Não consegui ler o seu perfil</h3>' +
+        '<p>' + esc(dados || 'Tente de novo daqui a pouco.') + '</p>' +
+        '<button class="bt" data-act="analisar">Tentar de novo</button></div>';
+      return;
+    }
+
+    el.innerHTML = '<div class="oferta"><span class="k">Atalho</span>' +
+      '<h3>Posso preencher isto a partir do seu perfil?</h3>' +
+      '<p>Eu leio os seus vídeos e monto o nicho, os temas e a assinatura a partir do que você <b>já publicou</b> — com o número de views que prova cada um.</p>' +
+      '<div class="aviso-uso"><b>Só faz sentido se você quiser continuar no caminho que já vem fazendo.</b> ' +
+      'Se a ideia é mudar de rumo, responda você mesmo: o que você postou até aqui não diz para onde você quer ir.</div>' +
+      '<button class="bt forte" data-act="analisar">Analisar o meu perfil</button></div>';
+  }
+
+  function pedirAnalise() {
+    if (!ident.id) return avisar('Entre primeiro para eu poder ler o seu perfil');
+    pintarOferta('rodando');
+    rpc('pedir_analise', { p_ficha: ident.id })
+      .then(function () { vigiarAnalise(0); })
+      .catch(function () { pintarOferta('erro', 'Não consegui pedir a análise.'); });
+  }
+
+  function vigiarAnalise(n) {
+    clearTimeout(analisePoll);
+    if (n > 60) return pintarOferta('erro', 'Demorou demais. Tente de novo.');
+    analisePoll = setTimeout(function () {
+      rpc('estado_analise', { p_ficha: ident.id }).then(function (rows) {
+        var d = (rows && rows[0]) || {};
+        if (d.estado === 'pronta' && d.sugestao) return usarSugestao(d.sugestao);
+        if (d.estado === 'erro') return pintarOferta('erro', d.erro);
+        vigiarAnalise(n + 1);
+      }).catch(function () { vigiarAnalise(n + 1); });
+    }, n === 0 ? 5000 : 4000);
+  }
+
+  /* a sugestão preenche o formulário, mas fica guardada à parte —
+     assim dá para ver depois onde a pessoa discordou */
+  function usarSugestao(s) {
+    state.sugestao = s;
+    if (s.macroNicho) state.macroNicho = s.macroNicho;
+    if (s.subNicho) state.subNicho = s.subNicho;
+
+    if (Array.isArray(s.temas) && s.temas.length) {
+      state.temas = s.temas.slice(0, ALVO_TEMAS).map(function (t) {
+        return typeof t === 'string' ? t : (t.tema || '');
+      });
+      state.recortes = {};
+      s.temas.forEach(function (t) {
+        if (t && t.tema && Array.isArray(t.recortes)) state.recortes[t.tema] = t.recortes;
+      });
+    }
+    var a = (s.assinaturas || [])[0];
+    if (a) {
+      state.sigNome = state.sigNome || a.sigNome || '';
+      state.sigEntrega = state.sigEntrega || a.sigEntrega || '';
+      state.sigPromessa = state.sigPromessa || a.sigPromessa || '';
+    }
+    montar(); salvar(); pintarNav(); checarMarco();
+    pintarOferta('pronta', s);
+    avisar('Ficha preenchida — confira e corrija');
+  }
+
   /* ---------- porta: entrar, criar acesso, primeira senha ---------- */
   function abrirPorta(modo) {
     $('porta').classList.add('on');
@@ -1262,6 +1370,7 @@
       else if (a === 'porta-fechar') fecharFolhas();
       else if (a === 'marco-fechar') fecharFolhas();
       else if (a === 'voz') { vozAberta = !vozAberta; buscarVoz(); }
+      else if (a === 'analisar') pedirAnalise();
       else if (a === 'copiar') copiar(texto(), 'Ficha copiada');
       else if (a === 'baixar') baixar();
       else if (a === 'menu') {
@@ -1348,7 +1457,7 @@
     $('sigNome').value = state.sigNome;
     $('sigEntrega').value = state.sigEntrega;
     $('sigPromessa').value = state.sigPromessa;
-    pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
+    pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarOferta(state.sugestao ? 'pronta' : '', state.sugestao); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
   }
 
   function abrirLeitura(fichaId) {

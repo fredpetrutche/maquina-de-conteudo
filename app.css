@@ -949,3 +949,22 @@ body.leitura [data-raspar]{display:none !important}
 .voz-corpo li{margin-bottom:.25rem}
 .voz-corpo hr{border:0;border-top:.5px solid var(--sep);margin:1rem 0}
 .voz-corpo code{font-family:var(--mono);font-size:.9em}
+
+/* ---------- oferta de análise do perfil ---------- */
+.oferta{background:var(--ilha);border-radius:var(--r-cartao);padding:1.3rem 1.4rem;margin-bottom:2.5rem}
+.oferta .k{font-size:13px;font-weight:600;color:var(--tinta);display:block;margin-bottom:.3rem}
+.oferta h3{font-size:20px;letter-spacing:-.024em;margin-bottom:.5rem}
+.oferta p{font-size:15px;color:var(--rotulo-2);letter-spacing:-.015em;margin-bottom:.7rem;line-height:1.5}
+.oferta .aviso-uso{background:var(--preench);border-radius:10px;padding:.7rem .85rem;font-size:14px;color:var(--rotulo-2);margin-bottom:1rem}
+.oferta .aviso-uso b{color:var(--rotulo)}
+.ressalvas{background:rgba(255,149,0,.10);border-radius:12px;padding:.9rem 1.05rem;margin-top:1rem}
+.ressalvas .k{font-size:13px;font-weight:600;color:var(--laranja);display:block;margin-bottom:.6rem}
+.ressalvas ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.6rem}
+.ressalvas li{font-size:14px;color:var(--rotulo-2);line-height:1.5}
+.ressalvas li b{display:block;color:var(--rotulo);font-size:13px;margin-bottom:.1rem}
+.leitura-cx{background:var(--tinta-fraca);border-radius:12px;padding:.9rem 1.05rem;margin-top:.6rem}
+.leitura-cx .k{font-size:13px;font-weight:600;color:var(--tinta);display:block;margin-bottom:.35rem}
+.leitura-cx p{font-size:14px;color:var(--rotulo-2);margin:0;line-height:1.5}
+.recortes{list-style:none;margin:.3rem 0 0;padding:0 0 0 1.9rem}
+.recortes li{font-size:13px;color:var(--rotulo-2);padding:.15rem 0;display:flex;gap:.5rem}
+.recortes .rv{color:var(--rotulo-3);font-variant-numeric:tabular-nums;flex:none}

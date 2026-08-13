@@ -76,6 +76,19 @@ Regras que não podem ser quebradas:
 5. LEITURA: em 2 ou 3 frases, o que separa os vídeos do topo dos de baixo. Aponte o padrão
    concreto (formato de abertura, tipo de assunto, duração), não elogio genérico.
 
+6. RESSALVAS: preencha a ficha SEMPRE, mas diga em voz alta onde a leitura ficou fraca.
+   Uma ressalva é um aviso honesto de que aquela parte pode estar errada, com o motivo.
+   Levante ressalva quando:
+     - houver poucos vídeos para sustentar a conclusão;
+     - os assuntos forem divergentes demais para caber num nicho só — diga quais grupos
+       você viu, em vez de forçar um nicho que não existe;
+     - der para perceber que a pessoa mudou de assunto ao longo do tempo, e os vídeos
+       recentes não combinarem com os antigos;
+     - as visualizações forem baixas demais para servirem de prova de alguma coisa;
+     - um tema aparecer com um vídeo só — não dá para chamar de tema com uma amostra.
+   Se não houver ressalva de verdade, devolva lista vazia. Não invente ressalva para
+   parecer cuidadoso, e não amenize uma que exista.
+
 Responda SÓ com este JSON, sem cercas de código e sem comentário:
 
 {
@@ -88,7 +101,8 @@ Responda SÓ com este JSON, sem cercas de código e sem comentário:
     {"sigNome": "", "sigEntrega": "", "sigPromessa": ""},
     {"sigNome": "", "sigEntrega": "", "sigPromessa": ""}
   ],
-  "leitura": ""
+  "leitura": "",
+  "ressalvas": [{"sobre": "", "aviso": ""}]
 }`;
 
 function pensar(prompt) {
@@ -146,14 +160,22 @@ async function umaVolta() {
 
   console.log(`▸ @${f.instagram} — ${videos.length} vídeo(s) para ler`);
   try {
-    if (videos.length < 5) throw new Error('poucos vídeos do perfil para montar a ficha');
+    if (!videos.length) throw new Error('não achei nenhum vídeo no perfil para ler');
     const prompt = `${INSTRUCAO}\n\nNome: ${f.nome || '(não informado)'}\n\nVídeos publicados, do mais visto para o menos:\n${
       videos.map((v, i) => `${i + 1}. [${v.views} views] ${v.texto}`).join('\n')}`;
     const s = conferir(pensar(prompt));
+    s.ressalvas = Array.isArray(s.ressalvas) ? s.ressalvas : [];
+    s.lidos = videos.length;
+    if (videos.length < 8) {
+      s.ressalvas.unshift({
+        sobre: 'Tamanho da amostra',
+        aviso: `Li ${videos.length} vídeo(s) do seu perfil. É pouco para afirmar com segurança — trate isto como ponto de partida, não como diagnóstico.`,
+      });
+    }
     await gravar(f.id, {
       sugestao: s, analise_estado: 'pronta', analise_em: new Date().toISOString(), analise_erro: null,
     });
-    console.log(`  ✓ ${s.macroNicho} · ${s.subNicho} · ${s.temas.length} temas`);
+    console.log(`  ✓ ${s.macroNicho} · ${s.subNicho} · ${s.temas.length} temas · ${s.ressalvas.length} ressalva(s)`);
   } catch (e) {
     const msg = String(e.message || e).slice(0, 280);
     await gravar(f.id, { analise_estado: 'erro', analise_erro: msg });
