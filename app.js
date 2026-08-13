@@ -1507,11 +1507,21 @@
     erroPorta('');
     if (bt) { bt._t = bt.textContent; bt.textContent = 'Entrando…'; bt.disabled = true; }
     Sessao.entrar(KEY_SESSAO, ig + '@ig.maquinadeconteudo.app', senha)
-      .then(function () {
+      .then(function (s) {
         if (bt) { bt.textContent = bt._t; bt.disabled = false; }
-        return chamarAcesso({ acao: 'existe', instagram: ig });
+        /* O ficha_id vem do token, que o Auth carimba no cadastro — não do
+           localStorage. Em aparelho novo não há localStorage nenhum, e sem
+           esse id o app abriria uma ficha vazia e o primeiro autosave
+           criaria uma SEGUNDA ficha para o mesmo @. */
+        var meta = (s && s.user && s.user.user_metadata) || {};
+        return chamarAcesso({ acao: 'existe', instagram: ig }).then(function (d) {
+          var id = meta.ficha_id || ident.id || null;
+          if (d.temFicha && !id) {
+            throw new Error('Achei a sua ficha, mas não consegui abrir. Fala com o Fred.');
+          }
+          return depoisDeEntrar({ ficha_id: id }, ig, meta.nome || d.nome, null);
+        });
       })
-      .then(function (d) { return depoisDeEntrar({ ficha_id: null }, ig, d.nome, null); })
       .catch(function (e) {
         if (bt) { bt.textContent = bt._t; bt.disabled = false; }
         erroPorta(/incorret|invalid/i.test(String(e.message))
@@ -1873,7 +1883,29 @@
     montar(); pintarPe(); ligar();
     var h = (location.hash || '').replace('#', '');
     var alvo = STEPS.filter(function (s) { return s.id === h && !travada(s); })[0];
+
+    /* Aplicativo abre na tela de entrar. Quem já entrou uma vez tem sessão e
+       passa direto; quem não tem conta fecha a folha e cai no briefing, que
+       é a página de quem ainda está decidindo. */
+    if (Sessao.tem(KEY_SESSAO) && retomarSessao(alvo ? h : null)) return;
     ir(alvo ? h : 'briefing', true);
+    abrirPorta('entrar');
+  }
+
+  /* Volta de uma sessão guardada, sem pedir senha de novo. Devolve false
+     quando a sessão não serve — aí o boot abre a porta como se não houvesse. */
+  function retomarSessao(destino) {
+    var s = Sessao.ler(KEY_SESSAO) || {};
+    var meta = (s.user && s.user.user_metadata) || {};
+    var id = meta.ficha_id || ident.id || null;
+    if (!id) return false;              // sem ficha não há o que retomar
+    ident.id = id;
+    if (meta.instagram) ident.instagram = meta.instagram;
+    if (meta.nome && !ident.nome) ident.nome = meta.nome;
+    salvarIdent();
+    if (destino) { pintarPe(); ir(destino, true); return true; }
+    depoisDeEntrar({ ficha_id: id }, ident.instagram, ident.nome, ident.telefone);
+    return true;
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
