@@ -126,7 +126,8 @@
         '<td><span class="selo ' + cls + '">' + esc(ETAPA[f.etapa] || f.etapa) + '</span></td>' +
         '<td>' + (f.comunidade ? esc(f.comunidade) : traco) + '</td>' +
         '<td>' + (f.macro_nicho ? esc(f.macro_nicho) + (f.sub_nicho ? ' · ' + esc(f.sub_nicho) : '') : traco) + '</td>' +
-        '<td class="t-num" style="white-space:nowrap">' + quando(f.atualizado_em) + '</td>' +
+        '<td class="t-num" style="white-space:nowrap">' + quando(f.atualizado_em) +
+        '<button class="bt mini simples resumo" data-resumo="' + i + '" title="Ver o resumo">resumo</button></td>' +
         '</tr>';
     }).join('');
   }
@@ -212,14 +213,20 @@
 
   /* ---------- eventos ---------- */
   document.addEventListener('click', function (e) {
-    var t = e.target.closest ? e.target.closest('tr[data-i],button') : null;
+    var t = e.target.closest ? e.target.closest('[data-resumo],tr[data-i],button') : null;
     if (!t) return;
     if (t.id === 'btEntrar') entrar();
     else if (t.id === 'btSair') sair();
     else if (t.id === 'btAtualizar') { carregar(); avisar('Atualizado'); }
     else if (t.id === 'btCsv') csv();
     else if (t.id === 'btFechar') $('det').classList.remove('on');
-    else if (t.hasAttribute && t.hasAttribute('data-i')) detalhe(+t.getAttribute('data-i'));
+    else if (t.hasAttribute && t.hasAttribute('data-resumo')) {
+      e.stopPropagation(); detalhe(+t.getAttribute('data-resumo'));
+    }
+    else if (t.hasAttribute && t.hasAttribute('data-i')) {
+      // abre a tela que a própria pessoa vê, como ela vê
+      window.open('index.html?ficha=' + encodeURIComponent(fichas[+t.getAttribute('data-i')].id), '_blank');
+    }
   });
 
   $('det').addEventListener('click', function (e) { if (e.target === this) this.classList.remove('on'); });

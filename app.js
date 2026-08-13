@@ -47,6 +47,7 @@
   var state = novoEstado();
   var ident = { id: null, instagram: '', telefone: '', nome: '' };
   var meusVideos = null;
+  var soLeitura = false;
 
   /* ---------- celular ----------
      Guardamos sempre em E.164 sem o "+" (5511987654321), que é o
@@ -146,6 +147,7 @@
 
   var syncTimer = null;
   function sincronizar() {
+    if (soLeitura) return;
     if (!ident.instagram || !ident.telefone) return;
     estadoSinc('mov');
     clearTimeout(syncTimer);
@@ -235,6 +237,7 @@
 
   var salvarTimer = null;
   function salvar() {
+    if (soLeitura) return;
     clearTimeout(salvarTimer);
     salvarTimer = setTimeout(function () {
       try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -761,7 +764,7 @@
   var filaTimer = null, filaPoll = null;
 
   function enfileirar() {
-    if (!ident.id) return;
+    if (soLeitura || !ident.id) return;
     var lista = state.videos
       .filter(function (v) { return v.url && (v.fonte !== 'ig' || v.canal); })
       .map(function (v) {
@@ -801,7 +804,7 @@
      visualizações. Ela vê de cara o que já deu certo — e isso
      ajuda a responder o assunto e os temas logo abaixo. */
   function buscarMeuPerfil() {
-    if (!ident.instagram || meusVideos) return;
+    if (soLeitura || !ident.instagram || meusVideos) return;
     pintarMeuPerfil('buscando');
     fetch(SUPA_URL + '/functions/v1/raspar-perfil', {
       method: 'POST',
@@ -824,7 +827,7 @@
         if (!d.pronto) return esperarMeu(runId, n + 1);
         if (d.erro) return pintarMeuPerfil('erro');
         meusVideos = (d.videos || []).slice(0, 5);
-        if (d.nome && !ident.nome) { ident.nome = d.nome; salvarIdent(); pintarPe(); salvar(); }
+        if (d.nome && !ident.nome) { ident.nome = d.nome; salvarIdent(); pintarPe(); }
         try { localStorage.setItem(KEY + '.meus', JSON.stringify(meusVideos)); } catch (e) {}
         pintarMeuPerfil();
       }).catch(function () { pintarMeuPerfil('erro'); });
@@ -858,11 +861,12 @@
     $('porta').classList.add('on');
     trocarPorta(modo);
     if (modo !== 'retomar') {
+      if (ident.nome) $('gNome').value = ident.nome;
       if (ident.instagram) $('gInsta').value = ident.instagram;
       if (ident.telefone) $('gTel').value = telBonito(ident.telefone);
     }
     setTimeout(function () {
-      var f = $(modo === 'retomar' ? 'gCodigo' : 'gInsta'); if (f) f.focus();
+      var f = $(modo === 'retomar' ? 'gCodigo' : 'gNome'); if (f) f.focus();
     }, 80);
   }
   function trocarPorta(modo) {
@@ -874,10 +878,12 @@
     var e = $('portaErr'); e.textContent = m || ''; e.classList.toggle('on', !!m);
   }
   function entrar() {
+    var nm = $('gNome').value.trim();
     var ig = limparInsta($('gInsta').value), tel = telE164($('gTel').value);
+    if (nm.length < 2) return erroPorta('Escreva o seu nome.');
     if (!ig) return erroPorta('Confira o @ do Instagram.');
     if (!telValido(tel)) return erroPorta('Confira o celular: precisa do DDD e do número completo.');
-    ident.instagram = ig; ident.telefone = tel;
+    ident.nome = nm; ident.instagram = ig; ident.telefone = tel;
     salvarIdent();
     buscarMeuPerfil();
     $('porta').classList.remove('on');
@@ -1165,7 +1171,35 @@
     pintarTemas(); pintarAssinatura(); pintarMeuPerfil(); pintarPlataforma(); pintarAchados(); pintarNav(); atualizarPerguntas();
   }
 
+  function abrirLeitura(fichaId) {
+    soLeitura = true;
+    document.body.classList.add('leitura');
+    var faixa = $('faixaLeitura');
+    faixa.style.display = '';
+    faixa.innerHTML = 'Carregando…';
+    return rpc('retomar_ficha', { p_id: fichaId }).then(function (rows) {
+      if (!rows || !rows.length) { faixa.textContent = 'Ficha não encontrada'; return false; }
+      var f = rows[0];
+      ident = { id: f.id, instagram: f.instagram || '', telefone: f.telefone || '', nome: f.nome || '' };
+      state = novoEstado();
+      if (f.dados && typeof f.dados === 'object') aplicar(f.dados);
+      faixa.innerHTML = 'Você está vendo a tela de ' + esc(f.nome || '@' + f.instagram) +
+        ' <span>· somente leitura</span>';
+      return true;
+    }).catch(function () { faixa.textContent = 'Não consegui carregar a ficha'; return false; });
+  }
+
   function boot() {
+    var qs = new URLSearchParams(location.search);
+    var alvoFicha = qs.get('ficha');
+    if (alvoFicha) {
+      ligar();
+      abrirLeitura(alvoFicha).then(function (ok) {
+        montar(); pintarPe();
+        ir(ok ? (qs.get('etapa') || 'fase0') : 'briefing', true);
+      });
+      return;
+    }
     carregarIdent(); carregar();
     try { jaFestejou = JSON.parse(localStorage.getItem(KEY + '.marcos') || '{}') || {}; } catch (e) {}
     montar(); pintarPe(); ligar();

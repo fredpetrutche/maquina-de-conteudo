@@ -892,3 +892,19 @@ button{font:inherit;color:inherit}
 .meu-lista .p{font-size:12px;color:var(--rotulo-3);font-variant-numeric:tabular-nums;width:1.1rem;flex:none}
 .meu-lista .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--rotulo-2)}
 .meu-lista .v{font-size:12px;font-weight:600;color:var(--tinta);font-variant-numeric:tabular-nums;flex:none}
+
+/* ---------- modo leitura: o Fred vendo a tela de alguém ---------- */
+.faixa-leitura{
+  position:sticky;top:0;z-index:60;background:var(--tinta);color:#fff;
+  padding:.55rem 1rem;font-size:14px;font-weight:600;letter-spacing:-.016em;
+  display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap;text-align:center;
+}
+.faixa-leitura span{opacity:.85;font-weight:400}
+body.leitura input,body.leitura textarea{pointer-events:none;opacity:.85}
+body.leitura .porta,body.leitura .marco{display:none !important}
+body.leitura .lat-pe .bt,body.leitura .linha.add,body.leitura .remover,
+body.leitura .ig-x,body.leitura #btAddIg,body.leitura #btLer,
+body.leitura #btAddCanal,body.leitura .chip-ex,body.leitura .sug-pe,
+body.leitura [data-raspar]{display:none !important}
+.adm-tbl .resumo{margin-left:.6rem;padding:.2rem .55rem;font-size:12px;min-height:auto;opacity:.7}
+.adm-tbl tr:hover .resumo{opacity:1}
