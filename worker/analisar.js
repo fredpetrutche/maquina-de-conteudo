@@ -28,7 +28,6 @@ const path = require('path');
 const SUPA = 'https://mkajvxyiyqxotiydkylq.supabase.co';
 const SERVICE = process.env.SUPABASE_SERVICE_KEY;
 const CLAUDE = process.env.CLAUDE_BIN || '/opt/homebrew/bin/claude';
-const PAUSA = 12000;
 
 if (!SERVICE) { console.error('falta SUPABASE_SERVICE_KEY'); process.exit(1); }
 const h = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' };
@@ -141,9 +140,18 @@ Responda SÓ com este JSON, sem cercas de código e sem comentário:
 }`;
 
 function pensar(prompt) {
-  const saida = execFileSync(CLAUDE, ['-p', prompt, '--output-format', 'json'], {
-    encoding: 'utf8', maxBuffer: 20 * 1024 * 1024, timeout: 600000,
-  });
+  let saida;
+  try {
+    saida = execFileSync(CLAUDE, ['-p', prompt, '--output-format', 'json'], {
+      encoding: 'utf8', maxBuffer: 20 * 1024 * 1024, timeout: 600000,
+    });
+  } catch (e) {
+    /* Sem isto o log guardava o COMANDO e jogava fora o MOTIVO: a mensagem do
+       execFileSync é o prompt inteiro, e a razão da falha vive no stderr. */
+    const porque = String(e.stderr || '').trim() || String(e.stdout || '').trim() ||
+      (e.signal ? 'morreu com ' + e.signal : 'saiu com código ' + e.status);
+    throw new Error('o CLI do Claude falhou: ' + porque.slice(0, 300));
+  }
   const env = JSON.parse(saida);
   if (env.is_error) throw new Error(String(env.result || 'o modelo devolveu erro').slice(0, 200));
   let t = String(env.result || '').trim();
@@ -245,12 +253,18 @@ async function umaVolta() {
   return true;
 }
 
-(async function girar() {
-  console.log('Analisador de perfil no ar. Ctrl+C para parar.');
-  for (;;) {
-    let teve = false;
-    try { teve = await umaVolta(); }
-    catch (e) { console.error('erro na volta:', String(e.message || e).slice(0, 160)); }
-    await new Promise((r) => setTimeout(r, teve ? 2000 : PAUSA));
-  }
-})();
+/* ---------- o laço ----------
+   Antes: perguntava de 12 em 12 segundos, 7.200 vezes por dia, para quase
+   sempre ouvir "não tem nada". Agora o banco avisa quando alguém pede a
+   análise — e é o próprio pedido que muda a ficha. */
+const { ouvir } = require('./aviso');
+
+console.log('Analisador de perfil: esperando o banco avisar. Ctrl+C para parar.');
+ouvir({
+  chave: SERVICE,
+  tabela: 'fichas',
+  /* tudo, não só UPDATE: ficha nova entra como INSERT */
+  silencio: 2000,      // o pedido é um clique; não precisa esperar muito
+  aoDizer: (m) => console.log('·', m),
+  aoMexer: async () => { while (await umaVolta()) { /* drena a fila */ } },
+});

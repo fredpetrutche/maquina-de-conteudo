@@ -37,7 +37,6 @@ const path = require('path');
 const SUPA = 'https://mkajvxyiyqxotiydkylq.supabase.co';
 const SERVICE = process.env.SUPABASE_SERVICE_KEY;
 const CLAUDE = process.env.CLAUDE_BIN || '/opt/homebrew/bin/claude';
-const PAUSA = 60000;                 // correção é coisa rara: não vale olhar de 12 em 12s
 const SECO = process.argv.includes('--seco');
 const UMA = process.argv.includes('--uma');
 
@@ -130,9 +129,18 @@ Devolva SÓ este JSON, sem cercas e sem comentário:
 {"regras":[{"regra":"","vezes":1}]}`;
 
 function pensar(prompt) {
-  const saida = execFileSync(CLAUDE, ['-p', prompt, '--output-format', 'json'], {
-    encoding: 'utf8', maxBuffer: 20 * 1024 * 1024, timeout: 600000,
-  });
+  let saida;
+  try {
+    saida = execFileSync(CLAUDE, ['-p', prompt, '--output-format', 'json'], {
+      encoding: 'utf8', maxBuffer: 20 * 1024 * 1024, timeout: 600000,
+    });
+  } catch (e) {
+    /* Sem isto o log guardava o COMANDO e jogava fora o MOTIVO: a mensagem do
+       execFileSync é o prompt inteiro, e a razão da falha vive no stderr. */
+    const porque = String(e.stderr || '').trim() || String(e.stdout || '').trim() ||
+      (e.signal ? 'morreu com ' + e.signal : 'saiu com código ' + e.status);
+    throw new Error('o CLI do Claude falhou: ' + porque.slice(0, 300));
+  }
   const env = JSON.parse(saida);
   if (env.is_error) throw new Error(String(env.result || 'o modelo devolveu erro').slice(0, 200));
   let t = String(env.result || '').trim();
@@ -184,17 +192,41 @@ function juntar(regras) {
 
 /* ---------- banco ---------- */
 
+/* O que muda entre uma volta e outra é o carimbo. Puxar os roteiros de todo
+   mundo a cada volta é trazer texto grande — com a direção junto — para quase
+   sempre descobrir que nada mudou. Então: primeiro o carimbo, que é minúsculo;
+   os roteiros só de quem mexeu. */
+const vistos = new Map();
+
 async function fichasComCorrecao() {
-  /* só os roteiros, não o `dados` inteiro: a ficha carrega a foto em base64 */
-  const r = await fetch(
-    `${SUPA}/rest/v1/fichas?select=id,instagram,nome,atualizado_em,roteiros:dados->roteiros`,
+  const r = await fetch(`${SUPA}/rest/v1/fichas?select=id,instagram,nome,atualizado_em`,
+    { headers: h });
+  if (!r.ok) throw new Error(`listar: ${r.status}`);
+  const todas = await r.json();
+
+  const mexeram = todas.filter((f) => vistos.get(f.id) !== f.atualizado_em);
+  if (!mexeram.length) return [];
+
+  const r2 = await fetch(
+    `${SUPA}/rest/v1/fichas?id=in.(${mexeram.map((f) => f.id).join(',')})` +
+    `&select=id,instagram,nome,atualizado_em,roteiros:dados->roteiros`,
     { headers: h },
   );
-  if (!r.ok) throw new Error(`listar: ${r.status}`);
-  const fs2 = await r.json();
-  return fs2
-    .map((f) => ({ ...f, pares: paresDe(f.roteiros) }))
-    .filter((f) => f.pares.length);
+  if (!r2.ok) throw new Error(`roteiros: ${r2.status}`);
+  const cheias = await r2.json();
+
+  const comPares = cheias.map((f) => ({ ...f, pares: paresDe(f.roteiros) }));
+
+  /* Quem mudou mas não tem correção nenhuma é marcado já: não há o que fazer
+     com ela, e sem marcar voltaria a ser puxada inteira toda volta — que é
+     justamente o desperdício que esta função existe para evitar.
+     Quem TEM correção só é marcada depois de processada, lá embaixo: se a volta
+     estourar no meio, a próxima olha de novo em vez de dar a ficha por lida. */
+  cheias.forEach((f) => {
+    if (!comPares.find((x) => x.id === f.id).pares.length) vistos.set(f.id, f.atualizado_em);
+  });
+
+  return comPares.filter((f) => f.pares.length);
 }
 
 /* Grava com trava otimista: o gatilho trg_touch mexe em atualizado_em a cada
@@ -279,6 +311,7 @@ async function umaVolta() {
   const fichas = await fichasComCorrecao();
   if (!fichas.length) return false;
 
+
   /* o que já foi processado mora no próprio `dados` — busco junto */
   const r = await fetch(
     `${SUPA}/rest/v1/fichas?id=in.(${fichas.map((f) => f.id).join(',')})&select=id,regrasVoz:dados->regrasVoz`,
@@ -290,22 +323,36 @@ async function umaVolta() {
   let fez = false;
   for (const f of fichas) {
     f.regrasVoz = antes[f.id] || {};
-    try { fez = (await umaFicha(f)) || fez; }
-    catch (e) { console.log(`  ✗ @${f.instagram}: ${String(e.message || e).slice(0, 160)}`); }
+    try {
+      fez = (await umaFicha(f)) || fez;
+      vistos.set(f.id, f.atualizado_em);
+    } catch (e) {
+      console.log(`  ✗ @${f.instagram}: ${String(e.message || e).slice(0, 160)}`);
+    }
   }
   return fez;
 }
 
-(async function girar() {
-  console.log(SECO ? 'Voz das correções — modo seco, não grava nada.' : 'Voz das correções no ar. Ctrl+C para parar.');
-  for (;;) {
-    try {
-      const fez = await umaVolta();
-      if (!fez && (UMA || SECO)) console.log('Nenhuma correção nova.');
-    } catch (e) {
-      console.error('erro na volta:', String(e.message || e).slice(0, 200));
-    }
-    if (UMA || SECO) return;
-    await new Promise((r) => setTimeout(r, PAUSA));
-  }
-})();
+/* ---------- o laço ----------
+   Sem relógio: o banco avisa quando uma ficha muda e ele olha. Se não houver
+   correção nova, volta a calar sem gastar nada. */
+const { ouvir } = require('./aviso');
+
+if (SECO || UMA) {
+  (async () => {
+    console.log(SECO ? 'Voz das correções — modo seco, não grava nada.' : 'Uma volta e saio.');
+    try { if (!(await umaVolta())) console.log('Nenhuma correção nova.'); }
+    catch (e) { console.error('erro:', String(e.message || e).slice(0, 200)); }
+  })();
+} else {
+  console.log('Voz das correções: esperando o banco avisar. Ctrl+C para parar.');
+  ouvir({
+    chave: SERVICE,
+    tabela: 'fichas',
+    /* tudo, não só UPDATE: ficha nova entra como INSERT, e ela pode já
+       chegar com o que interessa */
+    silencio: 10000,          // quem digita na Fase 0 salva a cada poucos segundos
+    aoDizer: (m) => console.log('·', m),
+    aoMexer: async () => { while (await umaVolta()) { /* drena */ } },
+  });
+}

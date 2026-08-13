@@ -1,0 +1,10 @@
+-- Marcador. Esta migração (20260813120000) JÁ ESTÁ APLICADA no banco — foi
+-- rodada por fora, provavelmente pelo painel do Supabase, pela outra
+-- sessão. O conteúdo dela não está reproduzido aqui.
+--
+-- O arquivo existe só para o histórico local bater com o remoto: sem
+-- ele, o `supabase db push` se recusa a subir qualquer migração nova.
+-- Ele NÃO é reaplicado, porque a versão já consta no banco.
+--
+-- O que essas migrações fizeram está nos arquivos migracao-*.sql, na
+-- raiz do repositório.

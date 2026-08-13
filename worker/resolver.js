@@ -29,7 +29,6 @@ const SUPA = 'https://mkajvxyiyqxotiydkylq.supabase.co';
 const SERVICE = process.env.SUPABASE_SERVICE_KEY;
 const COOKIES = process.env.IG_COOKIES ||
   '/Users/fredpetrutche/Documents/Claude Code/telegram-transcricao-video-instagram/cookies.txt';
-const PAUSA_VAZIO = 12000;
 const PAUSA_ENTRE = 2500;   // devagar de propósito: rajada derruba a sessão
 
 if (!SERVICE) { console.error('falta SUPABASE_SERVICE_KEY'); process.exit(1); }
@@ -149,14 +148,30 @@ async function umaVolta(cookie) {
   return true;
 }
 
-(async function girar() {
-  const cookie = lerCookies();
-  if (!cookie) { console.error('não achei cookies do Instagram em ' + COOKIES); process.exit(1); }
-  console.log(`Resolvedor de links no ar (${cookie.split(';').length} cookies). Ctrl+C para parar.`);
-  for (;;) {
-    let teve = false;
-    try { teve = await umaVolta(cookie); }
-    catch (e) { console.error('erro na volta:', String(e.message || e).slice(0, 140)); }
-    await new Promise((r) => setTimeout(r, teve ? PAUSA_ENTRE : PAUSA_VAZIO));
-  }
-})();
+/* ---------- o laço ----------
+   Antes: 7.200 consultas por dia esperando link novo. Agora o banco avisa
+   quando um benchmark entra na fila.
+
+   A pausa entre um link e outro CONTINUA: ela não é para poupar o banco, é
+   para não derrubar a sessão do Instagram com uma rajada. */
+const { ouvir } = require('./aviso');
+
+const cookie = lerCookies();
+if (!cookie) { console.error('não achei cookies do Instagram em ' + COOKIES); process.exit(1); }
+console.log(`Resolvedor de links: esperando o banco avisar (${cookie.split(';').length} cookies).`);
+
+ouvir({
+  chave: SERVICE,
+  tabela: 'benchmarks',
+  silencio: 2500,
+  aoDizer: (m) => console.log('·', m),
+  aoMexer: async () => {
+    for (;;) {
+      let teve = false;
+      try { teve = await umaVolta(cookie); }
+      catch (e) { console.error('erro na volta:', String(e.message || e).slice(0, 140)); break; }
+      if (!teve) break;
+      await new Promise((r) => setTimeout(r, PAUSA_ENTRE));
+    }
+  },
+});
