@@ -647,11 +647,6 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   function corpoRoteiro(r, orig) {
     var h = '';
 
-    if (r.url) {
-      h += '<a class="rt-assistir" href="' + esc(r.url) + '" target="_blank" rel="noopener">' +
-        IC_PLAY + 'Assistir o vídeo original</a>';
-    }
-
     var faixas = (r.trechos || []).length
       ? r.trechos
       : (r.texto ? [{ rot: 'Teleprompter', seg: '', txt: r.texto }] : []);
@@ -725,7 +720,12 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         (r.porque ? '<span class="pf-como" style="margin-top:.4rem">' + escRico(r.porque) + '</span>' : '') +
         (r.aviso ? '<span class="pf-como" style="margin-top:.4rem;border-left-color:var(--laranja)">' +
           '<b style="color:var(--laranja)">Atenção.</b> ' + escRico(r.aviso) + '</span>' : '') +
-        (r.texto ? '<details style="margin-top:.6rem"><summary class="tr-it">' +
+        /* fora do "Ler o roteiro": assistir vem antes de ler, e ninguém devia
+           precisar abrir o texto para achar o vídeo */
+        (r.url ? '<a class="rt-assistir" href="' + esc(r.url) + '" target="_blank" ' +
+          'rel="noopener" style="margin:.6rem 0 0">' + IC_PLAY +
+          'Assistir o vídeo original</a>' : '') +
+        (r.texto ? '<details style="margin-top:.5rem"><summary class="tr-it">' +
           '<div class="tr-linha" style="padding:.5rem .6rem">' +
           '<span class="tr-seta">&#9654;</span>' +
           '<span class="tr-cx"><span class="tr-nm">Ler o roteiro</span>' +
