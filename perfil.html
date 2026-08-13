@@ -710,7 +710,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       } else {
         corpo += '<p class="tr-txt">' + esc(orig) + '</p>';
       }
-      return '<li><details>' +
+      return '<li><details data-ch="tr:' + esc(t.url || titulo) + '">' +
         '<summary class="tr-it"><div class="tr-linha">' +
         '<span class="tr-seta">&#9654;</span>' +
         '<span class="tr-cx"><span class="tr-nm">@' + esc(String(t.perfil || '?').replace(/^@+/, '')) + '</span>' +
@@ -956,7 +956,8 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         (r.url ? '<a class="rt-assistir" href="' + esc(r.url) + '" target="_blank" ' +
           'rel="noopener" style="margin:.6rem 0 0">' + IC_PLAY +
           'Assistir o vídeo original</a>' : '') +
-        (r.texto ? '<details style="margin-top:.5rem"><summary class="tr-it">' +
+        (r.texto ? '<details data-ch="rt:' + r.n + '" style="margin-top:.5rem">' +
+          '<summary class="tr-it">' +
           '<div class="tr-linha" style="padding:.5rem .6rem">' +
           '<span class="tr-seta">&#9654;</span>' +
           '<span class="tr-cx"><span class="tr-nm">Ler o roteiro</span>' +
@@ -967,7 +968,8 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
         /* Painel separado: quem grava não precisa do teleprompter, e o
            especialista não precisa da lista de equipamento. */
-        (r.direcao ? '<details style="margin-top:.35rem"><summary class="tr-it">' +
+        (r.direcao ? '<details data-ch="dr:' + r.n + '" style="margin-top:.35rem">' +
+          '<summary class="tr-it">' +
           '<div class="tr-linha" style="padding:.5rem .6rem">' +
           '<span class="tr-seta">&#9654;</span>' +
           '<span class="tr-cx"><span class="tr-nm">Briefing de direção</span>' +
@@ -1211,6 +1213,67 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
   document.getElementById('veu').addEventListener('click', fecharMenu);
 
+  /* ---------- lembrar onde a pessoa estava ----------
+     A página monta o conteúdo por JavaScript depois do fetch, então quando o
+     navegador tenta devolver a rolagem sozinho o corpo ainda está vazio e ele
+     desiste. Guardamos por conta própria.
+
+     E guardamos também quais painéis estavam abertos: devolver a rolagem sem
+     reabrir o painel deixa a pessoa num ponto cujo conteúdo fechou — pior que
+     voltar ao topo. */
+
+  var CHAVE = 'perfil:' + (location.hash || '').replace('#', '');
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  function lembrado() {
+    try { return JSON.parse(sessionStorage.getItem(CHAVE)) || {}; }
+    catch (e) { return {}; }
+  }
+
+  function guardar(mudar) {
+    try {
+      var m = lembrado();
+      mudar(m);
+      sessionStorage.setItem(CHAVE, JSON.stringify(m));
+    } catch (e) { /* aba anônima, cota cheia — a página funciona sem isso */ }
+  }
+
+  var relogio = null;
+  window.addEventListener('scroll', function () {
+    if (relogio) return;
+    relogio = setTimeout(function () {
+      relogio = null;
+      guardar(function (m) { m.y = Math.round(window.scrollY); });
+    }, 250);
+  }, { passive: true });
+
+  /* `toggle` não sobe na árvore como clique — daí a captura */
+  document.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (!d || d.tagName !== 'DETAILS' || !d.dataset.ch) return;
+    guardar(function (m) {
+      var abertos = (m.abertos || []).filter(function (c) { return c !== d.dataset.ch; });
+      if (d.open) abertos.push(d.dataset.ch);
+      m.abertos = abertos;
+    });
+  }, true);
+
+  function devolverLugar() {
+    var m = lembrado();
+    (m.abertos || []).forEach(function (c) {
+      var d = document.querySelector('[data-ch="' + c.replace(/"/g, '\\"') + '"]');
+      if (d) d.open = true;
+    });
+    if (m.y) {
+      /* dois quadros: o primeiro deixa o layout assentar depois de abrir os
+         painéis, o segundo corrige o que as imagens empurraram */
+      requestAnimationFrame(function () {
+        window.scrollTo(0, m.y);
+        setTimeout(function () { window.scrollTo(0, m.y); }, 120);
+      });
+    }
+  }
+
   function pintar(f, transcricoes) {
     FICHA = f;
     var d = f.dados || {};
@@ -1260,6 +1323,8 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       '<p class="pf-nota" style="margin-top:1.5rem">Ficha <span class="mono">' + esc(f.id) + '</span>' +
       (p.raspadoEm ? ' &middot; números lidos em ' + esc(p.raspadoEm) : '') +
       '<br><a href="./" style="color:var(--tinta);text-decoration:none">Voltar para a Máquina de Conteúdo &rsaquo;</a></p>';
+
+    devolverLugar();
   }
 
   /* ---------- entrada ---------- */
