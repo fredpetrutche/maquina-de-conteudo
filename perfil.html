@@ -128,6 +128,9 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   color:var(--tinta);font-size:13px;font-weight:600;text-decoration:none}
 .rt-assistir:hover{background:var(--tinta);color:#fff}
 .rt-assistir svg{width:.85rem;height:.85rem}
+/* na lista de benchmarks são 17 numa coluna só — o mesmo botão, em miniatura */
+.rt-assistir.mini{margin:0 0 0 .1rem;padding:.1rem .5rem .1rem .35rem;font-size:12px;gap:.15rem}
+.rt-assistir.mini svg{width:.7rem;height:.7rem}
 
 .rt-faixa{border-left:3px solid var(--sep-opaco);padding:.1rem 0 .1rem .8rem;margin-bottom:.9rem}
 .rt-faixa.g{border-left-color:var(--tinta)}
@@ -243,6 +246,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
   var IC_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   var IC_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>';
+  var IC_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -512,9 +516,10 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         v.compartilhamentos != null
           ? '<b class="pf-cmp">' + num(v.compartilhamentos) + ' compart.' +
             (tx ? ' (' + tx + '%)' : '') + '</b>' : '',
-        v.duracao ? Math.round(v.duracao) + 's' : '',
-        v.url ? '<a href="' + esc(v.url) + '" target="_blank" rel="noopener">abrir</a>' : ''
-      ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>');
+        v.duracao ? Math.round(v.duracao) + 's' : ''
+      ].filter(Boolean).join('<span style="color:var(--rotulo-3)">&middot;</span>') +
+      (v.url ? '<a class="rt-assistir mini" href="' + esc(v.url) + '" target="_blank" ' +
+        'rel="noopener">' + IC_PLAY + 'assistir</a>' : '');
       var marca = v.idioma === 'en'
         ? '<span class="selo s3" style="margin-left:.4rem">roteiro pronto</span>'
         : '<span class="selo s1" style="margin-left:.4rem">fora da leva</span>';
@@ -576,6 +581,12 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       const pt = t.texto_pt || '';
 
       let corpo = '';
+      /* o link vem antes do texto: quem abre a transcrição quase sempre quer
+         ouvir a entonação do original antes de ler */
+      if (t.url) {
+        corpo += '<a class="rt-assistir" href="' + esc(t.url) + '" target="_blank" ' +
+          'rel="noopener">' + IC_PLAY + 'Assistir o vídeo original</a>';
+      }
       if (en) {
         corpo += '<span class="tr-rot">Original em inglês</span>' +
           '<p class="tr-txt orig">' + esc(orig) + '</p>';
@@ -585,11 +596,6 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       } else {
         corpo += '<p class="tr-txt">' + esc(orig) + '</p>';
       }
-      if (t.url) {
-        corpo += '<a class="tr-abrir" href="' + esc(t.url) + '" target="_blank" rel="noopener">' +
-          'ver o vídeo no Instagram &rsaquo;</a>';
-      }
-
       return '<li><details>' +
         '<summary class="tr-it"><div class="tr-linha">' +
         '<span class="tr-seta">&#9654;</span>' +
@@ -635,8 +641,6 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
     return h + '</div>';
   }
-
-  var IC_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>';
 
   /* O roteiro em português vem antes do original: é ele que vai ser gravado.
      O original fica logo abaixo, para conferir o que a frase dizia antes. */
