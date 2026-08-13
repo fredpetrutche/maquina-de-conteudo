@@ -1694,6 +1694,14 @@
     state.sugestao = s;
     if (s.macroNicho) state.macroNicho = s.macroNicho;
     if (s.subNicho) state.subNicho = s.subNicho;
+    if (s.comunidade) state.comunidade = s.comunidade;
+    if (s.comunidadeBandeira) state.comunidadeBandeira = s.comunidadeBandeira;
+    /* a causa quase nunca sai dos vídeos dele — o que se lê é o que ele
+       publicou, não o que a audiência fala entre si. Quando vier vazia, as
+       hipóteses ficam guardadas para a tela dizer que são hipóteses. */
+    if (s.comunidadeCausa) state.comunidadeCausa = s.comunidadeCausa;
+    state.comunidadeHipoteses = s.comunidadeHipoteses || [];
+    state.comunidadeTamanho = s.comunidadeTamanho || null;
 
     if (Array.isArray(s.temas) && s.temas.length) {
       state.temas = s.temas.slice(0, ALVO_TEMAS).map(function (t) {

@@ -70,16 +70,38 @@ Regras que não podem ser quebradas:
    Em cada recorte, cite o vídeo que o comprova e as views dele.
    Ordene os temas pela soma de views que eles já provaram.
 
-4. ASSINATURA: proponha DUAS opções, na fórmula
+4. COMUNIDADE: por quem ele fala — não para quem ele vende. Views não fazem viralizar;
+   compartilhamento faz, e ninguém compartilha informação: as pessoas compartilham quem
+   elas são. Quando alguém manda o vídeo para um amigo com um "olha, é a gente", é porque
+   ele falou pela tribo dela.
+
+   - "comunidade": que grupo é esse. Tire do que ele já publicou: para quem ele fala,
+     quem ele defende, contra o que ele se coloca.
+   - "comunidadeBandeira": a palavra que ESSA GENTE usa para falar de si. Cuidado: você
+     enxerga como ELE chama o grupo; se o grupo não se descreve assim, não é bandeira.
+     Na dúvida, prefira a palavra que aparece na boca dele falando com eles, não sobre eles.
+   - "comunidadeCausa": o que essa gente comenta entre si mas ninguém diz em público.
+     ISTO QUASE NUNCA ESTÁ NO TEXTO — o que você lê é o que ele publicou, não o que a
+     audiência dele fala entre si. Então: deixe "comunidadeCausa" VAZIO e devolva 2 ou 3
+     hipóteses em "comunidadeHipoteses", cada uma plausível a partir do que ele confronta
+     nos vídeos. Só preencha "comunidadeCausa" se algum vídeo disser isso com todas as
+     letras. Inventar aqui é pior do que deixar em branco.
+   - "comunidadeTamanho": o porte dessa comunidade — "grande", "média" ou "pequena" — e
+     por quê, em uma frase. A régua vem da regra do nicho: o filtro tem que ser algo que
+     a plataforma consiga aplicar num scroll de 3 segundos, e recorte fino demais mata a
+     distribuição. Comunidade pequena demais tem o mesmo efeito. Se for pequena ou média,
+     isso é ponto de atenção — diga por quê.
+
+5. ASSINATURA: proponha DUAS opções, na fórmula
    "Meu nome é [NOME] e eu [ENTREGA] [PROMESSA] todos os dias."
    A promessa é RESULTADO, nunca processo. "ensino mulheres a terem mais lucro" serve;
    "ajudo a sair do operacional delegando com assertividade" não.
    Cada uma tem que caber num fôlego — até uns 110 caracteres.
 
-5. LEITURA: em 2 ou 3 frases, o que separa os vídeos do topo dos de baixo. Aponte o padrão
+6. LEITURA: em 2 ou 3 frases, o que separa os vídeos do topo dos de baixo. Aponte o padrão
    concreto (formato de abertura, tipo de assunto, duração), não elogio genérico.
 
-6. RESSALVAS: preencha a ficha SEMPRE, mas diga em voz alta onde a leitura ficou fraca.
+7. RESSALVAS: preencha a ficha SEMPRE, mas diga em voz alta onde a leitura ficou fraca.
    Uma ressalva é um aviso honesto de que aquela parte pode estar errada, com o motivo.
    Levante ressalva quando:
      - houver poucos vídeos para sustentar a conclusão;
@@ -97,6 +119,11 @@ Responda SÓ com este JSON, sem cercas de código e sem comentário:
 {
   "macroNicho": "",
   "subNicho": "",
+  "comunidade": "",
+  "comunidadeBandeira": "",
+  "comunidadeCausa": "",
+  "comunidadeHipoteses": ["", ""],
+  "comunidadeTamanho": {"porte": "", "porque": ""},
   "temas": [
     {"tema": "", "recortes": [{"recorte": "", "prova": "", "views": 0}]}
   ],
@@ -128,6 +155,12 @@ function conferir(s) {
   if (!s.subNicho) erros.push('sem recorte');
   if (!Array.isArray(s.temas) || !s.temas.length) erros.push('nenhum tema');
   if (!Array.isArray(s.assinaturas) || !s.assinaturas.length) erros.push('sem assinatura');
+  if (!s.comunidade) erros.push('sem comunidade');
+  /* causa vazia é o esperado — mas aí as hipóteses são obrigatórias, senão a
+     ficha fica com um campo mudo e ninguém sabe se faltou ou se não dava */
+  if (!s.comunidadeCausa && !(s.comunidadeHipoteses || []).length) {
+    erros.push('sem causa e sem hipótese de causa');
+  }
   (s.assinaturas || []).forEach((a, i) => {
     const frase = `Meu nome é ${a.sigNome} e eu ${a.sigEntrega} ${a.sigPromessa} todos os dias.`;
     if (frase.length > 130) erros.push(`assinatura ${i + 1} longa demais (${frase.length})`);

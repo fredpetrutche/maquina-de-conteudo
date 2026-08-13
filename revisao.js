@@ -301,6 +301,36 @@
       campo('O que essa gente comenta entre si, mas ninguém diz em público?',
             'A verdade que todo mundo daquele grupo sente e ninguém fala em voz alta.',
             d.comunidadeCausa, { falta: !d.comunidadeCausa }) +
+
+      /* Esta última quase nunca sai dos vídeos: o que se lê é o que ELE
+         publicou, não o que a audiência fala entre si. Então a máquina devolve
+         hipóteses, e elas aparecem marcadas como hipótese — não como resposta. */
+      (!d.comunidadeCausa && (d.comunidadeHipoteses || []).length
+        ? '<div class="pf-hip"><span class="k">Não está dito nos seus vídeos</span>' +
+          '<p>Isto é o que a sua audiência fala entre si, e o que eu li foi o que ' +
+          '<b>você</b> publicou. Estas são hipóteses tiradas do que você confronta — ' +
+          'nenhuma delas é resposta até você confirmar.</p><ul>' +
+          d.comunidadeHipoteses.map(function (x) {
+            return '<li>' + esc(x) + '</li>';
+          }).join('') + '</ul></div>'
+        : '') +
+
+      /* A régua vem da regra do nicho: o filtro tem que ser algo que a
+         plataforma aplique num scroll de 3 segundos, e recorte fino demais mata
+         a distribuição. Comunidade pequena demais faz o mesmo. */
+      (d.comunidadeTamanho && d.comunidadeTamanho.porte
+        ? '<div class="pf-porte ' +
+          (/pequen/i.test(d.comunidadeTamanho.porte) ? 'aperta' :
+           /m[ée]di/i.test(d.comunidadeTamanho.porte) ? 'meio' : 'larga') + '">' +
+          '<span class="k">Tamanho da comunidade &middot; ' +
+          esc(d.comunidadeTamanho.porte) + '</span>' +
+          '<p>' + esc(d.comunidadeTamanho.porque || '') +
+          (/pequen|m[ée]di/i.test(d.comunidadeTamanho.porte)
+            ? ' <b>Isto é ponto de atenção:</b> o filtro precisa ser algo que a ' +
+              'plataforma aplique num scroll de 3 segundos — recorte fino demais mata a ' +
+              'distribuição, e comunidade pequena demais faz o mesmo.'
+            : '') + '</p></div>'
+        : '') +
       '</div>';
 
     var temas = (d.temas || []).filter(function (t) { return t && t.trim(); });

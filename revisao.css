@@ -324,3 +324,31 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
 /* o editar por seção só aparece quando o app está montando a revisão */
 .pf-editar{margin-top:.6rem}
+
+/* ---------- comunidade: o que a máquina não pôde provar ----------
+   A causa quase nunca está nos vídeos da própria pessoa, então ela volta como
+   hipótese — e hipótese tem que parecer hipótese. */
+.pf-hip{background:var(--preench);border-radius:12px;padding:.85rem 1rem;margin-top:.7rem}
+.pf-hip .k{display:block;font-size:12px;font-weight:600;color:var(--rotulo-2);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:.35rem}
+.pf-hip p{font-size:13.5px;color:var(--rotulo-2);line-height:1.55;margin:0 0 .5rem}
+.pf-hip b{color:var(--rotulo)}
+.pf-hip ul{list-style:none;margin:0;padding:0}
+.pf-hip li{position:relative;padding:.3rem 0 .3rem 1.1rem;font-size:14px;
+  color:var(--rotulo);line-height:1.5}
+.pf-hip li::before{content:"?";position:absolute;left:.1rem;top:.3rem;font-size:12px;
+  font-weight:700;color:var(--rotulo-3)}
+
+/* o porte da comunidade: régua herdada da regra do nicho */
+.pf-porte{border-radius:12px;padding:.85rem 1rem;margin-top:.7rem;background:var(--preench)}
+.pf-porte .k{display:block;font-size:12px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.04em;margin-bottom:.3rem;color:var(--rotulo-2)}
+.pf-porte p{font-size:13.5px;line-height:1.55;margin:0;color:var(--rotulo-2)}
+.pf-porte b{color:var(--rotulo)}
+.pf-porte.larga{background:var(--verde-fraco)}
+.pf-porte.larga .k{color:var(--verde)}
+.pf-porte.meio{background:rgba(255,149,0,.10)}
+.pf-porte.meio .k{color:var(--laranja)}
+.pf-porte.aperta{background:rgba(255,59,48,.10)}
+.pf-porte.aperta .k{color:var(--vermelho)}
+.pf-porte.aperta b,.pf-porte.meio b{color:var(--rotulo)}
