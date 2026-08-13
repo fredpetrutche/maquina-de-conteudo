@@ -929,7 +929,8 @@
       ? [orig.slice(0, cortes[0]), orig.slice(cortes[0], cortes[1]), orig.slice(cortes[1])]
       : null;
 
-    var h = lados
+    var duasColunas = !!lados || ((r.pares || []).length > 0);
+    var h = duasColunas
       ? '<div class="rt-colrot"><span>Português — é isto que você grava</span>' +
         '<span>Original</span></div>'
       : '<span class="rt-rot">Roteiro em português — leia exatamente assim</span>';
@@ -937,19 +938,43 @@
     h += faixas.map(function (t, i) {
       var cls = faixas.length > 1 ? (['g', 'r', 'c'][i] || 'c') : 'c';
       var en = lados ? juntarLinhas(lados[i]) : '';
+      var corrigido = typeof t.final === 'string' && t.final !== t.txt;
       var pt = '<p class="rt-txt">' +
-        esc(typeof t.final === 'string' ? t.final : t.txt) + '</p>';
+        esc(corrigido ? t.final : t.txt) + '</p>';
+
+      /* Alinhamento por parágrafo: cada frase do original na linha do
+         parágrafo que nasceu dela, como legenda. Depois que a pessoa
+         reescreve o trecho o pareamento por frase não vale mais — aí o
+         texto volta a ser corrido. */
+      var linhas = corrigido ? [] : (r.pares || []).filter(function (l) {
+        return l.faixa === t.rot;
+      });
+
+      var miolo;
+      if (linhas.length) {
+        miolo = '<div class="lg">' + linhas.map(function (l) {
+          var falta = !l.en ? ' novo' : (!l.pt ? ' fora' : '');
+          return '<div class="lg-linha' + falta + '">' +
+            '<div class="lg-pt">' + (l.pt ? esc(l.pt)
+              : '<span class="lg-vazio">cortado</span>') + '</div>' +
+            '<div class="lg-en">' + (l.en ? esc(l.en)
+              : '<span class="lg-vazio">sem original</span>') + '</div>' +
+            '</div>';
+        }).join('') + '</div>';
+      } else if (lados) {
+        miolo = '<div class="rt-par">' + pt +
+          '<div class="rt-en"><p class="rt-txt orig">' + esc(en) + '</p></div></div>';
+      } else {
+        miolo = pt;
+      }
+
       return '<div class="rt-faixa ' + cls + '">' +
         '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot || '') + '</span>' +
         (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
         (t.estoura ? '<span class="rt-real">seu: ' + seg(t.s) + 's</span>' : '') +
-        (en && cps ? '<span class="rt-seg">original: ' +
+        (en && cps && !linhas.length ? '<span class="rt-seg">original: ' +
           seg(lados[i].length / cps) + 's</span>' : '') +
-        '</div>' +
-        (lados
-          ? '<div class="rt-par">' + pt +
-            '<div class="rt-en"><p class="rt-txt orig">' + esc(en) + '</p></div></div>'
-          : pt) +
+        '</div>' + miolo +
         '</div>';
     }).join('');
 

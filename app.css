@@ -1033,6 +1033,29 @@ body.leitura [data-raspar]{display:none !important}
   .rt-por,.rt .acoes,.rt-b{margin-left:0}
 }
 
+/* ---------- legenda sincronizada, parágrafo a parágrafo ----------
+   Casar só as três faixas não bastava: quem vai gravar quer ver a frase do
+   original na mesma linha do parágrafo que nasceu dela. */
+.lg-linha{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;padding:.55rem 0;
+  position:relative;align-items:start}
+.lg-linha+.lg-linha::before{content:"";position:absolute;top:0;left:0;right:0;
+  height:.5px;background:var(--sep)}
+.lg-pt{font-size:14px;line-height:1.6;letter-spacing:-.011em;white-space:pre-wrap;
+  color:var(--rotulo)}
+.lg-en{font-size:13.5px;line-height:1.6;letter-spacing:-.011em;white-space:pre-wrap;
+  color:var(--rotulo-2)}
+.lg-vazio{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--rotulo-3)}
+/* parágrafo que não existia no original: entrou na adaptação */
+.lg-linha.novo .lg-vazio{color:var(--verde)}
+/* frase do original que ficou de fora: some do português e fica riscada */
+.lg-linha.fora .lg-en{text-decoration:line-through;text-decoration-color:var(--rotulo-4)}
+@media(max-width:52rem){
+  .lg-linha{grid-template-columns:1fr;gap:.3rem}
+  .lg-en::before{content:"original";display:block;font-size:10px;font-weight:600;
+    letter-spacing:.05em;text-transform:uppercase;color:var(--rotulo-3)}
+}
+
 /* ---------- briefing de direção ----------
    Leitor diferente do roteiro: aqui é quem grava. Como essa pessoa não vai
    assistir ao original, a tira de frames vem antes de qualquer texto. */
