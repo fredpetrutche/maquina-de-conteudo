@@ -968,3 +968,4 @@ body.leitura [data-raspar]{display:none !important}
 .recortes{list-style:none;margin:.3rem 0 0;padding:0 0 0 1.9rem}
 .recortes li{font-size:13px;color:var(--rotulo-2);padding:.15rem 0;display:flex;gap:.5rem}
 .recortes .rv{color:var(--rotulo-3);font-variant-numeric:tabular-nums;flex:none}
+.achado-v .views.duvida{background:rgba(255,149,0,.16);color:var(--laranja);cursor:help}

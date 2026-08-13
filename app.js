@@ -1035,6 +1035,31 @@
     }).catch(function () { return terminar(null, null); });
   }
 
+
+  /* ---------- compartilhamento (item 2.5) ----------
+     O contador de repost do Instagram é recente e não retroage:
+     vídeo antigo pode marcar quase nada sem ter deixado de ser
+     compartilhado. Não dá para distinguir "ninguém compartilhou"
+     de "o contador não existia" — então a tela diz isso em vez
+     de deixar a pessoa concluir errado. */
+  var MESES_CONFIAVEL = 12;
+
+  function velho(m) {
+    if (!m || !m.publicado_em) return false;
+    var d = new Date(m.publicado_em);
+    if (isNaN(d)) return false;
+    return (Date.now() - d.getTime()) > MESES_CONFIAVEL * 30.5 * 864e5;
+  }
+
+  function selCompart(m) {
+    if (!m || m.taxa_compartilhamento == null) return '';
+    var t = String(m.taxa_compartilhamento).replace('.', ',');
+    var duvida = velho(m);
+    return '<span class="views' + (duvida ? ' duvida' : '') + '"' +
+      (duvida ? ' title="Publicado há mais de um ano. O contador de compartilhamento é recente e não retroage, então este número pode estar subestimado."' : '') +
+      '>' + t + '% compart.' + (duvida ? ' ?' : '') + '</span>';
+  }
+
   function agruparBms() {
     var mapa = {}, ordem = [];
     bms.forEach(function (b) {
@@ -1066,8 +1091,7 @@
           var num = b.estado === 'pendente' ? '<span class="views">na fila</span>'
                   : b.estado === 'erro' ? '<span class="views">não li</span>'
                   : (m.views ? '<span class="views">' + numeroBonito(m.views) + '</span>' : '');
-          var comp = m.taxa_compartilhamento != null
-            ? '<span class="views">' + String(m.taxa_compartilhamento).replace('.', ',') + '% compart.</span>' : '';
+          var comp = selCompart(m);
           return '<li><span class="ord">' + (k + 1) + '</span>' +
             '<span class="tit">' + esc(b.titulo || b.url) + '</span>' + comp + num +
             '<button class="x" data-rm-bm="' + esc(b.url) + '" aria-label="Remover">' + IC_X + '</button></li>';
@@ -1081,6 +1105,15 @@
     $('naoLidos').innerHTML = ruins.length
       ? '<div class="nao-lidos"><span class="k">' + ruins.length + ' link(s) que eu não consegui ler</span><ul>' +
         ruins.map(function (b) { return '<li>' + esc(b.url) + '</li>'; }).join('') + '</ul></div>'
+      : '';
+
+    var duvidosos = bms.filter(function (b) { return velho(b.metricas); }).length;
+    $('avisoCompart').innerHTML = duvidosos
+      ? '<div class="obs"><b>' + duvidosos + ' vídeo(s) têm mais de um ano.</b> ' +
+        'O contador de compartilhamento do Instagram é recente e não retroage — nesses, ' +
+        'um número baixo pode significar que ninguém compartilhou <b>ou</b> que o contador ' +
+        'ainda não existia. Não dá para saber qual. Compare compartilhamento só entre vídeos ' +
+        'da mesma época.</div>'
       : '';
 
     medidor('medCanais', perfisProntos(), ALVO_CANAIS);
