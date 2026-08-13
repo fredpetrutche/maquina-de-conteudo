@@ -210,6 +210,27 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     if (n >= 1e3) return (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace('.', ',') + ' mil';
     return String(n);
   }
+  /* O retomar_ficha não devolve `progresso` — só id, instagram, telefone, nome
+     e dados. Em vez de pedir o campo, deduzimos do que está preenchido: é mais
+     honesto, porque um contador pode dessincronizar do conteúdo e a ficha não. */
+  function concluida(fase, d) {
+    d = d || {};
+    switch (fase) {
+      case 'briefing':
+        return true;                       // a ficha existir já é o briefing feito
+      case 'fase0':
+        return !!(d.macroNicho && d.subNicho &&
+          (d.temas || []).filter(function (t) { return t && t.trim(); }).length >= 3 &&
+          (d.sigEntrega || d.sigPromessa));
+      case 'fase1':
+        return (d.videos || []).length > 0;
+      case 'fase2':
+        return (d.roteiros || []).length > 0;
+      default:
+        return false;
+    }
+  }
+
   function iniciais(nome) {
     var p = String(nome || '?').trim().split(/\s+/);
     return ((p[0] || '')[0] + (p.length > 1 ? (p[p.length - 1] || '')[0] : '')).toUpperCase();
@@ -258,10 +279,12 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     var selos = '';
     if (f.dados.macroNicho) selos += '<span class="selo s2">' + esc(f.dados.macroNicho) + '</span>';
     if (f.dados.subNicho) selos += '<span class="selo s2">' + esc(f.dados.subNicho) + '</span>';
-    selos += '<span class="selo' + (f.progresso >= 2 ? ' s3' : '') + '">Fase 0 ' +
-      (f.progresso >= 2 ? 'concluída' : 'em aberto') + '</span>';
-    selos += '<span class="selo' + (f.progresso >= 3 ? ' s3' : '') + '">Fase 1 ' +
-      (f.progresso >= 3 ? 'concluída' : 'em aberto') + '</span>';
+    var f0 = concluida('fase0', f.dados);
+    var f1 = concluida('fase1', f.dados);
+    selos += '<span class="selo' + (f0 ? ' s3' : '') + '">Fase 0 ' +
+      (f0 ? 'concluída' : 'em aberto') + '</span>';
+    selos += '<span class="selo' + (f1 ? ' s3' : '') + '">Fase 1 ' +
+      (f1 ? 'concluída' : 'em aberto') + '</span>';
     if ((f.dados.roteiros || []).length) {
       selos += '<span class="selo s2">Fase 2 &middot; ' + f.dados.roteiros.length +
         ' roteiros a revisar</span>';
@@ -614,12 +637,13 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
   /* O sidebar é o mesmo do app, mas aqui ele orienta em vez de navegar: a
      pessoa vê onde está no fluxo inteiro e pula para a seção que quer ler. */
-  function pintarLateral(f, temRoteiros) {
+  function pintarLateral(f) {
+    var d = f.dados || {};
     var feito = {
-      briefing: true,
-      fase0: f.progresso >= 2,
-      fase1: f.progresso >= 3,
-      fase2: temRoteiros,
+      briefing: concluida('briefing', d),
+      fase0: concluida('fase0', d),
+      fase1: concluida('fase1', d),
+      fase2: concluida('fase2', d),
       fase3: false
     };
 
@@ -663,8 +687,8 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     var d = f.dados || {};
     var p = d.perfil || {};
     document.title = f.nome + ' — Máquina de Conteúdo';
-    var temRoteiros = (d.roteiros || []).length > 0;
-    pintarLateral(f, temRoteiros);
+    var temRoteiros = concluida('fase2', d);
+    pintarLateral(f);
     tela.innerHTML =
       blocoTopo(f, p) +
 
@@ -678,13 +702,13 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         'Escolher o tamanho da porta de entrada: o assunto na altura que o algoritmo ' +
         'consegue ler, dez temas amplos o bastante para virar busca, e a frase que faz ' +
         'quem passa decidir se te segue.',
-        f.progresso >= 2 ? 'feito' : 'agora', false, 'p-fase0') +
+        concluida('fase0', d) ? 'feito' : 'agora', false, 'p-fase0') +
       blocoFase0(d) +
 
       divisor('1', 'Minerar benchmarks',
         'Responder "o que é conteúdo bom?" com dado em vez de opinião. Você não procura ' +
         'canal de que gosta — procura o vídeo que já ganhou.',
-        f.progresso >= 3 ? 'feito' : 'aberto', false, 'p-fase1') +
+        concluida('fase1', d) ? 'feito' : 'aberto', false, 'p-fase1') +
       blocoFase1(d, p) +
 
       ((transcricoes || []).length
