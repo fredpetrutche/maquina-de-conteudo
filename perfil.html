@@ -132,9 +132,36 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 </head>
 <body>
 
-<main class="larg corpo" id="tela">
-  <p class="pf-carga">Abrindo a ficha…</p>
-</main>
+<div class="app">
+  <aside class="lateral" id="lateral">
+    <div class="lat-topo">
+      <div class="marca">
+        <span class="marca-ic">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/></svg>
+        </span>
+        <span class="marca-nm">Máquina de Conteúdo</span>
+      </div>
+      <div class="progresso">
+        <span class="prog-t"><i id="progBarra"></i></span>
+        <span class="prog-v" id="progVal">— de 3</span>
+      </div>
+    </div>
+    <nav class="lat-nav" id="nav"></nav>
+    <div class="lat-pe">
+      <div class="quem" id="quem" style="display:none">
+        <span class="quem-av" id="quemAv"></span>
+        <span class="quem-t"><b id="quemNm"></b><span id="quemEm"></span></span>
+      </div>
+      <a class="bt simples cheio mini" href="./" style="text-decoration:none;text-align:center">Ir para o app</a>
+    </div>
+  </aside>
+
+  <main class="palco">
+    <div class="larg corpo" id="tela">
+      <p class="pf-carga">Abrindo a ficha…</p>
+    </div>
+  </main>
+</div>
 
 <script>
 (function () {
@@ -144,6 +171,22 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rYWp2eHlpeXF4b3RpeWRreWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgzNzcsImV4cCI6MjEwMjAzNDM3N30.vfHCb8BRcshufnp_7eAt9ch4aVEMpcbVA5u16IS0Kao';
 
   var tela = document.getElementById('tela');
+
+  /* As mesmas etapas do app (app.js, STEPS). Aqui elas não navegam entre telas —
+     rolam até a seção correspondente desta página, porque tudo já está aberto. */
+  var STEPS = [
+    { id: 'briefing', nm: 'Briefing', grupo: 'Comece aqui', ancora: 'p-numeros' },
+    { id: 'fase0', nm: 'Definir o campo', grupo: 'Suas informações', ancora: 'p-fase0' },
+    { id: 'fase1', nm: 'Minerar benchmarks', ancora: 'p-fase1' },
+    { id: 'fase2', nm: 'Replicar o validado', grupo: 'Destrava depois', ancora: 'p-fase2' },
+    { id: 'fase3', nm: 'Retroalimentar a IA', ancora: 'p-fase3' },
+    { id: 'fase4', nm: 'Travar o formato', lock: 1 },
+    { id: 'fase5', nm: 'Industrializar', lock: 1 },
+    { id: 'fase6', nm: 'Monetizar', lock: 1 }
+  ];
+
+  var IC_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var IC_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></svg>';
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -186,9 +229,10 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   /* ---------- divisória de etapa ----------
      Os nomes das fases são os mesmos do app (app.js, STEPS): quem vê a página
      e quem preenche o formulário têm que estar falando da mesma coisa. */
-  function divisor(etapa, nome, oque, estado, primeiro) {
+  function divisor(etapa, nome, oque, estado, primeiro, id) {
     var marca = estado === 'feito' ? '&#10003;' : (estado === 'diag' ? '&#9679;' : etapa);
-    return '<div class="pf-divisor' + (primeiro ? ' primeiro' : '') + '">' +
+    return '<div class="pf-divisor' + (primeiro ? ' primeiro' : '') + '"' +
+      (id ? ' id="' + id + '"' : '') + '>' +
       '<span class="pf-div-n ' + estado + '">' + marca + '</span>' +
       '<div class="pf-div-t">' +
       '<span class="et' + (estado === 'aberto' || estado === 'diag' ? ' cinza' : '') + '">' +
@@ -568,17 +612,65 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 
   /* ---------- montagem ---------- */
 
+  /* O sidebar é o mesmo do app, mas aqui ele orienta em vez de navegar: a
+     pessoa vê onde está no fluxo inteiro e pula para a seção que quer ler. */
+  function pintarLateral(f, temRoteiros) {
+    var feito = {
+      briefing: true,
+      fase0: f.progresso >= 2,
+      fase1: f.progresso >= 3,
+      fase2: temRoteiros,
+      fase3: false
+    };
+
+    document.getElementById('nav').innerHTML = STEPS.map(function (s, i) {
+      var rot = s.grupo ? '<span class="nav-rot">' + esc(s.grupo) + '</span>' : '';
+      var ok = !!feito[s.id];
+      var vazio = !s.lock && !s.ancora;
+      return rot +
+        '<button class="etapa' + (ok ? ' feito' : '') + '"' +
+        (s.ancora ? ' data-ir="' + s.ancora + '"' : '') +
+        (s.lock || vazio ? ' disabled' : '') + '>' +
+        '<span class="et-ic">' +
+        (s.lock ? IC_LOCK : ok ? IC_CHECK : '<span>' + i + '</span>') +
+        '</span><span class="et-nm">' + esc(s.nm) + '</span></button>';
+    }).join('');
+
+    var abertas = STEPS.filter(function (s) { return !s.lock; });
+    var feitas = abertas.filter(function (s) { return feito[s.id]; }).length;
+    document.getElementById('progBarra').style.width =
+      Math.round((feitas / abertas.length) * 100) + '%';
+    document.getElementById('progVal').textContent = feitas + ' de ' + abertas.length;
+
+    var p = (f.dados || {}).perfil || {};
+    var quem = document.getElementById('quem');
+    document.getElementById('quemAv').innerHTML = p.foto
+      ? '<img src="' + esc(p.foto) + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:99px">'
+      : esc(iniciais(f.nome));
+    document.getElementById('quemNm').textContent = f.nome || '';
+    document.getElementById('quemEm').textContent = f.instagram ? '@' + f.instagram : '';
+    quem.style.display = '';
+  }
+
+  document.addEventListener('click', function (e) {
+    var bt = e.target.closest ? e.target.closest('[data-ir]') : null;
+    if (!bt) return;
+    var alvo = document.getElementById(bt.getAttribute('data-ir'));
+    if (alvo) alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
   function pintar(f, transcricoes) {
     var d = f.dados || {};
     var p = d.perfil || {};
     document.title = f.nome + ' — Máquina de Conteúdo';
     var temRoteiros = (d.roteiros || []).length > 0;
+    pintarLateral(f, temRoteiros);
     tela.innerHTML =
       blocoTopo(f, p) +
 
       divisor('', 'Estes são os seus números',
         'O que o seu perfil entrega hoje, medido — não achado. É a régua contra a qual ' +
-        'tudo daqui pra frente vai ser comparado.', 'diag', true) +
+        'tudo daqui pra frente vai ser comparado.', 'diag', true, 'p-numeros') +
       blocoNumeros(p) +
       blocoVirais(p) +
 
@@ -586,13 +678,13 @@ details[open] .tr-ler{color:var(--rotulo-3)}
         'Escolher o tamanho da porta de entrada: o assunto na altura que o algoritmo ' +
         'consegue ler, dez temas amplos o bastante para virar busca, e a frase que faz ' +
         'quem passa decidir se te segue.',
-        f.progresso >= 2 ? 'feito' : 'agora') +
+        f.progresso >= 2 ? 'feito' : 'agora', false, 'p-fase0') +
       blocoFase0(d) +
 
       divisor('1', 'Minerar benchmarks',
         'Responder "o que é conteúdo bom?" com dado em vez de opinião. Você não procura ' +
         'canal de que gosta — procura o vídeo que já ganhou.',
-        f.progresso >= 3 ? 'feito' : 'aberto') +
+        f.progresso >= 3 ? 'feito' : 'aberto', false, 'p-fase1') +
       blocoFase1(d, p) +
 
       ((transcricoes || []).length
@@ -605,12 +697,12 @@ details[open] .tr-ler{color:var(--rotulo-3)}
       divisor('2', 'Replicar o validado',
         'Pegar o vídeo que já provou que funciona, transformar em roteiro de teleprompter ' +
         'e gravar palavra por palavra. É a fase que todo mundo quer pular.',
-        temRoteiros ? 'agora' : 'aberto') +
+        temRoteiros ? 'agora' : 'aberto', false, 'p-fase2') +
       blocoFase2(d) +
 
       divisor('3', 'Retroalimentar a IA',
         'Extrair o padrão dos seus próprios virais e transformar em um agente que escreve ' +
-        'os próximos. É onde a curva vira.', 'aberto') +
+        'os próximos. É onde a curva vira.', 'aberto', false, 'p-fase3') +
       blocoProximas() +
       '<p class="pf-nota" style="margin-top:1.5rem">Ficha <span class="mono">' + esc(f.id) + '</span>' +
       (p.raspadoEm ? ' &middot; números lidos em ' + esc(p.raspadoEm) : '') +

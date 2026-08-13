@@ -9,7 +9,7 @@
 <meta name="description" content="Fluxo guiado para construir uma audiência própria do zero.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23007AFF'/><path d='M24 66 L42 46 L56 58 L76 34' stroke='white' stroke-width='9' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
-<link rel="stylesheet" href="app.css?v=202608122302">
+<link rel="stylesheet" href="app.css?v=202608122355">
 </head>
 <body>
 
@@ -48,11 +48,6 @@
         <span class="quem-t"><b id="quemNm"></b><span id="quemEm"></span></span>
       </div>
       <div class="sinc" id="sinc"><i></i><span>Salvo neste aparelho</span></div>
-      <div class="codigo" id="codigoCx" style="display:none">
-        <span class="k">Código para continuar em outro aparelho</span>
-        <span class="v" id="codigoVal"></span>
-        <button class="bt mini cheio" data-act="copiar-codigo">Copiar código</button>
-      </div>
       <button class="bt simples perigo cheio mini" data-act="limpar">Recomeçar do zero</button>
     </div>
   </aside>
@@ -712,9 +707,34 @@ https://www.youtube.com/shorts/..."></textarea>
   <div class="folha-cx">
     <div class="erro" id="portaErr"></div>
 
-    <div class="troca on" id="portaNova">
-      <h2>Antes de começar</h2>
-      <p>A partir daqui o seu trabalho fica salvo e acompanhado.</p>
+    <!-- entrar -->
+    <div class="troca on" id="portaEntrar">
+      <h2>Entrar</h2>
+      <p>Use o seu @ do Instagram e a senha que você criou.</p>
+      <div class="grupo">
+        <div class="ilha">
+          <div class="linha">
+            <span class="rot">Instagram</span><span class="ddi">@</span>
+            <input type="text" id="eInsta" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="seuperfil">
+          </div>
+          <div class="linha">
+            <span class="rot">Senha</span>
+            <input type="password" id="eSenha" autocomplete="current-password" placeholder="sua senha">
+          </div>
+        </div>
+      </div>
+      <button class="bt forte cheio" data-act="entrar">Entrar</button>
+      <button class="bt simples cheio" data-act="porta-fechar" style="margin-top:.5rem">Agora não</button>
+      <div class="alt">
+        Primeira vez? <button class="elo" data-act="modo-criar">Criar o meu acesso</button><br>
+        <button class="elo" data-act="modo-primeiro" style="margin-top:.4rem">Já preenchi antes e não tenho senha</button>
+      </div>
+    </div>
+
+    <!-- criar acesso -->
+    <div class="troca" id="portaCriar">
+      <h2>Criar o seu acesso</h2>
+      <p>A partir daqui o seu trabalho fica salvo e você volta quando quiser.</p>
       <div class="grupo">
         <div class="ilha">
           <div class="linha">
@@ -722,37 +742,48 @@ https://www.youtube.com/shorts/..."></textarea>
             <input type="text" id="gNome" autocomplete="name" placeholder="Nome e sobrenome">
           </div>
           <div class="linha">
-            <span class="rot">Instagram</span>
-            <span class="ddi">@</span>
+            <span class="rot">Instagram</span><span class="ddi">@</span>
             <input type="text" id="gInsta" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="seuperfil">
           </div>
           <div class="linha">
-            <span class="rot">Celular</span>
-            <span class="ddi">+55</span>
+            <span class="rot">Celular</span><span class="ddi">+55</span>
             <input type="tel" id="gTel" autocomplete="tel-national" inputmode="numeric" maxlength="16" placeholder="(11) 98765-4321">
           </div>
+          <div class="linha">
+            <span class="rot">Senha</span>
+            <input type="password" id="gSenha" autocomplete="new-password" placeholder="mínimo 6 caracteres">
+          </div>
         </div>
-        <span class="sec-nota">Com o seu @ a gente já descobre quais dos seus vídeos performaram melhor. O celular é por onde a gente fala com você no WhatsApp.</span>
+        <span class="sec-nota">Com o seu @ a gente já descobre quais dos seus vídeos performaram melhor. O celular é por onde a gente fala com você.</span>
       </div>
-      <button class="bt forte cheio" data-act="porta-entrar">Começar a Fase 0</button>
+      <button class="bt forte cheio" data-act="criar">Criar e começar</button>
       <button class="bt simples cheio" data-act="porta-fechar" style="margin-top:.5rem">Agora não</button>
-      <div class="alt">Já preencheu em outro aparelho? <button class="elo" data-act="porta-modo-retomar">Recuperar</button></div>
+      <div class="alt">Já tem acesso? <button class="elo" data-act="modo-entrar">Entrar</button></div>
     </div>
 
-    <div class="troca" id="portaRetomar">
-      <h2>Recuperar a sua ficha</h2>
-      <p>Cole o código que aparece no rodapé do menu, no aparelho onde você começou.</p>
+    <!-- primeiro acesso de quem já tem ficha -->
+    <div class="troca" id="portaPrimeiro">
+      <h2>Criar a sua senha</h2>
+      <p>A sua ficha já existe. Confirme o celular dela para definir uma senha.</p>
       <div class="grupo">
         <div class="ilha">
-          <div class="linha empilha">
-            <span class="rot">Código</span>
-            <textarea id="gCodigo" rows="2" class="codigo-txt" placeholder="00000000-0000-0000-0000-000000000000"></textarea>
+          <div class="linha">
+            <span class="rot">Instagram</span><span class="ddi">@</span>
+            <input type="text" id="pInsta" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="seuperfil">
+          </div>
+          <div class="linha">
+            <span class="rot">Celular</span><span class="ddi">+55</span>
+            <input type="tel" id="pTel" inputmode="numeric" maxlength="16" placeholder="(11) 98765-4321">
+          </div>
+          <div class="linha">
+            <span class="rot">Nova senha</span>
+            <input type="password" id="pSenha" autocomplete="new-password" placeholder="mínimo 6 caracteres">
           </div>
         </div>
       </div>
-      <button class="bt forte cheio" id="btRetomar" data-act="porta-retomar">Recuperar</button>
+      <button class="bt forte cheio" data-act="primeiro">Definir senha e entrar</button>
       <button class="bt simples cheio" data-act="porta-fechar" style="margin-top:.5rem">Agora não</button>
-      <div class="alt">Não tem código? <button class="elo" data-act="porta-modo-nova">Começar do zero</button></div>
+      <div class="alt">Voltar para <button class="elo" data-act="modo-entrar">entrar</button></div>
     </div>
   </div>
 </div>
@@ -771,6 +802,7 @@ https://www.youtube.com/shorts/..."></textarea>
 </div>
 
 <div class="aviso-f" id="aviso"></div>
-<script src="app.js?v=202608122302"></script>
+<script src="sessao.js?v=202608122355"></script>
+<script src="app.js?v=202608122355"></script>
 </body>
 </html>

@@ -44,28 +44,18 @@
     var bt = $('btEntrar');
     bt.disabled = true; bt.textContent = 'Entrando…';
 
-    fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
-      method: 'POST',
-      headers: { 'apikey': SUPA_ANON, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email, password: senha })
-    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
-      .then(function (res) {
-        bt.disabled = false; bt.textContent = 'Entrar';
-        if (!res.ok || !res.d.access_token) {
-          return erro(res.d.error_description || res.d.msg || 'E-mail ou senha incorretos.');
-        }
-        sessao = res.d;
-        try { localStorage.setItem(TOKEN_KEY, JSON.stringify(sessao)); } catch (e) {}
-        mostrar();
-      }).catch(function () {
-        bt.disabled = false; bt.textContent = 'Entrar';
-        erro('Não consegui conectar. Tente de novo.');
-      });
+    Sessao.entrar(TOKEN_KEY, email, senha).then(function () {
+      bt.disabled = false; bt.textContent = 'Entrar';
+      mostrar();
+    }).catch(function (e) {
+      bt.disabled = false; bt.textContent = 'Entrar';
+      erro(String(e.message || e));
+    });
   }
 
   function sair() {
     sessao = null;
-    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    Sessao.sair(TOKEN_KEY);
     $('painel').style.display = 'none';
     $('entrada').style.display = '';
   }
@@ -77,8 +67,10 @@
 
   /* ---------- dados ---------- */
   function carregar() {
-    fetch(SUPA_URL + '/rest/v1/painel?select=*', {
-      headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + sessao.access_token }
+    Sessao.token(TOKEN_KEY).then(function (tk) {
+      return fetch(SUPA_URL + '/rest/v1/painel?select=*', {
+        headers: { 'apikey': SUPA_ANON, 'Authorization': 'Bearer ' + tk }
+      });
     }).then(function (r) {
       if (r.status === 401) { sair(); erro('Sessão expirada. Entre de novo.'); return null; }
       return r.json();
@@ -234,8 +226,6 @@
     if (e.key === 'Enter') { e.preventDefault(); entrar(); }
   });
 
-  try {
-    var s = JSON.parse(localStorage.getItem(TOKEN_KEY) || 'null');
-    if (s && s.access_token) { sessao = s; mostrar(); }
-  } catch (e) {}
+  // com refresh_token guardado, entra direto e nunca mais pede senha
+  if (Sessao.tem(TOKEN_KEY)) { sessao = Sessao.ler(TOKEN_KEY); mostrar(); }
 })();

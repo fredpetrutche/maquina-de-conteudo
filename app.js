@@ -6,6 +6,7 @@
 
   var KEY = 'maquina-conteudo.v1';
   var KEY_ID = 'maquina-conteudo.ident';
+  var KEY_SESSAO = 'maquina-conteudo.sessao';
   var SUPA_URL = 'https://mkajvxyiyqxotiydkylq.supabase.co';
   var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rYWp2eHlpeXF4b3RpeWRreWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY0NTgzNzcsImV4cCI6MjEwMjAzNDM3N30.vfHCb8BRcshufnp_7eAt9ch4aVEMpcbVA5u16IS0Kao';
 
@@ -148,7 +149,7 @@
   var syncTimer = null;
   function sincronizar() {
     if (soLeitura) return;
-    if (!ident.instagram || !ident.telefone) return;
+    if (!ident.instagram) return;
     estadoSinc('mov');
     clearTimeout(syncTimer);
     syncTimer = setTimeout(function () {
@@ -310,10 +311,6 @@
       $('quemNm').textContent = ident.nome || '@' + ident.instagram;
       $('quemEm').textContent = ident.nome ? '@' + ident.instagram : telBonito(ident.telefone);
     } else q.style.display = 'none';
-
-    var c = $('codigoCx');
-    if (ident.id) { c.style.display = ''; $('codigoVal').textContent = ident.id; }
-    else c.style.display = 'none';
 
     estadoSinc(ident.nome ? 'on' : '');
   }
@@ -963,65 +960,121 @@
     return fora.join('').replace(/<\/ul><ul>/g, '');
   }
 
-  /* ---------- porta ---------- */
+  /* ---------- porta: entrar, criar acesso, primeira senha ---------- */
   function abrirPorta(modo) {
     $('porta').classList.add('on');
-    trocarPorta(modo);
-    if (modo !== 'retomar') {
-      if (ident.nome) $('gNome').value = ident.nome;
-      if (ident.instagram) $('gInsta').value = ident.instagram;
-      if (ident.telefone) $('gTel').value = telBonito(ident.telefone);
-    }
-    setTimeout(function () {
-      var f = $(modo === 'retomar' ? 'gCodigo' : 'gNome'); if (f) f.focus();
-    }, 80);
+    trocarPorta(modo || 'entrar');
   }
   function trocarPorta(modo) {
-    $('portaNova').classList.toggle('on', modo !== 'retomar');
-    $('portaRetomar').classList.toggle('on', modo === 'retomar');
+    ['Entrar', 'Criar', 'Primeiro'].forEach(function (m) {
+      $('porta' + m).classList.toggle('on', m.toLowerCase() === modo);
+    });
     erroPorta('');
+    setTimeout(function () {
+      var f = modo === 'criar' ? $('gNome') : modo === 'primeiro' ? $('pInsta') : $('eInsta');
+      if (f) f.focus();
+    }, 80);
   }
   function erroPorta(m) {
     var e = $('portaErr'); e.textContent = m || ''; e.classList.toggle('on', !!m);
   }
-  function entrar() {
-    var nm = $('gNome').value.trim();
-    var ig = limparInsta($('gInsta').value), tel = telE164($('gTel').value);
-    if (nm.length < 2) return erroPorta('Escreva o seu nome.');
-    if (!ig) return erroPorta('Confira o @ do Instagram.');
-    if (!telValido(tel)) return erroPorta('Confira o celular: precisa do DDD e do número completo.');
-    ident.nome = nm; ident.instagram = ig; ident.telefone = tel;
-    salvarIdent();
-    buscarMeuPerfil();
-    $('porta').classList.remove('on');
-    pintarPe();
-    state.briefingOk = true;
-    salvar(); pintarNav(); ir('fase0');
+  function limparInsta(v) {
+    var p = String(v || '').trim().toLowerCase();
+    var m = p.match(/instagram\.com\/([^/?#]+)/);
+    if (m) p = m[1];
+    p = p.replace(/^@/, '').replace(/[/?#].*$/, '');
+    return /^[a-z0-9._]{1,30}$/.test(p) ? p : '';
   }
 
-  function recuperar() {
-    var c = $('gCodigo').value.trim();
-    if (!/^[0-9a-f-]{36}$/i.test(c)) return erroPorta('Código inválido. Ele tem 36 caracteres.');
-    erroPorta('');
-    $('btRetomar').disabled = true;
-    rpc('retomar_ficha', { p_id: c }).then(function (rows) {
-      $('btRetomar').disabled = false;
-      if (!rows || !rows.length) return erroPorta('Não encontrei nenhuma ficha com esse código.');
-      var f = rows[0];
-      ident = { id: f.id, instagram: f.instagram || '', telefone: f.telefone || '', nome: f.nome || '' };
-      salvarIdent();
-      if (f.dados && typeof f.dados === 'object') {
-        state = novoEstado(); aplicar(f.dados);
-        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-      }
-      $('porta').classList.remove('on');
-      montar(); pintarPe();
-      avisar('Ficha recuperada');
-      ir(concluida('fase0') ? 'fase1' : 'fase0');
-    }).catch(function () {
-      $('btRetomar').disabled = false;
-      erroPorta('Não consegui conectar. Tente de novo.');
+  function chamarAcesso(corpo, botao) {
+    if (botao) { botao._t = botao.textContent; botao.textContent = 'Um instante…'; botao.disabled = true; }
+    return fetch(SUPA_URL + '/functions/v1/acesso', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + SUPA_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify(corpo)
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (botao) { botao.textContent = botao._t; botao.disabled = false; }
+      if (d.erro) throw new Error(d.erro);
+      return d;
+    }).catch(function (e) {
+      if (botao) { botao.textContent = botao._t; botao.disabled = false; }
+      throw e;
     });
+  }
+
+  function depoisDeEntrar(d, ig, nome, tel) {
+    if (d.sessao) Sessao.gravar(KEY_SESSAO, d.sessao);
+    ident.id = d.ficha_id || ident.id;
+    ident.instagram = ig;
+    if (nome) ident.nome = nome;
+    if (tel) ident.telefone = tel;
+    salvarIdent();
+    $('porta').classList.remove('on');
+    pintarPe();
+    buscarMeuPerfil();
+    buscarVoz();
+    // traz o que já existe na ficha antes de deixar editar
+    return rpc('retomar_ficha', { p_id: ident.id }).then(function (rows) {
+      if (rows && rows.length) {
+        var f = rows[0];
+        ident.telefone = f.telefone || ident.telefone;
+        ident.nome = f.nome || ident.nome;
+        if (f.dados && typeof f.dados === 'object' && Object.keys(f.dados).length) {
+          state = novoEstado(); aplicar(f.dados);
+          try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+        }
+        salvarIdent();
+      }
+      montar(); pintarPe();
+      ir(concluida('fase0') ? 'fase1' : 'fase0');
+    }).catch(function () { montar(); ir('fase0'); });
+  }
+
+  function entrar(bt) {
+    var ig = limparInsta($('eInsta').value), senha = $('eSenha').value;
+    if (!ig) return erroPorta('Confira o @ do Instagram.');
+    if (!senha) return erroPorta('Digite a sua senha.');
+    erroPorta('');
+    if (bt) { bt._t = bt.textContent; bt.textContent = 'Entrando…'; bt.disabled = true; }
+    Sessao.entrar(KEY_SESSAO, ig + '@ig.maquinadeconteudo.app', senha)
+      .then(function () {
+        if (bt) { bt.textContent = bt._t; bt.disabled = false; }
+        return chamarAcesso({ acao: 'existe', instagram: ig });
+      })
+      .then(function (d) { return depoisDeEntrar({ ficha_id: null }, ig, d.nome, null); })
+      .catch(function (e) {
+        if (bt) { bt.textContent = bt._t; bt.disabled = false; }
+        erroPorta(/incorret|invalid/i.test(String(e.message))
+          ? 'Senha incorreta para esse @.' : String(e.message || e));
+      });
+  }
+
+  function criarAcesso(bt) {
+    var nome = $('gNome').value.trim();
+    var ig = limparInsta($('gInsta').value);
+    var tel = telE164($('gTel').value);
+    var senha = $('gSenha').value;
+    if (nome.length < 2) return erroPorta('Escreva o seu nome.');
+    if (!ig) return erroPorta('Confira o @ do Instagram.');
+    if (!telValido(tel)) return erroPorta('Confira o celular: precisa do DDD e do número completo.');
+    if (senha.length < 6) return erroPorta('A senha precisa de pelo menos 6 caracteres.');
+    erroPorta('');
+    chamarAcesso({ acao: 'criar', instagram: ig, telefone: tel, nome: nome, senha: senha }, bt)
+      .then(function (d) { return depoisDeEntrar(d, ig, nome, tel); })
+      .catch(function (e) { erroPorta(String(e.message || e)); });
+  }
+
+  function primeiraSenha(bt) {
+    var ig = limparInsta($('pInsta').value);
+    var tel = telE164($('pTel').value);
+    var senha = $('pSenha').value;
+    if (!ig) return erroPorta('Confira o @ do Instagram.');
+    if (!telValido(tel)) return erroPorta('Confira o celular.');
+    if (senha.length < 6) return erroPorta('A senha precisa de pelo menos 6 caracteres.');
+    erroPorta('');
+    chamarAcesso({ acao: 'primeiro', instagram: ig, telefone: tel, senha: senha }, bt)
+      .then(function (d) { return depoisDeEntrar(d, ig, null, tel); })
+      .catch(function (e) { erroPorta(String(e.message || e)); });
   }
 
   /* ---------- exportar ---------- */
@@ -1193,17 +1246,22 @@
 
       var a = t.getAttribute('data-act');
       if (a === 'briefing-ok') {
-        if (!ident.instagram || !ident.telefone) return abrirPorta('nova');
+        if (!ident.instagram) return abrirPorta(Sessao.tem(KEY_SESSAO) ? 'entrar' : 'criar');
         state.briefingOk = true; salvar(); pintarNav(); ir('fase0');
       }
-      else if (a === 'porta-entrar') entrar();
-      else if (a === 'porta-retomar') recuperar();
-      else if (a === 'porta-modo-retomar') trocarPorta('retomar');
-      else if (a === 'porta-modo-nova') trocarPorta('nova');
+
+
+
+
+      else if (a === 'entrar') entrar(t);
+      else if (a === 'criar') criarAcesso(t);
+      else if (a === 'primeiro') primeiraSenha(t);
+      else if (a === 'modo-entrar') trocarPorta('entrar');
+      else if (a === 'modo-criar') trocarPorta('criar');
+      else if (a === 'modo-primeiro') trocarPorta('primeiro');
       else if (a === 'porta-fechar') fecharFolhas();
       else if (a === 'marco-fechar') fecharFolhas();
       else if (a === 'voz') { vozAberta = !vozAberta; buscarVoz(); }
-      else if (a === 'copiar-codigo') copiar(ident.id || '', 'Código copiado');
       else if (a === 'copiar') copiar(texto(), 'Ficha copiada');
       else if (a === 'baixar') baixar();
       else if (a === 'menu') {
@@ -1270,7 +1328,9 @@
     $('porta').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
-        $('portaRetomar').classList.contains('on') ? recuperar() : entrar();
+        var qual = $('portaCriar').classList.contains('on') ? criarAcesso
+                 : $('portaPrimeiro').classList.contains('on') ? primeiraSenha : entrar;
+        qual();
       }
     });
     window.addEventListener('beforeunload', function () {
