@@ -132,18 +132,50 @@ details[open] .tr-ler{color:var(--rotulo-3)}
 .rt-assistir.mini{margin:0 0 0 .1rem;padding:.1rem .5rem .1rem .35rem;font-size:12px;gap:.15rem}
 .rt-assistir.mini svg{width:.7rem;height:.7rem}
 
-.rt-faixa{border-left:3px solid var(--sep-opaco);padding:.1rem 0 .1rem .8rem;margin-bottom:.9rem}
+.rt-faixa{border-left:3px solid var(--sep-opaco);padding:.1rem 0 .1rem .8rem;margin-bottom:1.1rem}
 .rt-faixa.g{border-left-color:var(--tinta)}
 .rt-faixa.r{border-left-color:color-mix(in srgb,var(--tinta) 45%,transparent)}
-.rt-cab{display:flex;gap:.45rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.3rem}
+.rt-cab{display:flex;gap:.45rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.35rem}
 .rt-nm{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
   color:var(--rotulo-3)}
 .rt-faixa.g .rt-nm{color:var(--tinta)}
 .rt-seg{font-size:11px;font-weight:600;color:var(--rotulo-3);
   font-variant-numeric:tabular-nums}
 .rt-real{font-size:11px;font-weight:600;color:var(--laranja);font-variant-numeric:tabular-nums}
-.rt-legenda{font-size:12.5px;color:var(--rotulo-2);line-height:1.5;margin:.5rem 0 0}
+.rt-legenda{font-size:12.5px;color:var(--rotulo-2);line-height:1.5;margin:.7rem 0 0}
 .rt-legenda b{color:var(--rotulo);font-weight:600}
+
+/* ---------- as duas línguas lado a lado ----------
+   Como Bíblia bilíngue: mesma faixa de tempo nas duas colunas, para conferir
+   o gancho contra o gancho e não contra o vídeo inteiro. */
+.rt-par{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;align-items:start}
+.rt-colrot{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin:.6rem 0 .5rem}
+.rt-colrot span{font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--rotulo-3)}
+.rt-colrot span:first-child{color:var(--tinta)}
+@media(max-width:52rem){
+  .rt-par{grid-template-columns:1fr;gap:.6rem}
+  .rt-colrot{display:none}
+  /* empilhado, cada lado precisa se apresentar sozinho */
+  .rt-en::before{content:"Original em inglês";display:block;font-size:10px;
+    font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--rotulo-3);margin-bottom:.15rem}
+}
+
+/* ---------- correção do especialista ---------- */
+.rt-editar{border:0;background:none;cursor:pointer;padding:0 .1rem;
+  font-size:11px;font-weight:600;color:var(--tinta);margin-left:auto}
+.rt-editar:hover{text-decoration:underline}
+.rt-area{width:100%;box-sizing:border-box;font:inherit;font-size:14px;line-height:1.65;
+  color:var(--rotulo);background:var(--ilha-2);border:1.5px solid var(--tinta);
+  border-radius:var(--r-campo);padding:.6rem .7rem;resize:vertical;min-height:5rem}
+.rt-acoes{display:flex;gap:.5rem;align-items:center;margin-top:.5rem}
+.rt-erro{font-size:12px;color:var(--vermelho)}
+.rt-marca{font-size:11px;font-weight:600;color:var(--verde);
+  letter-spacing:.03em;text-transform:uppercase}
+.rt-antes{border:0;background:none;cursor:pointer;padding:0;font-size:11.5px;
+  color:var(--rotulo-2);text-decoration:underline;margin-top:.35rem}
+.rt-oculto{display:none}
 
 .rt-conf{list-style:none;margin:.2rem 0 0;padding:0}
 .rt-conf li{position:relative;padding:.3rem 0 .3rem 1.35rem;font-size:13px;
@@ -642,38 +674,87 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     return h + '</div>';
   }
 
-  /* O roteiro em português vem antes do original: é ele que vai ser gravado.
-     O original fica logo abaixo, para conferir o que a frase dizia antes. */
+  /* A quebra de linha de 88 colunas veio do arquivo de origem. Em tela estreita
+     ela vira linha órfã, então some — o parágrafo é que importa. */
+  function desdobrar(t) {
+    return String(t || '').trim().split(/\n\s*\n/)
+      .map(function (b) { return b.replace(/\s*\n\s*/g, ' ').trim(); })
+      .join('\n\n');
+  }
+
+  function seg(s) { return String(Math.round(s * 10) / 10).replace('.', ','); }
+
+  /* O roteiro em português vem antes do original — é ele que vai ser gravado.
+     As duas línguas ficam lado a lado na MESMA faixa de tempo: assim o gancho
+     de um se compara com o gancho do outro, não com o vídeo inteiro. */
   function corpoRoteiro(r, orig) {
     var h = '';
 
     var faixas = (r.trechos || []).length
       ? r.trechos
       : (r.texto ? [{ rot: 'Teleprompter', seg: '', txt: r.texto }] : []);
+    if (!faixas.length) return h;
 
-    if (faixas.length) {
+    /* No inglês não há estimativa: a duração do vídeo é conhecida e a
+       transcrição é dele inteiro, então caractere por segundo é medido. */
+    var cortes = r.cortesOrig;
+    var cpsEn = (orig && r.duracao) ? orig.length / r.duracao : 0;
+    var lados = (orig && cortes && faixas.length === 3)
+      ? [orig.slice(0, cortes[0]), orig.slice(cortes[0], cortes[1]), orig.slice(cortes[1])]
+      : null;
+
+    if (lados) {
+      h += '<div class="rt-colrot"><span>Português — é isto que você grava</span>' +
+        '<span>Original em inglês</span></div>';
+    } else {
       h += '<span class="tr-rot">Roteiro em português — leia exatamente assim</span>';
-      h += faixas.map(function (t, i) {
-        var cls = ['g', 'r', 'c'][i] || 'c';
-        return '<div class="rt-faixa ' + (faixas.length > 1 ? cls : 'c') + '">' +
-          '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
-          (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
-          (t.estoura ? '<span class="rt-real">está levando ~' +
-            String(t.s).replace('.', ',') + 's</span>' : '') +
-          '</div><p class="tr-txt">' + esc(t.txt) + '</p></div>';
-      }).join('');
-
-      if (faixas.length > 1) {
-        h += '<p class="rt-legenda">Os tempos são estimados pela quantidade de texto, ' +
-          'a 16 caracteres por segundo. <b>Onde aparece laranja, o trecho está passando ' +
-          'da faixa</b> — em geral porque a frase de abertura é longa demais para caber ' +
-          'em três segundos.</p>';
-      }
     }
 
-    if (orig) {
+    h += faixas.map(function (t, i) {
+      var cls = faixas.length > 1 ? (['g', 'r', 'c'][i] || 'c') : 'c';
+      var en = lados ? desdobrar(lados[i]) : '';
+      var corrigido = typeof t.final === 'string' && t.final !== t.txt;
+      var chave = r.n + ':' + i;
+
+      var pt = '<div class="rt-pt" data-cx="' + chave + '">' +
+        '<p class="tr-txt" data-txt="' + chave + '">' +
+        esc(corrigido ? t.final : t.txt) + '</p>' +
+        (corrigido
+          ? '<button class="rt-antes" data-antes="' + chave + '">ver o que a máquina ' +
+            'tinha escrito</button><p class="tr-txt orig rt-oculto" data-orig="' + chave +
+            '">' + esc(t.txt) + '</p>'
+          : '') +
+        '</div>';
+
+      return '<div class="rt-faixa ' + cls + '">' +
+        '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
+        (t.seg ? '<span class="rt-seg">' + esc(t.seg) + '</span>' : '') +
+        (t.estoura ? '<span class="rt-real">seu: ' + seg(t.s) + 's</span>' : '') +
+        (en && cpsEn ? '<span class="rt-seg">original: ' +
+          seg(lados[i].length / cpsEn) + 's</span>' : '') +
+        (corrigido ? '<span class="rt-marca">corrigido</span>' : '') +
+        '<button class="rt-editar" data-ed="' + chave + '">editar</button>' +
+        '</div>' +
+        (lados
+          ? '<div class="rt-par">' + pt + '<div class="rt-en"><p class="tr-txt orig">' +
+            esc(en) + '</p></div></div>'
+          : pt) +
+        '</div>';
+    }).join('');
+
+    if (faixas.length > 1) {
+      h += '<p class="rt-legenda">No inglês o tempo é medido — a duração do vídeo é ' +
+        'conhecida. <b>No português ele é estimado</b> pela quantidade de texto, a 16 ' +
+        'caracteres por segundo; quando aparece em laranja, o trecho está passando da ' +
+        'faixa. Editando um trecho, o texto antigo não se perde: fica guardado para o ' +
+        'app aprender o que você troca.</p>';
+    }
+
+    /* sem os cortes do original não dá para parear faixa a faixa — aí ele vai
+       inteiro, embaixo, em vez de sumir */
+    if (orig && !lados) {
       h += '<span class="tr-rot">O original, em inglês</span>' +
-        '<p class="tr-txt orig">' + esc(orig) + '</p>';
+        '<p class="tr-txt orig">' + esc(desdobrar(orig)) + '</p>';
     }
 
     if (r.nota) {
@@ -807,6 +888,123 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     quem.style.display = '';
   }
 
+  /* ---------- correção do especialista ----------
+     Duas versões convivem: `txt` é o que a máquina escreveu e nunca muda;
+     `final` é o que ele de fato fala. O que ensina a voz é o par, não o texto
+     final sozinho — por isso sobrescrever seria perder a informação toda. */
+
+  var FICHA = null;
+
+  function acharTrecho(dados, chave) {
+    var p = chave.split(':');
+    var r = (dados.roteiros || []).filter(function (x) {
+      return String(x.n) === p[0];
+    })[0];
+    return (r && r.trechos && r.trechos[+p[1]]) ? { r: r, t: r.trechos[+p[1]] } : null;
+  }
+
+  function salvarTrecho(chave, valor) {
+    /* relê antes de escrever: o salvar_ficha grava `dados` inteiro, então
+       partir de uma cópia velha apagaria o que outra tela salvou no meio. */
+    return chamar('retomar_ficha', { p_id: codigo }).then(function (rows) {
+      if (!Array.isArray(rows) || !rows.length) throw new Error('ficha não encontrada');
+      var f = rows[0];
+      var d = f.dados || {};
+      var achado = acharTrecho(d, chave);
+      if (!achado) throw new Error('esse trecho não está mais na ficha');
+
+      achado.t.final = valor;
+      /* a versão final montada, para o app aprender a voz depois */
+      achado.r.textoFinal = achado.r.trechos.map(function (x) {
+        return typeof x.final === 'string' ? x.final : x.txt;
+      }).join('\n\n');
+
+      return chamar('salvar_ficha', {
+        p_id: codigo,
+        p_instagram: f.instagram,
+        p_telefone: f.telefone,
+        p_nome: f.nome,
+        p_dados: d,
+        p_etapa: null,      /* null preserva o que já está lá */
+        p_progresso: null
+      }).then(function (res) {
+        if (typeof res !== 'string') {
+          throw new Error((res && (res.message || res.hint)) || 'o banco recusou');
+        }
+        if (FICHA) FICHA.dados = d;
+        return valor;
+      });
+    });
+  }
+
+  function abrirEdicao(chave) {
+    var cx = document.querySelector('[data-cx="' + chave + '"]');
+    if (!cx || cx.querySelector('.rt-area')) return;
+    var achado = FICHA ? acharTrecho(FICHA.dados || {}, chave) : null;
+    if (!achado) return;
+
+    var atual = typeof achado.t.final === 'string' ? achado.t.final : achado.t.txt;
+    var guardado = cx.innerHTML;
+
+    var area = document.createElement('textarea');
+    area.className = 'rt-area';
+    area.value = atual;
+    area.rows = Math.min(16, Math.ceil(atual.length / 60) + 1);
+
+    var acoes = document.createElement('div');
+    acoes.className = 'rt-acoes';
+    var ok = document.createElement('button');
+    ok.className = 'bt forte mini';
+    ok.textContent = 'Salvar';
+    var nao = document.createElement('button');
+    nao.className = 'bt simples mini';
+    nao.textContent = 'Cancelar';
+    var recado = document.createElement('span');
+    recado.className = 'rt-erro';
+    acoes.appendChild(ok);
+    acoes.appendChild(nao);
+    acoes.appendChild(recado);
+
+    cx.innerHTML = '';
+    cx.appendChild(area);
+    cx.appendChild(acoes);
+    area.focus();
+
+    nao.addEventListener('click', function () { cx.innerHTML = guardado; });
+
+    ok.addEventListener('click', function () {
+      var valor = area.value.trim();
+      if (!valor) { recado.textContent = 'O trecho não pode ficar vazio.'; return; }
+      ok.disabled = true;
+      nao.disabled = true;
+      recado.className = 'rt-erro';
+      recado.style.color = 'var(--rotulo-2)';
+      recado.textContent = 'salvando…';
+
+      salvarTrecho(chave, valor).then(function () {
+        var mudou = valor !== achado.t.txt;
+        cx.innerHTML = '<p class="tr-txt" data-txt="' + chave + '">' + esc(valor) + '</p>' +
+          (mudou
+            ? '<button class="rt-antes" data-antes="' + chave + '">ver o que a máquina ' +
+              'tinha escrito</button><p class="tr-txt orig rt-oculto" data-orig="' + chave +
+              '">' + esc(achado.t.txt) + '</p>'
+            : '');
+        var cab = cx.closest('.rt-faixa').querySelector('.rt-cab');
+        if (mudou && !cab.querySelector('.rt-marca')) {
+          var m = document.createElement('span');
+          m.className = 'rt-marca';
+          m.textContent = 'corrigido';
+          cab.insertBefore(m, cab.querySelector('.rt-editar'));
+        }
+      }).catch(function (e) {
+        ok.disabled = false;
+        nao.disabled = false;
+        recado.style.color = '';
+        recado.textContent = 'Não salvou: ' + (e.message || e) + ' — tente de novo.';
+      });
+    });
+  }
+
   function fecharMenu() {
     document.getElementById('lateral').classList.remove('aberto');
     document.getElementById('veu').classList.remove('on');
@@ -818,6 +1016,26 @@ details[open] .tr-ler{color:var(--rotulo-3)}
     if (e.target.closest('[data-act="menu"]')) {
       var ab = document.getElementById('lateral').classList.toggle('aberto');
       document.getElementById('veu').classList.toggle('on', ab);
+      return;
+    }
+
+    var ed = e.target.closest('[data-ed]');
+    if (ed) {
+      e.preventDefault();
+      abrirEdicao(ed.getAttribute('data-ed'));
+      return;
+    }
+
+    var antes = e.target.closest('[data-antes]');
+    if (antes) {
+      var alvoOrig = document.querySelector(
+        '[data-orig="' + antes.getAttribute('data-antes') + '"]');
+      if (alvoOrig) {
+        var escondido = alvoOrig.classList.toggle('rt-oculto');
+        antes.textContent = escondido
+          ? 'ver o que a máquina tinha escrito'
+          : 'esconder o que a máquina tinha escrito';
+      }
       return;
     }
 
@@ -833,6 +1051,7 @@ details[open] .tr-ler{color:var(--rotulo-3)}
   document.getElementById('veu').addEventListener('click', fecharMenu);
 
   function pintar(f, transcricoes) {
+    FICHA = f;
     var d = f.dados || {};
     var p = d.perfil || {};
     document.title = f.nome + ' — Máquina de Conteúdo';
