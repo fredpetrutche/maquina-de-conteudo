@@ -684,10 +684,25 @@
       ? [orig.slice(0, cortes[0]), orig.slice(cortes[0], cortes[1]), orig.slice(cortes[1])]
       : null;
 
+    /* literal = tradução crua, mesma duração do original; voz = adaptado no
+       jeito de falar da pessoa, o que costuma esticar o tempo. Só oferece a
+       escolha quando existe tradução literal guardada. */
+    var temLiteral = faixas.some(function (t) { return typeof t.litTxt === 'string' && t.litTxt; });
+    var modo = temLiteral ? (rtModoRev[r.n] || 'lit') : 'voz';
+
+    if (temLiteral) {
+      h += '<div class="rt-modo">' +
+        '<button class="' + (modo === 'lit' ? 'on' : '') + '" data-modo-rot="' + r.n + ':lit">' +
+        'Tradução literal <s>igual ao original</s></button>' +
+        '<button class="' + (modo === 'voz' ? 'on' : '') + '" data-modo-rot="' + r.n + ':voz">' +
+        'Na voz dele <s>mais natural, mais longo</s></button></div>';
+    }
+
     /* A duração fica à vista porque ela é retenção: um roteiro que estica 50%
        além do original não é o mesmo vídeo, é outro. */
     var meus = faixas.reduce(function (a, t) {
-      return a + (typeof t.final === 'string' ? t.final.length : (t.txt || '').length) / 16;
+      var txt = modo === 'lit' && t.litTxt ? t.litTxt : (typeof t.final === 'string' ? t.final : t.txt);
+      return a + (txt || '').length / 16;
     }, 0);
     var sobra = r.duracao ? meus / r.duracao - 1 : 0;
     var barra = '<div class="rt-barra{onde}">' +
@@ -714,7 +729,8 @@
     h += faixas.map(function (t, i) {
       var cls = faixas.length > 1 ? (['g', 'r', 'c'][i] || 'c') : 'c';
       var en = lados ? desdobrar(lados[i]) : '';
-      var corrigido = typeof t.final === 'string' && t.final !== t.txt;
+      var corrigido = modo === 'voz' && typeof t.final === 'string' && t.final !== t.txt;
+      var txtModo = modo === 'lit' && t.litTxt ? t.litTxt : (corrigido ? t.final : t.txt);
       var chave = r.n + ':' + i;
 
       var cabeca = '<div class="rt-cab"><span class="rt-nm">' + esc(t.rot) + '</span>' +
@@ -722,19 +738,20 @@
         /* os dois tempos sempre à vista, não só quando estoura: é a comparação
            que responde "o meu está mais longo que o dele?" */
         '<span class="rt-' + (t.estoura ? 'real' : 'seg') + '">seu ' +
-        seg((typeof t.final === 'string' ? t.final.length : t.txt.length) / 16) + 's</span>' +
+        seg((txtModo || '').length / 16) + 's</span>' +
         (en && cpsEn ? '<span class="rt-seg">original ' +
           seg(lados[i].length / cpsEn) + 's</span>' : '') +
         (corrigido ? '<span class="rt-marca">corrigido</span>' : '') +
-        '<button class="rt-editar" data-ed="' + chave + '">editar</button>' +
+        (modo === 'voz' ? '<button class="rt-editar" data-ed="' + chave + '">editar</button>' : '') +
         '</div>';
 
       /* Com alinhamento, a faixa vira tabela de legenda: cada parágrafo ao
          lado da frase inglesa que deu origem a ele. Depois de corrigida ela
-         volta ao texto corrido — o pareamento por frase não vale mais. */
-      var linhas = corrigido
-        ? []
-        : (r.pares || []).filter(function (l) { return l.faixa === t.rot; });
+         volta ao texto corrido — o pareamento por frase não vale mais. Só faz
+         sentido na voz adaptada, que é o que se corrige. */
+      var linhas = (modo === 'voz' && !corrigido)
+        ? (r.pares || []).filter(function (l) { return l.faixa === t.rot; })
+        : [];
 
       var miolo;
       if (linhas.length) {
@@ -751,7 +768,7 @@
       } else {
         var pt = '<div class="rt-pt" data-cx="' + chave + '">' +
           '<p class="tr-txt" data-txt="' + chave + '">' +
-          esc(corrigido ? t.final : t.txt) + '</p>' +
+          esc(txtModo) + '</p>' +
           (corrigido
             ? '<button class="rt-antes" data-antes="' + chave + '">ver o que a máquina ' +
               'tinha escrito</button><p class="tr-txt orig rt-oculto" data-orig="' + chave +
@@ -784,7 +801,7 @@
         '<p class="tr-txt orig">' + esc(desdobrar(orig)) + '</p>';
     }
 
-    if (r.nota) {
+    if (r.nota && modo === 'voz') {
       h += '<span class="tr-rot">O que eu mudei em relação ao original</span>' +
         '<p class="tr-txt orig">' + escRico(r.nota) + '</p>';
     }
@@ -826,6 +843,39 @@
       '</div>';
   }
 
+  /* Achou um vídeo novo por conta própria e quer indicar — sem passar pela
+     Fase 1 inteira de novo. Mesmo destino: a fila de benchmarks. */
+  function blocoVideoNovo() {
+    return '<div class="cartao" style="margin:1rem 0">' +
+      '<div class="cartao-h"><h3 style="font-size:16px">Achou um vídeo novo?</h3>' +
+      '<p>Cole o link do reel aqui. Ele entra na fila e some — não precisa mexer em mais nada.</p></div>' +
+      '<textarea id="vidNovoTxt" rows="2" placeholder="https://www.instagram.com/reel/..." ' +
+      'style="width:100%;resize:vertical;font:inherit;font-size:14px;padding:.6rem .7rem;' +
+      'border-radius:10px;border:.5px solid var(--sep);background:var(--fundo);color:var(--tinta)"></textarea>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:.6rem">' +
+      '<span id="vidNovoEstado" style="font-size:13px;color:var(--rotulo-2)"></span>' +
+      '<button class="bt mini" id="vidNovoBt">Adicionar vídeo</button></div></div>';
+  }
+
+  function colarVideoNovo(botao) {
+    var campo = document.getElementById('vidNovoTxt');
+    var estado = document.getElementById('vidNovoEstado');
+    var urls = String(campo.value || '').split('\n')
+      .map(function (l) { return l.trim(); }).filter(Boolean);
+    if (!urls.length) { estado.textContent = 'Cole pelo menos um link'; return; }
+    var antes = botao.textContent;
+    botao.disabled = true; botao.textContent = 'Guardando…';
+    chamar('guardar_benchmarks', { p_ficha: codigo, p_urls: urls }).then(function (n) {
+      botao.disabled = false; botao.textContent = antes;
+      var novos = typeof n === 'number' ? n : (n && n[0]) || 0;
+      estado.textContent = novos ? novos + ' link(s) novos — entrou na fila' : 'Esse link eu já tinha';
+      campo.value = '';
+    }).catch(function () {
+      botao.disabled = false; botao.textContent = antes;
+      estado.textContent = 'Não consegui guardar — tenta de novo';
+    });
+  }
+
   function blocoFase2(d, transcricoes) {
     var rs = d.roteiros || [];
     if (!rs.length) {
@@ -845,6 +895,7 @@
     var itens = rs.map(function (r) {
       var tr = porUrl[r.url];
       var orig = tr ? tr.texto : '';
+      TRECHOS_ORIG[r.n] = orig;
       var tx = (r.compartilhamentos && r.views)
         ? (r.compartilhamentos / r.views * 100).toFixed(2).replace('.', ',') : '';
       var vid = vidPorUrl[r.url] || {};
@@ -900,6 +951,7 @@
       '<p>Cada um foi transcrito do original, convertido em texto de teleprompter e passado ' +
       'para a sua voz. A ordem é por encaixe com o que você já provou que funciona, não por ' +
       'view. Nada aqui está gravável antes de você passar o olho.</p></div>' +
+      blocoVideoNovo() +
       '<div class="ilha" style="background:transparent">' + itens + '</div>' +
       blocoRegrasVoz(d) +
       '<p class="pf-nota">Abrindo um roteiro você tem, nesta ordem: o link para assistir o ' +
@@ -973,6 +1025,8 @@
      final sozinho — por isso sobrescrever seria perder a informação toda. */
 
   var FICHA = null;
+  var TRECHOS_ORIG = {};   // r.n -> texto original (inglês), casado pela url ao pintar
+  var rtModoRev = {};      // r.n -> 'lit' | 'voz'
 
   function acharTrecho(dados, chave) {
     var p = chave.split(':');
@@ -1145,8 +1199,10 @@
         return String(x.n) === cp.getAttribute('data-cp');
       })[0];
       if (!rr) return;
+      var modoCp = rtModoRev[rr.n] || 'lit';
       var texto = (rr.trechos || []).length
         ? rr.trechos.map(function (t) {
+            if (modoCp === 'lit' && t.litTxt) return t.litTxt;
             return typeof t.final === 'string' ? t.final : t.txt;
           }).join('\n\n')
         : (rr.texto || '');
@@ -1162,6 +1218,29 @@
       }).catch(function () {
         cp.innerHTML = IC_COPIA + 'Não consegui copiar';
       });
+      return;
+    }
+
+    var vn = e.target.closest('#vidNovoBt');
+    if (vn) {
+      e.preventDefault();
+      colarVideoNovo(vn);
+      return;
+    }
+
+    var md = e.target.closest('[data-modo-rot]');
+    if (md) {
+      e.preventDefault();
+      var partesModo = md.getAttribute('data-modo-rot').split(':');
+      var nRot = partesModo[0], novoModo = partesModo[1];
+      rtModoRev[nRot] = novoModo;
+      var rMd = ((FICHA.dados || {}).roteiros || []).filter(function (x) {
+        return String(x.n) === nRot;
+      })[0];
+      /* troca só o miolo do painel — a página inteira não precisa repintar
+         por causa de um seletor, e assim a rolagem não pula */
+      var corpo = document.querySelector('[data-ch="rt:' + nRot + '"] .tr-corpo');
+      if (rMd && corpo) corpo.innerHTML = corpoRoteiro(rMd, TRECHOS_ORIG[nRot] || '');
       return;
     }
 

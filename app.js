@@ -450,8 +450,14 @@
 
   /* ---------- navegação ---------- */
   function ir(id, quieto) {
-    var st = STEPS.filter(function (s) { return s.id === id; })[0];
-    if (!st || travada(st)) return;
+    /* 'revisao' é modo, não etapa — saiu da STEPS no dia que o lateral ganhou
+       as duas listas (rolar × trocar). Sem este desvio, todo `ir('revisao')`
+       falha calado: login de quem já tem ficha, "voltar à ficha" e o redirect
+       da Fase 2 caem todos aqui. */
+    if (id !== 'revisao') {
+      var st = STEPS.filter(function (s) { return s.id === id; })[0];
+      if (!st || travada(st)) return;
+    }
 
     /* A Fase 2 é só leitura, e a revisão já a desenha. Manter as duas telas
        seria voltar a ter dois códigos para os mesmos roteiros — então o
@@ -2216,9 +2222,38 @@
     }).catch(function () { faixa.textContent = 'Não consegui carregar a ficha'; return false; });
   }
 
+  /* Igual à abrirLeitura, mas destrava a edição: quem tem o código da ficha
+     (o link só sai do painel, ninguém adivinha) passa a editar como se
+     tivesse entrado por senha — o código já é a credencial, é assim que
+     retomar_ficha sempre funcionou. Existe para o link "Editar" do painel
+     abrir direto na ficha da pessoa, sem passar pela porta de novo. */
+  function abrirEdicao(fichaId) {
+    var faixa = $('faixaLeitura');
+    faixa.style.display = '';
+    faixa.innerHTML = 'Carregando…';
+    return rpc('retomar_ficha', { p_id: fichaId }).then(function (rows) {
+      if (!rows || !rows.length) { faixa.textContent = 'Ficha não encontrada'; return false; }
+      var f = rows[0];
+      ident = { id: f.id, instagram: f.instagram || '', telefone: f.telefone || '', nome: f.nome || '' };
+      salvarIdent();
+      state = novoEstado();
+      if (f.dados && typeof f.dados === 'object') aplicar(f.dados);
+      faixa.innerHTML = 'Você está editando a ficha de ' + esc(f.nome || '@' + f.instagram);
+      return true;
+    }).catch(function () { faixa.textContent = 'Não consegui carregar a ficha'; return false; });
+  }
+
   function boot() {
     var qs = new URLSearchParams(location.search);
     var alvoFicha = qs.get('ficha');
+    if (alvoFicha && qs.get('editar') === '1') {
+      ligar();
+      abrirEdicao(alvoFicha).then(function (ok) {
+        montar(); pintarPe();
+        ir(ok ? (qs.get('etapa') || 'fase2') : 'briefing', true);
+      });
+      return;
+    }
     if (alvoFicha) {
       ligar();
       abrirLeitura(alvoFicha).then(function (ok) {

@@ -39,7 +39,7 @@
         <span class="quem-av" id="quemAv"></span>
         <span class="quem-t"><b id="quemNm"></b><span id="quemEm"></span></span>
       </div>
-      <a class="bt simples cheio mini" href="./" style="text-decoration:none;text-align:center">Ir para o app</a>
+      <a class="bt forte cheio mini" id="btEditar" href="./" style="text-decoration:none;text-align:center">Editar</a>
     </div>
   </aside>
 
@@ -57,8 +57,15 @@
    app usa como tela de entrada — para as duas mudarem juntas. */
 (function () {
   'use strict';
-  Revisao.carregar(document.getElementById('tela'),
-                   (location.hash || '').replace('#', '').trim());
+  var codigo = (location.hash || '').replace('#', '').trim();
+  /* sem o código não tem para onde editar — a maçaneta some, não fica
+     apontando para um app.js que abre sem ninguém identificado */
+  if (/^[0-9a-f-]{36}$/i.test(codigo)) {
+    document.getElementById('btEditar').href = 'index.html?ficha=' + encodeURIComponent(codigo) + '&editar=1';
+  } else {
+    document.getElementById('btEditar').style.display = 'none';
+  }
+  Revisao.carregar(document.getElementById('tela'), codigo);
   window.addEventListener('hashchange', function () { location.reload(); });
 })();
 </script>

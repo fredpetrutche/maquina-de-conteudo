@@ -240,6 +240,13 @@ details[open] .tr-sub{display:block;font-size:12px;color:var(--rotulo-2);margin-
 .rt-copiar svg{width:.85rem;height:.85rem}
 .rt-dur{font-size:12px;color:var(--rotulo-2);font-variant-numeric:tabular-nums}
 .rt-dur b{font-weight:600;color:var(--rotulo)}
+
+/* ---------- literal × na voz ---------- */
+.rt-modo{display:flex;gap:2px;background:var(--preench);border-radius:11px;padding:3px;margin-bottom:.7rem}
+.rt-modo button{flex:1;border:0;background:none;border-radius:8px;padding:.45rem .6rem;
+  cursor:pointer;text-align:center;font:inherit;color:var(--rotulo)}
+.rt-modo button s{display:block;text-decoration:none;font-size:11px;font-weight:400;color:var(--rotulo-2);margin-top:.05rem}
+.rt-modo button.on{background:var(--ilha);font-weight:600}
 .rt-dur .longo{color:var(--laranja);font-weight:600}
 
 /* ---------- correção do especialista ---------- */
